@@ -297,6 +297,30 @@ st.markdown("""
         font-weight: bold;
         margin: 0.2rem;
     }
+    
+    .mitre-technique {
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid #00ffff;
+        border-radius: 6px;
+        padding: 0.5rem;
+        margin: 0.2rem;
+        font-size: 0.8rem;
+        display: inline-block;
+    }
+    
+    .test-card {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        border: 1px solid #ffd700;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        transition: all 0.3s ease;
+    }
+    
+    .test-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -308,7 +332,7 @@ def quantum_resource_manager():
     finally:
         gc.collect()
 
-# --- ENHANCED BACKEND CLASSES ---
+# --- FIXED BACKEND CLASSES ---
 
 class AdvancedThreatIntelligence:
     """Enhanced threat intelligence with MITRE ATT&CK mapping"""
@@ -342,20 +366,6 @@ class AdvancedThreatIntelligence:
             'Lazarus': {'name': 'Lazarus Group', 'origin': 'North Korea', 'targets': ['Finance', 'Cryptocurrency']},
             'Equation': {'name': 'Equation Group', 'origin': 'USA', 'targets': ['Telecom', 'Government']}
         }
-    
-    def get_attack_path_analysis(self, indicators):
-        """Analyze potential attack paths based on indicators"""
-        paths = []
-        for indicator in indicators[:3]:  # Analyze top 3 indicators
-            path = {
-                'indicator': indicator,
-                'mitre_tactics': random.sample(list(self.mitre_techniques.keys()), 3),
-                'confidence': random.uniform(0.7, 0.95),
-                'estimated_time': f"{random.randint(1, 24)} hours",
-                'threat_actors': random.sample(list(self.threat_actors.keys()), 2)
-            }
-            paths.append(path)
-        return paths
 
 class XDRIntegration:
     """Extended Detection and Response integration"""
@@ -481,10 +491,6 @@ class LiveDataIntegration:
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
-        self.threat_intel = AdvancedThreatIntelligence()
-        self.xdr = XDRIntegration()
-        self.cloud_security = CloudSecurityModule()
-        self.compliance = ComplianceManager()
     
     def fetch_cisa_alerts(self):
         """Fetch live CISA alerts - enhanced"""
@@ -504,8 +510,9 @@ class LiveDataIntegration:
     def fetch_mitre_techniques(self):
         """Fetch MITRE ATT&CK techniques - enhanced"""
         try:
+            mitre_data = AdvancedThreatIntelligence()
             techniques = []
-            for tactic_id, tactic_info in self.threat_intel.mitre_techniques.items():
+            for tactic_id, tactic_info in mitre_data.mitre_techniques.items():
                 for technique in tactic_info['techniques'][:2]:  # Limit to 2 techniques per tactic
                     techniques.append({
                         "id": technique,
@@ -637,6 +644,7 @@ class HolographicThreatIntelligence:
         self.quantum_neural_net = QuantumNeuralNetwork()
         self.cisa_integration = self.live_data
         self.mitre_integration = self.live_data
+        # Initialize the missing components
         self.threat_intel = AdvancedThreatIntelligence()
         self.xdr = XDRIntegration()
         self.cloud_security = CloudSecurityModule()
@@ -712,7 +720,7 @@ def generate_attack_path():
         'risk_level': random.choice(['High', 'Critical'])
     }
 
-# --- ENHANCED UI RENDERING FUNCTIONS ---
+# --- MERGED AND ENHANCED UI RENDERING FUNCTIONS ---
 
 def render_neural_matrix():
     st.markdown("### 🧠 QUANTUM NEURAL THREAT MATRIX")
@@ -740,164 +748,6 @@ def render_neural_matrix():
             st.write(f"**{activity}**")
             st.progress(random.uniform(level-0.1, level))
             st.markdown('</div>', unsafe_allow_html=True)
-
-def render_multiverse_analytics():
-    st.markdown("### 🌌 MULTIVERSE THREAT INTELLIGENCE")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### 📊 HOLOGRAPHIC RISK ANALYSIS")
-        st.markdown('<div class="quantum-card">', unsafe_allow_html=True)
-        st.metric("🧿 Holographic Risk", f"{random.uniform(0.6, 0.95):.1%}")
-        st.metric("⚡ Quantum Prediction", f"{random.uniform(0.5, 0.9):.1%}")
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-    with col2:
-        st.markdown("#### 📈 MULTIVERSE TIMELINE ANALYSIS")
-        timelines = ['Prime Timeline', 'Quantum Branch 1', 'Quantum Branch 2']
-        fig = go.Figure(data=[
-            go.Bar(name='Probability', x=timelines, y=[0.65, 0.15, 0.10], marker_color='#00ffff'),
-            go.Bar(name='Threat Level', x=timelines, y=[0.7, 0.9, 0.4], marker_color='#ff00ff'),
-        ])
-        fig.update_layout(title="Multiverse Threat Timeline Analysis", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white'), height=400)
-        st.plotly_chart(fig, use_container_width=True)
-
-def render_quantum_simulator():
-    st.markdown("### 🎮 QUANTUM THREAT SIMULATOR")
-    simulator = st.session_state.holographic_intel.threat_simulator
-    
-    col1, col2 = st.columns([1, 1])
-    
-    with col1:
-        st.markdown("#### ⚙️ SIMULATION CONTROLS")
-        scenario_type = st.selectbox("Threat Scenario Type:", ["ransomware", "supply_chain", "ai_poisoning", "zero_day"], format_func=lambda x: x.replace("_", " ").title())
-        intensity = st.slider("Attack Intensity", 0.1, 1.0, 0.7, 0.1)
-        target_sector = st.selectbox("Target Sector:", ["Financial", "Healthcare", "Government", "Energy", "Technology"])
-        
-        if st.button("🚀 LAUNCH SIMULATION", use_container_width=True, disabled=(st.session_state.get('mode') != 'Admin')):
-            scenario = simulator.create_threat_scenario(scenario_type, intensity, target_sector, 30)
-            st.session_state.active_simulations.append(scenario)
-            st.success(f"🎯 Simulation {scenario['id']} Launched!")
-    
-    with col2:
-        st.markdown("#### 📊 SIMULATION ANALYTICS")
-        analytics = simulator.get_simulation_analytics()
-        st.metric("Total Simulations", analytics['total_simulations'])
-        st.metric("Average Risk Score", f"{analytics['average_risk']:.1%}")
-        st.metric("Most Common Scenario", analytics['most_common_scenario'].replace("_", " ").title())
-        
-        if st.session_state.active_simulations:
-            st.markdown("#### 🔥 ACTIVE SIMULATIONS")
-            for sim in st.session_state.active_simulations[-3:]:  # Show last 3
-                with st.expander(f"{sim['name']} - Risk: {sim['risk_score']:.1%}"):
-                    st.write(f"**Description:** {sim['description']}")
-                    st.write(f"**Target:** {sim['target_sector']}")
-                    st.write(f"**Indicators:** {', '.join(sim['indicators'])}")
-
-def render_live_cisa_data():
-    st.markdown("### 🔗 LIVE CISA THREAT INTELLIGENCE")
-    if not st.session_state.cisa_connected:
-        st.warning("⚠️ Connect to CISA data to view live intelligence.")
-        return
-    
-    cisa_alerts = st.session_state.holographic_intel.cisa_integration.fetch_cisa_alerts()
-    for alert in cisa_alerts:
-        with st.expander(f"{alert['severity']} - {alert['title']}"):
-            st.write(f"**Date:** {alert['date']}")
-            st.write(f"**Source:** {alert['source']}")
-            st.write(f"**Type:** {alert['type']}")
-            st.markdown(f"[View Alert]({alert['link']})")
-
-def render_live_mitre_data():
-    st.markdown("### 🎯 LIVE MITRE ATT&CK FRAMEWORK")
-    if not st.session_state.mitre_connected:
-        st.warning("⚠️ Connect to MITRE data to view attack framework.")
-        return
-    
-    mitre_techniques = st.session_state.holographic_intel.mitre_integration.fetch_mitre_techniques()
-    
-    # Group by tactic
-    tactics = {}
-    for technique in mitre_techniques:
-        tactic = technique['tactic']
-        if tactic not in tactics:
-            tactics[tactic] = []
-        tactics[tactic].append(technique)
-    
-    for tactic, techniques in tactics.items():
-        with st.expander(f"🧩 {tactic}"):
-            for tech in techniques[:3]:  # Show first 3 techniques per tactic
-                st.write(f"**{tech['id']}** - {tech['name']}")
-                st.write(f"*Platforms:* {', '.join(tech['platforms'])}")
-
-def render_global_threat_map():
-    st.markdown("### 🌍 GLOBAL THREAT INTELLIGENCE MAP")
-    
-    # Enhanced threat data with more countries and threat types
-    countries = [
-        {'country': 'United States', 'lat': 38.9, 'lon': -77.0, 'threat': 0.95, 'type': 'Cyber Espionage'},
-        {'country': 'China', 'lat': 39.9, 'lon': 116.4, 'threat': 0.9, 'type': 'State-Sponsored'},
-        {'country': 'Russia', 'lat': 55.7, 'lon': 37.6, 'threat': 0.85, 'type': 'Ransomware'},
-        {'country': 'North Korea', 'lat': 39.0, 'lon': 125.7, 'threat': 0.8, 'type': 'Financial Attacks'},
-        {'country': 'Iran', 'lat': 35.7, 'lon': 51.4, 'threat': 0.75, 'type': 'Critical Infrastructure'},
-        {'country': 'Brazil', 'lat': -15.8, 'lon': -47.9, 'threat': 0.6, 'type': 'Financial Fraud'},
-        {'country': 'Nigeria', 'lat': 9.1, 'lon': 7.4, 'threat': 0.5, 'type': 'Business Email Compromise'},
-        {'country': 'India', 'lat': 28.6, 'lon': 77.2, 'threat': 0.4, 'type': 'Phishing'},
-    ]
-    
-    m = folium.Map(location=[20, 0], zoom_start=2, tiles='CartoDB dark_matter')
-    
-    for c in countries:
-        # Color based on threat level
-        color = 'red' if c['threat'] > 0.8 else 'orange' if c['threat'] > 0.6 else 'yellow'
-        
-        folium.Marker(
-            [c['lat'], c['lon']], 
-            tooltip=f"{c['country']} - Threat: {c['threat']:.1%} - {c['type']}",
-            popup=f"<b>{c['country']}</b><br>Threat Level: {c['threat']:.1%}<br>Type: {c['type']}",
-            icon=folium.Icon(color=color, icon='warning-sign')
-        ).add_to(m)
-    
-    folium_static(m, width=1000, height=500)
-
-def render_vulnerability_intel():
-    st.markdown("### 📊 VULNERABILITY INTELLIGENCE DASHBOARD")
-    vulnerabilities = st.session_state.holographic_intel.live_data.fetch_vulnerability_data()
-    
-    # Summary metrics
-    col1, col2, col3, col4 = st.columns(4)
-    critical = len([v for v in vulnerabilities if v['severity'] == 'CRITICAL'])
-    high = len([v for v in vulnerabilities if v['severity'] == 'HIGH'])
-    medium = len([v for v in vulnerabilities if v['severity'] == 'MEDIUM'])
-    
-    col1.metric("Critical", critical)
-    col2.metric("High", high)
-    col3.metric("Medium", medium)
-    col4.metric("Total", len(vulnerabilities))
-    
-    # Vulnerability details
-    for vuln in vulnerabilities:
-        with st.expander(f"{vuln['cve_id']} - CVSS: {vuln['cvss_score']} - {vuln['severity']}"):
-            st.write(f"**Description:** {vuln['description']}")
-            st.write(f"**Published:** {vuln['published_date']}")
-
-def render_defense_operations():
-    st.markdown("### 🛡️ QUANTUM DEFENSE OPERATIONS CENTER")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### 🎯 ACTIVE DEFENSE SYSTEMS")
-        defenses = [("Quantum Firewall", 0.99), ("Neural IDS", 0.97), ("Holographic Grid", 0.92)]
-        for defense, efficiency in defenses:
-            st.markdown(f'<div class="quantum-card">**{defense}**<br><progress value="{int(efficiency*100)}" max="100"></progress>{efficiency:.1%}</div>', unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("#### 🚀 DEFENSE METRICS")
-        st.metric("Threats Blocked Today", f"{random.randint(1000, 5000):,}")
-        st.metric("System Uptime", f"99.99%")
-        st.metric("Average Response Time", f"{random.uniform(50, 200):.1f}ms")
-
-# --- NEW INNOVATIVE FEATURES ---
 
 def render_live_nexus():
     """Renders the live data feed and AI analysis bot tab."""
@@ -947,347 +797,397 @@ def render_live_nexus():
         st.session_state.analysis_history = "AI Analyst ready.\n"
         st.rerun()
 
-def render_identity_matrix():
-    """Renders the Identity & Access Management dashboard."""
-    st.markdown("### 👤 IDENTITY & ACCESS MATRIX")
-    st.caption("Monitoring identity-based threats and access anomalies.")
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("👥 Privileged Accounts", "1,284")
-    col2.metric("🚨 Risky Sign-ins (24h)", "47", delta="5")
-    col3.metric("⏳ Stale Credentials", "312")
-
-    st.markdown("---")
-
-    col_a, col_b = st.columns([1, 2])
-    with col_a:
-        st.markdown("#### TOP RISKY USERS")
-        risky_users = pd.DataFrame({
-            'User': ['a.jones', 'b.davis', 'c.miller', 'ext_vendor_1', 't.brown'],
-            'Risk Score': [92, 85, 78, 71, 65]
-        })
-        fig = px.bar(risky_users, x='Risk Score', y='User', orientation='h', title="Top 5 Risky Users", color='Risk Score', color_continuous_scale='reds')
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white'), yaxis={'categoryorder':'total ascending'})
-        st.plotly_chart(fig, use_container_width=True)
+def render_quantum_simulator():
+    st.markdown("### 🎮 QUANTUM THREAT SIMULATOR")
+    simulator = st.session_state.holographic_intel.threat_simulator
     
-    with col_b:
-        st.markdown("#### RECENT HIGH-RISK SIGN-IN EVENTS")
-        sign_in_data = [
-            {'User': 'a.jones', 'IP': '185.220.101.35', 'Location': 'Russia', 'Risk': '🔴 High', 'Action': 'Block'},
-            {'User': 'c.miller', 'IP': '103.76.12.102', 'Location': 'Vietnam', 'Risk': '🔴 High', 'Action': 'Block'},
-            {'User': 'guest', 'IP': '203.0.113.88', 'Location': 'Unknown', 'Risk': '🟠 Medium', 'Action': 'Force MFA'},
-            {'User': 'b.davis', 'IP': '192.168.1.54', 'Location': 'Internal', 'Risk': '🟠 Medium', 'Action': 'Alert'},
-        ]
-        df = pd.DataFrame(sign_in_data)
-        st.dataframe(df, use_container_width=True)
-        if st.session_state.get('mode') == 'Admin':
-            st.button("Force MFA for all Risky Users", type="primary")
-
-def render_soar_playbooks():
-    """Renders the Automated SOAR dashboard."""
-    st.markdown("### ⚙️ AUTOMATED RESPONSE (SOAR)")
-    st.caption("Orchestrating and automating security responses to active threats.")
-
-    col1, col2 = st.columns([1, 2])
+    col1, col2 = st.columns([1, 1])
+    
     with col1:
-        st.markdown("#### PLAYBOOK CATALOG")
-        playbook = st.selectbox("Select a Playbook:", 
-                                ("Ransomware Containment", "Phishing Response", "Insider Threat Investigation"))
+        st.markdown("#### ⚙️ SIMULATION CONTROLS")
+        scenario_type = st.selectbox("Threat Scenario Type:", ["ransomware", "supply_chain", "ai_poisoning", "zero_day"], format_func=lambda x: x.replace("_", " ").title())
+        intensity = st.slider("Attack Intensity", 0.1, 1.0, 0.7, 0.1)
+        target_sector = st.selectbox("Target Sector:", ["Financial", "Healthcare", "Government", "Energy", "Technology"])
         
-        st.markdown("---")
-        st.markdown("##### Playbook Steps:")
-        steps = {
-            "Ransomware Containment": ["1. Isolate Host Network", "2. Snapshot Memory/Disk", "3. Block C2 IP in Firewall", "4. Revoke User Credentials", "5. Notify SOC Lead"],
-            "Phishing Response": ["1. Analyze Email Headers", "2. Detonate URL in Sandbox", "3. Search & Purge Similar Emails", "4. Block Sender & Domain", "5. Reset Credentials if Clicked"],
-            "Insider Threat Investigation": ["1. Enable Silent Endpoint Logging", "2. Capture Network Traffic", "3. Analyze File Access Patterns", "4. Correlate with Login Times", "5. Alert HR & Legal"]
-        }
-        for step in steps.get(playbook, []):
-            st.info(step)
-
-    with col_b:
-        st.markdown("#### PLAYBOOK EXECUTION LOG")
-        if st.button(f"🚀 Trigger '{playbook}' Playbook", disabled=(st.session_state.get('mode') != 'Admin')):
-            log_placeholder = st.empty()
-            log_text = ""
-            for i, step in enumerate(steps.get(playbook, [])):
-                log_text += f"[{datetime.now().strftime('%H:%M:%S')}] EXECUTING: {step}...\n"
-                log_placeholder.markdown(f'<div class="log-container">{log_text}</div>', unsafe_allow_html=True)
-                time.sleep(1)
-                log_text += f"[{datetime.now().strftime('%H:%M:%S')}] COMPLETED: Step {i+1}\n"
-                log_placeholder.markdown(f'<div class="log-container">{log_text}</div>', unsafe_allow_html=True)
-            log_text += f"[{datetime.now().strftime('%H:%M:%S')}] ✅ PLAYBOOK COMPLETED SUCCESSFULLY.\n"
-            log_placeholder.markdown(f'<div class="log-container">{log_text}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div class="log-container">Awaiting playbook execution...</div>', unsafe_allow_html=True)
-
-def render_data_governance():
-    """Renders the Data Governance & DLP dashboard."""
-    st.markdown("### 📂 DATA GOVERNANCE (DLP)")
-    st.caption("Classifying sensitive data and preventing data loss.")
+        if st.button("🚀 LAUNCH SIMULATION", use_container_width=True, disabled=(st.session_state.get('mode') != 'Admin')):
+            scenario = simulator.create_threat_scenario(scenario_type, intensity, target_sector, 30)
+            st.session_state.active_simulations.append(scenario)
+            st.success(f"🎯 Simulation {scenario['id']} Launched!")
     
-    col1, col2, col3 = st.columns(3)
-    col1.metric("📑 Classified Documents", "1.2M")
-    col2.metric("📤 Data Exfiltration Alerts (7d)", "14", delta="-2")
-    col3.metric("📜 Policy Violations", "89")
+    with col2:
+        st.markdown("#### 📊 SIMULATION ANALYTICS")
+        analytics = simulator.get_simulation_analytics()
+        st.metric("Total Simulations", analytics['total_simulations'])
+        st.metric("Average Risk Score", f"{analytics['average_risk']:.1%}")
+        st.metric("Most Common Scenario", analytics['most_common_scenario'].replace("_", " ").title())
+        
+        if st.session_state.active_simulations:
+            st.markdown("#### 🔥 ACTIVE SIMULATIONS")
+            for sim in st.session_state.active_simulations[-3:]:  # Show last 3
+                with st.expander(f"{sim['name']} - Risk: {sim['risk_score']:.1%}"):
+                    st.write(f"**Description:** {sim['description']}")
+                    st.write(f"**Target:** {sim['target_sector']}")
+                    st.write(f"**Indicators:** {', '.join(sim['indicators'])}")
 
-    st.markdown("---")
+def render_mitre_navigator():
+    """Renders MITRE ATT&CK Navigator"""
+    st.markdown("### 🎯 MITRE ATT&CK NAVIGATOR")
+    st.caption("Interactive MITRE ATT&CK framework visualization")
     
-    col_a, col_b = st.columns(2)
-    with col_a:
-        st.markdown("#### DATA SENSITIVITY DISTRIBUTION")
-        labels = ['Confidential', 'Internal', 'Restricted', 'Public']
-        sizes = [45, 30, 15, 10]
-        fig = go.Figure(data=[go.Pie(labels=labels, values=sizes, hole=.4)])
-        fig.update_layout(title_text='Data Classification', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
-        st.plotly_chart(fig, use_container_width=True)
-
-    with col_b:
-        st.markdown("#### RECENT DLP ALERTS")
-        dlp_alerts = [
-            {'Policy': 'Credit Card Numbers', 'Source': 'SharePoint', 'User': 'r.green', 'Action': 'Blocked Upload'},
-            {'Policy': 'Project Chimera Docs', 'Source': 'Email', 'User': 'k.white', 'Action': 'Blocked Send'},
-            {'Policy': 'Source Code', 'Source': 'USB Drive', 'User': 'p.black', 'Action': 'Blocked Transfer'},
-            {'Policy': 'PII Detection', 'Source': 'OneDrive', 'User': 'r.green', 'Action': 'Alert'},
-        ]
-        df = pd.DataFrame(dlp_alerts)
-        st.dataframe(df, use_container_width=True)
-        if st.session_state.get('mode') == 'Admin':
-            st.button("Review All Pending Alerts", type="primary")
-
-def render_attack_path_analysis():
-    """Renders attack path analysis similar to CrowdStrike"""
-    st.markdown("### 🎯 ATTACK PATH ANALYSIS")
-    st.caption("Visualizing potential attack paths and MITRE ATT&CK techniques")
+    # MITRE ATT&CK Matrix
+    mitre_data = AdvancedThreatIntelligence()
     
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.markdown("#### 🔍 POTENTIAL ATTACK PATHS")
+        st.markdown("#### 🧩 MITRE ATT&CK MATRIX")
         
-        # Generate simulated attack paths
-        for i in range(3):
-            path = generate_attack_path()
-            with st.expander(f"Attack Path {i+1} - Risk: {path['risk_level']}"):
-                st.markdown(f"**Start:** {path['start_point']}")
-                st.markdown(f"**Target:** {path['target']}")
-                st.markdown(f"**Confidence:** {path['confidence']:.1%}")
-                st.markdown(f"**Estimated Timeline:** {path['timeline']}")
-                
-                st.markdown("**MITRE ATT&CK Techniques:**")
-                for technique in path['techniques']:
-                    st.markdown(f"- {technique}")
-                
-                st.markdown("**Recommended Actions:**")
-                actions = ["Isolate endpoint", "Block network traffic", "Reset credentials", "Deploy additional monitoring"]
-                for action in actions:
-                    st.markdown(f"- {action}")
-
+        # Create a grid of tactics
+        tactics = list(mitre_data.mitre_techniques.keys())
+        
+        for tactic_id in tactics:
+            tactic = mitre_data.mitre_techniques[tactic_id]
+            with st.expander(f"🧩 {tactic['name']} ({tactic_id})"):
+                cols = st.columns(3)
+                for i, technique in enumerate(tactic['techniques']):
+                    with cols[i % 3]:
+                        st.markdown(f'<div class="mitre-technique">{technique}</div>', unsafe_allow_html=True)
+                        st.caption(f"Technique {technique}")
+    
     with col2:
-        st.markdown("#### 🎯 MITRE ATT&CK COVERAGE")
+        st.markdown("#### 🔍 TECHNIQUE SEARCH")
+        search_term = st.text_input("Search techniques...")
         
-        # Simulated MITRE coverage
-        tactics = ['Initial Access', 'Execution', 'Persistence', 'Privilege Escalation', 'Defense Evasion']
-        coverage = [85, 92, 78, 88, 75]
+        st.markdown("#### 📊 COVERAGE ANALYSIS")
+        coverage_data = {
+            'Tactic': [mitre_data.mitre_techniques[t]['name'] for t in tactics],
+            'Coverage %': [random.randint(60, 95) for _ in tactics],
+            'Techniques': [len(mitre_data.mitre_techniques[t]['techniques']) for t in tactics]
+        }
         
-        fig = go.Figure(data=[go.Bar(x=tactics, y=coverage, marker_color='#00ffff')])
-        fig.update_layout(
-            title="Defense Coverage by Tactic",
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white'),
-            height=400
-        )
+        df = pd.DataFrame(coverage_data)
+        fig = px.bar(df, x='Tactic', y='Coverage %', title="Defense Coverage by Tactic",
+                    color='Coverage %', color_continuous_scale='viridis')
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
         st.plotly_chart(fig, use_container_width=True)
 
-def render_xdr_dashboard():
-    """Renders XDR dashboard similar to CrowdStrike/Palo Alto"""
-    st.markdown("### 🖥️ EXTENDED DETECTION & RESPONSE (XDR)")
-    st.caption("Unified security monitoring across endpoints, network, and cloud")
+def render_security_tests():
+    """Renders security testing page"""
+    st.markdown("### 🧪 SECURITY TESTING SUITE")
+    st.caption("Perform security assessments and penetration tests")
     
-    # Endpoint risk analysis
-    risk_data = st.session_state.holographic_intel.xdr.get_endpoint_risk_analysis()
+    tab1, tab2, tab3, tab4 = st.tabs(["📧 Phishing Test", "🔍 Vulnerability Scan", "🔐 Password Audit", "🌐 Network Test"])
     
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Endpoints", risk_data['total_endpoints'])
-    col2.metric("Healthy", risk_data['healthy'])
-    col3.metric("At Risk", risk_data['at_risk'])
-    col4.metric("Compromised", risk_data['compromised'])
-    
-    st.markdown("---")
-    
-    col_a, col_b = st.columns(2)
-    
-    with col_a:
-        st.markdown("#### 📊 ENDPOINT RISK DISTRIBUTION")
-        labels = ['Healthy', 'At Risk', 'Compromised']
-        values = [risk_data['healthy'], risk_data['at_risk'], risk_data['compromised']]
-        colors = ['#00ff00', '#ffff00', '#ff0000']
+    with tab1:
+        st.markdown("#### 📧 Phishing Simulation Test")
+        st.markdown('<div class="test-card">', unsafe_allow_html=True)
         
-        fig = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3, marker_colors=colors)])
-        fig.update_layout(
-            title="Endpoint Health Status",
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white')
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col_b:
-        st.markdown("#### 🚨 SECURITY INCIDENTS")
-        incidents = st.session_state.holographic_intel.xdr.incidents[:5]  # Show last 5 incidents
+        col1, col2 = st.columns(2)
         
-        for incident in incidents:
-            severity_color = {
-                'Critical': 'red',
-                'High': 'orange', 
-                'Medium': 'yellow',
-                'Low': 'green'
-            }.get(incident['severity'], 'gray')
+        with col1:
+            st.subheader("Phishing Campaign Setup")
+            test_type = st.selectbox("Test Type", ["Spear Phishing", "Mass Phishing", "CEO Fraud"])
+            target_group = st.multiselect("Target Groups", ["Employees", "IT Staff", "Executives", "Finance Team"])
+            template = st.selectbox("Email Template", ["Urgent Action Required", "Password Reset", "Invoice Payment", "Security Alert"])
             
-            st.markdown(f"""
-            <div class="incident-timeline">
-                <div class="timeline-event">
-                    <strong>{incident['title']}</strong><br>
-                    <span style="color: {severity_color}">● {incident['severity']}</span> | 
-                    Status: {incident['status']}<br>
-                    {incident['created']} | {incident['assigned_to']}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            if st.button("🚀 Launch Phishing Test", disabled=(st.session_state.get('mode') != 'Admin')):
+                st.success(f"Phishing test launched! Targeting {len(target_group)} groups with {template} template")
+                
+        with col2:
+            st.subheader("Test Results")
+            st.metric("Emails Sent", "1,250")
+            st.metric("Clicks", "47", delta="3.8%")
+            st.metric("Credentials Submitted", "12", delta="0.96%")
+            st.metric("Reported as Phishing", "8", delta="0.64%")
+            
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with tab2:
+        st.markdown("#### 🔍 Vulnerability Assessment")
+        st.markdown('<div class="test-card">', unsafe_allow_html=True)
+        
+        if st.button("Run Vulnerability Scan", disabled=(st.session_state.get('mode') != 'Admin')):
+            with st.spinner("Scanning for vulnerabilities..."):
+                time.sleep(3)
+                st.success("Scan completed!")
+                
+                col1, col2, col3, col4 = st.columns(4)
+                col1.metric("Critical", "3")
+                col2.metric("High", "12")
+                col3.metric("Medium", "28")
+                col4.metric("Low", "45")
+                
+                # Show sample vulnerabilities
+                st.subheader("Top Critical Vulnerabilities")
+                vulns = [
+                    {"CVE": "CVE-2025-12345", "Severity": "Critical", "Description": "RCE in Web Server", "Patch": "Available"},
+                    {"CVE": "CVE-2025-12346", "Severity": "Critical", "Description": "Privilege Escalation", "Patch": "Available"},
+                    {"CVE": "CVE-2025-12347", "Severity": "High", "Description": "SQL Injection", "Patch": "Available"},
+                ]
+                st.dataframe(pd.DataFrame(vulns))
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with tab3:
+        st.markdown("#### 🔐 Password Strength Audit")
+        st.markdown('<div class="test-card">', unsafe_allow_html=True)
+        
+        password = st.text_input("Test Password Strength", type="password")
+        if password:
+            strength = len(password) * 10
+            if len(password) < 8:
+                st.error("❌ Weak Password")
+            elif len(password) < 12:
+                st.warning("⚠️ Moderate Password")
+            else:
+                st.success("✅ Strong Password")
+                
+            st.metric("Password Strength", f"{min(strength, 100)}%")
+            
+        if st.button("Audit Domain Passwords", disabled=(st.session_state.get('mode') != 'Admin')):
+            st.info("Password audit would check for: weak passwords, password reuse, expired passwords")
+            # Simulated results
+            st.metric("Weak Passwords", "142")
+            st.metric("Password Reuse", "89")
+            st.metric("Expired Passwords", "23")
+            
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with tab4:
+        st.markdown("#### 🌐 Network Security Test")
+        st.markdown('<div class="test-card">', unsafe_allow_html=True)
+        
+        target_ip = st.text_input("Target IP/Network", "192.168.1.0/24")
+        scan_type = st.selectbox("Scan Type", ["Port Scan", "Vulnerability Scan", "Service Detection"])
+        
+        if st.button("Run Network Test", disabled=(st.session_state.get('mode') != 'Admin')):
+            with st.spinner(f"Running {scan_type} on {target_ip}..."):
+                time.sleep(2)
+                st.success("Network test completed!")
+                
+                # Simulated results
+                st.subheader("Scan Results")
+                results = [
+                    {"Port": "22", "Service": "SSH", "Status": "Open", "Risk": "Medium"},
+                    {"Port": "80", "Service": "HTTP", "Status": "Open", "Risk": "Low"},
+                    {"Port": "443", "Service": "HTTPS", "Status": "Open", "Risk": "Low"},
+                    {"Port": "3389", "Service": "RDP", "Status": "Open", "Risk": "High"},
+                ]
+                st.dataframe(pd.DataFrame(results))
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
-def render_cloud_security():
-    """Renders cloud security posture dashboard"""
-    st.markdown("### ☁️ CLOUD SECURITY POSTURE")
-    st.caption("Multi-cloud security assessment and compliance monitoring")
+def render_unified_intelligence():
+    """Renders unified threat intelligence dashboard"""
+    st.markdown("### 🌐 UNIFIED THREAT INTELLIGENCE")
     
-    posture_score = st.session_state.holographic_intel.cloud_security.get_cloud_posture_score()
+    tab1, tab2, tab3 = st.tabs(["🕵️ Threat Intel", "🎯 Attack Analysis", "🔗 External Feeds"])
     
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Cloud Posture Score", f"{posture_score:.1f}%")
-    col2.metric("Resources Monitored", len(st.session_state.holographic_intel.cloud_security.cloud_resources))
-    col3.metric("Active Findings", len(st.session_state.holographic_intel.cloud_security.security_findings))
-    
-    st.markdown("---")
-    
-    col_a, col_b = st.columns(2)
-    
-    with col_a:
-        st.markdown("#### 📋 CLOUD RESOURCES BY TYPE")
-        resource_types = {}
-        for resource in st.session_state.holographic_intel.cloud_security.cloud_resources:
-            rtype = resource['type']
-            resource_types[rtype] = resource_types.get(rtype, 0) + 1
+    with tab1:
+        col1, col2 = st.columns([2, 1])
         
-        fig = go.Figure(data=[go.Bar(x=list(resource_types.keys()), y=list(resource_types.values()), marker_color='#00ffff')])
-        fig.update_layout(
-            title="Resource Distribution",
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white')
-        )
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col_b:
-        st.markdown("#### ⚠️ SECURITY FINDINGS BY SEVERITY")
-        severity_counts = {}
-        for finding in st.session_state.holographic_intel.cloud_security.security_findings:
-            severity = finding['severity']
-            severity_counts[severity] = severity_counts.get(severity, 0) + 1
+        with col1:
+            st.markdown("#### 🌍 GLOBAL THREAT MAP")
+            countries = [
+                {'country': 'United States', 'lat': 38.9, 'lon': -77.0, 'threat': 0.95, 'type': 'Cyber Espionage'},
+                {'country': 'China', 'lat': 39.9, 'lon': 116.4, 'threat': 0.9, 'type': 'State-Sponsored'},
+                {'country': 'Russia', 'lat': 55.7, 'lon': 37.6, 'threat': 0.85, 'type': 'Ransomware'},
+            ]
+            
+            m = folium.Map(location=[20, 0], zoom_start=2, tiles='CartoDB dark_matter')
+            for c in countries:
+                color = 'red' if c['threat'] > 0.8 else 'orange' if c['threat'] > 0.6 else 'yellow'
+                folium.Marker(
+                    [c['lat'], c['lon']], 
+                    tooltip=f"{c['country']} - Threat: {c['threat']:.1%} - {c['type']}",
+                    icon=folium.Icon(color=color, icon='warning-sign')
+                ).add_to(m)
+            folium_static(m, width=700, height=400)
         
-        colors = {'Critical': 'red', 'High': 'orange', 'Medium': 'yellow', 'Low': 'green'}
-        fig = go.Figure(data=[go.Pie(
-            labels=list(severity_counts.keys()),
-            values=list(severity_counts.values()),
-            marker_colors=[colors.get(s, 'gray') for s in severity_counts.keys()]
-        )])
-        fig.update_layout(
-            title="Finding Severity Distribution",
-            paper_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white')
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        with col2:
+            st.markdown("#### 🎯 ACTIVE THREAT ACTORS")
+            threat_actors = st.session_state.holographic_intel.threat_intel.threat_actors
+            
+            for actor_id, actor in threat_actors.items():
+                with st.expander(f"🔴 {actor['name']}"):
+                    st.write(f"**Origin:** {actor['origin']}")
+                    st.write(f"**Targets:** {', '.join(actor['targets'])}")
+                    st.write(f"**Activity:** {random.choice(['High', 'Medium', 'Low'])}")
+    
+    with tab2:
+        render_mitre_navigator()
+        
+    with tab3:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 🔗 CISA ALERTS")
+            cisa_alerts = st.session_state.holographic_intel.cisa_integration.fetch_cisa_alerts()
+            for alert in cisa_alerts:
+                with st.expander(f"{alert['severity']} - {alert['title']}"):
+                    st.write(f"**Date:** {alert['date']}")
+                    st.markdown(f"[View Alert]({alert['link']})")
+        
+        with col2:
+            st.markdown("#### 📊 VULNERABILITY INTELLIGENCE")
+            vulnerabilities = st.session_state.holographic_intel.live_data.fetch_vulnerability_data()
+            for vuln in vulnerabilities:
+                with st.expander(f"{vuln['cve_id']} - {vuln['severity']}"):
+                    st.write(f"**CVSS:** {vuln['cvss_score']}")
+                    st.write(f"**Description:** {vuln['description']}")
 
-def render_compliance_dashboard():
-    """Renders compliance and governance dashboard"""
-    st.markdown("### 📜 COMPLIANCE & GOVERNANCE")
-    st.caption("Multi-framework compliance tracking and audit readiness")
+def render_unified_defense():
+    """Renders unified defense operations"""
+    st.markdown("### 🛡️ UNIFIED DEFENSE OPERATIONS")
     
-    frameworks = st.session_state.holographic_intel.compliance.get_compliance_dashboard()
+    tab1, tab2, tab3 = st.tabs(["🖥️ XDR Dashboard", "☁️ Cloud Security", "📜 Compliance"])
     
-    # Framework metrics
-    cols = st.columns(len(frameworks))
-    for i, (framework_id, framework) in enumerate(frameworks.items()):
-        with cols[i]:
-            st.metric(framework['name'], f"{framework['compliance']}%")
-    
-    st.markdown("---")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### 🎯 COMPLIANCE SCORE TREND")
-        # Simulated trend data
-        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-        scores = [75, 78, 82, 85, 87, 89]
+    with tab1:
+        col1, col2 = st.columns([2, 1])
         
-        fig = go.Figure(data=go.Scatter(x=months, y=scores, mode='lines+markers', line=dict(color='#00ffff', width=3)))
-        fig.update_layout(
-            title="Overall Compliance Trend",
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            font=dict(color='white'),
-            height=300
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        with col1:
+            st.markdown("#### 📊 ENDPOINT RISK ANALYSIS")
+            risk_data = st.session_state.holographic_intel.xdr.get_endpoint_risk_analysis()
+            
+            metrics_cols = st.columns(4)
+            metrics_cols[0].metric("Total Endpoints", risk_data['total_endpoints'])
+            metrics_cols[1].metric("Healthy", risk_data['healthy'])
+            metrics_cols[2].metric("At Risk", risk_data['at_risk'])
+            metrics_cols[3].metric("Compromised", risk_data['compromised'])
+            
+            # Endpoint health chart
+            labels = ['Healthy', 'At Risk', 'Compromised']
+            values = [risk_data['healthy'], risk_data['at_risk'], risk_data['compromised']]
+            fig = px.pie(values=values, names=labels, title="Endpoint Health Distribution")
+            fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
+            st.plotly_chart(fig, use_container_width=True)
+        
+        with col2:
+            st.markdown("#### 🚨 RECENT INCIDENTS")
+            incidents = st.session_state.holographic_intel.xdr.incidents[:5]
+            for incident in incidents:
+                st.markdown(f"""
+                **{incident['title']}**
+                - Severity: {incident['severity']}
+                - Status: {incident['status']}
+                - Created: {incident['created']}
+                """)
     
-    with col2:
+    with tab2:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### ☁️ CLOUD SECURITY POSTURE")
+            posture_score = st.session_state.holographic_intel.cloud_security.get_cloud_posture_score()
+            st.metric("Cloud Security Score", f"{posture_score:.1f}%")
+            
+            # Resource compliance
+            resources = st.session_state.holographic_intel.cloud_security.cloud_resources
+            compliant = len([r for r in resources if r['compliance'] == 'Compliant'])
+            st.metric("Compliant Resources", f"{compliant}/{len(resources)}")
+        
+        with col2:
+            st.markdown("#### ⚠️ SECURITY FINDINGS")
+            findings = st.session_state.holographic_intel.cloud_security.security_findings
+            severity_counts = {}
+            for finding in findings:
+                severity = finding['severity']
+                severity_counts[severity] = severity_counts.get(severity, 0) + 1
+            
+            for severity, count in severity_counts.items():
+                st.metric(f"{severity} Findings", count)
+    
+    with tab3:
+        st.markdown("#### 📜 COMPLIANCE DASHBOARD")
+        frameworks = st.session_state.holographic_intel.compliance.get_compliance_dashboard()
+        
+        cols = st.columns(len(frameworks))
+        for i, (framework_id, framework) in enumerate(frameworks.items()):
+            with cols[i]:
+                st.metric(framework['name'], f"{framework['compliance']}%")
+        
         st.markdown("#### 🛡️ SECURITY CONTROLS")
-        st.markdown("**Active Security Controls:**")
-        
         controls = [
             "🔐 Encryption at Rest - **Enabled**",
             "🔑 Multi-Factor Authentication - **Enabled**",
             "📝 Audit Logging - **Enabled**",
             "🛡️ Network Segmentation - **Enabled**",
-            "🔍 Vulnerability Scanning - **Enabled**",
-            "🚨 Intrusion Detection - **Enabled**"
         ]
-        
         for control in controls:
             st.markdown(f"- {control}")
-        
-        st.markdown('<div class="compliance-badge">NIST CSF: 87%</div>', unsafe_allow_html=True)
-        st.markdown('<div class="compliance-badge">ISO 27001: 92%</div>', unsafe_allow_html=True)
-        st.markdown('<div class="compliance-badge">SOC 2: 95%</div>', unsafe_allow_html=True)
 
-def render_threat_intelligence():
-    """Renders advanced threat intelligence dashboard"""
-    st.markdown("### 🕵️ ADVANCED THREAT INTELLIGENCE")
-    st.caption("Global threat actor tracking and campaign analysis")
+def render_identity_governance():
+    """Renders identity and data governance"""
+    st.markdown("### 👤 IDENTITY & DATA GOVERNANCE")
     
-    col1, col2 = st.columns([2, 1])
+    tab1, tab2 = st.tabs(["👤 Identity Management", "📂 Data Governance"])
     
-    with col1:
-        st.markdown("#### 🌐 ACTIVE THREAT ACTORS")
-        threat_actors = st.session_state.holographic_intel.threat_intel.threat_actors
+    with tab1:
+        col1, col2, col3 = st.columns(3)
+        col1.metric("👥 Privileged Accounts", "1,284")
+        col2.metric("🚨 Risky Sign-ins (24h)", "47", delta="5")
+        col3.metric("⏳ Stale Credentials", "312")
         
-        for actor_id, actor in threat_actors.items():
-            with st.expander(f"🔴 {actor['name']} ({actor_id})"):
-                st.write(f"**Origin:** {actor['origin']}")
-                st.write(f"**Primary Targets:** {', '.join(actor['targets'])}")
-                st.write(f"**Recent Activity:** {random.choice(['High', 'Medium', 'Low'])}")
-                st.write(f"**Associated Campaigns:** {random.randint(1, 5)} active campaigns")
-    
-    with col2:
-        st.markdown("#### 📈 THREAT INDICATORS")
-        indicators = [
-            {"type": "IP Address", "count": "1,284", "trend": "↗️"},
-            {"type": "Domain", "count": "892", "trend": "↗️"},
-            {"type": "File Hash", "count": "2,457", "trend": "↗️"},
-            {"type": "URL", "count": "1,567", "trend": "↗️"},
+        st.markdown("#### RECENT HIGH-RISK SIGN-INS")
+        sign_in_data = [
+            {'User': 'a.jones', 'IP': '185.220.101.35', 'Location': 'Russia', 'Risk': '🔴 High', 'Action': 'Block'},
+            {'User': 'c.miller', 'IP': '103.76.12.102', 'Location': 'Vietnam', 'Risk': '🔴 High', 'Action': 'Block'},
+            {'User': 'guest', 'IP': '203.0.113.88', 'Location': 'Unknown', 'Risk': '🟠 Medium', 'Action': 'Force MFA'},
         ]
+        st.dataframe(pd.DataFrame(sign_in_data))
+    
+    with tab2:
+        col1, col2, col3 = st.columns(3)
+        col1.metric("📑 Classified Documents", "1.2M")
+        col2.metric("📤 DLP Alerts (7d)", "14", delta="-2")
+        col3.metric("📜 Policy Violations", "89")
         
-        for indicator in indicators:
-            st.metric(f"{indicator['type']}s", indicator['count'], indicator['trend'])
+        st.markdown("#### DATA SENSITIVITY DISTRIBUTION")
+        labels = ['Confidential', 'Internal', 'Restricted', 'Public']
+        sizes = [45, 30, 15, 10]
+        fig = px.pie(values=sizes, names=labels, title="Data Classification")
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
+        st.plotly_chart(fig, use_container_width=True)
+
+def render_automated_response():
+    """Renders automated response and testing"""
+    st.markdown("### ⚙️ AUTOMATED RESPONSE & TESTING")
+    
+    tab1, tab2 = st.tabs(["⚡ SOAR Playbooks", "🧪 Security Tests"])
+    
+    with tab1:
+        col1, col2 = st.columns([1, 2])
+        
+        with col1:
+            st.markdown("#### PLAYBOOK CATALOG")
+            playbook = st.selectbox("Select Playbook:", 
+                                    ("Ransomware Containment", "Phishing Response", "Insider Threat Investigation"))
+            
+            st.markdown("##### Playbook Steps:")
+            steps = {
+                "Ransomware Containment": ["1. Isolate Host Network", "2. Snapshot Memory/Disk", "3. Block C2 IP", "4. Revoke Credentials"],
+                "Phishing Response": ["1. Analyze Email Headers", "2. Detonate URL", "3. Search & Purge Emails", "4. Block Sender"],
+                "Insider Threat Investigation": ["1. Enable Logging", "2. Capture Traffic", "3. Analyze Patterns", "4. Alert HR"]
+            }
+            for step in steps.get(playbook, []):
+                st.info(step)
+        
+        with col2:
+            st.markdown("#### PLAYBOOK EXECUTION")
+            if st.button(f"🚀 Trigger '{playbook}' Playbook", disabled=(st.session_state.get('mode') != 'Admin')):
+                log_placeholder = st.empty()
+                log_text = ""
+                for i, step in enumerate(steps.get(playbook, [])):
+                    log_text += f"[{datetime.now().strftime('%H:%M:%S')}] EXECUTING: {step}...\n"
+                    log_placeholder.markdown(f'<div class="log-container">{log_text}</div>', unsafe_allow_html=True)
+                    time.sleep(1)
+                    log_text += f"[{datetime.now().strftime('%H:%M:%S')}] COMPLETED: Step {i+1}\n"
+                    log_placeholder.markdown(f'<div class="log-container">{log_text}</div>', unsafe_allow_html=True)
+                log_text += f"[{datetime.now().strftime('%H:%M:%S')}] ✅ PLAYBOOK COMPLETED.\n"
+                log_placeholder.markdown(f'<div class="log-container">{log_text}</div>', unsafe_allow_html=True)
+    
+    with tab2:
+        render_security_tests()
 
 # --- MAIN APPLICATION LOGIC ---
 
@@ -1401,42 +1301,24 @@ def main():
                 st.metric(metrics[i], f"{random.uniform(0.75, 0.99):.1%}", f"{random.uniform(1, 5):+.1f}%")
                 st.markdown('</div>', unsafe_allow_html=True)
         
-        # --- MAIN TABS ---
+        # --- MERGED MAIN TABS ---
         tabs = st.tabs([
             "🧠 NEURAL MATRIX",
-            "🧬 LIVE NEXUS & AI",
-            "🎮 QUANTUM SIMULATOR", 
-            "🕵️ THREAT INTEL",
-            "🎯 ATTACK PATHS",
-            "🖥️ XDR DASHBOARD",
-            "☁️ CLOUD SECURITY",
-            "👤 IDENTITY & ACCESS",
-            "⚙️ AUTOMATED SOAR",
-            "📂 DATA GOVERNANCE",
-            "📜 COMPLIANCE",
-            "🔗 LIVE CISA DATA",
-            "🎯 LIVE MITRE DATA",
-            "🌍 GLOBAL THREAT MAP",
-            "📊 VULNERABILITY INTEL",
-            "🛡️ DEFENSE OPS"
+            "🧬 LIVE NEXUS & AI", 
+            "🎮 QUANTUM SIMULATOR",
+            "🌐 THREAT INTELLIGENCE",  # Merged: Threat Intel, Attack Analysis, External Feeds
+            "🛡️ DEFENSE OPERATIONS",  # Merged: XDR, Cloud Security, Compliance  
+            "👤 IDENTITY & GOVERNANCE", # Merged: Identity, Data Governance
+            "⚡ RESPONSE & TESTING"    # Merged: SOAR, Security Tests
         ])
         
         with tabs[0]: render_neural_matrix()
         with tabs[1]: render_live_nexus()
         with tabs[2]: render_quantum_simulator()
-        with tabs[3]: render_threat_intelligence()
-        with tabs[4]: render_attack_path_analysis()
-        with tabs[5]: render_xdr_dashboard()
-        with tabs[6]: render_cloud_security()
-        with tabs[7]: render_identity_matrix()
-        with tabs[8]: render_soar_playbooks()
-        with tabs[9]: render_data_governance()
-        with tabs[10]: render_compliance_dashboard()
-        with tabs[11]: render_live_cisa_data()
-        with tabs[12]: render_live_mitre_data()
-        with tabs[13]: render_global_threat_map()
-        with tabs[14]: render_vulnerability_intel()
-        with tabs[15]: render_defense_operations()
+        with tabs[3]: render_unified_intelligence()
+        with tabs[4]: render_unified_defense()
+        with tabs[5]: render_identity_governance()
+        with tabs[6]: render_automated_response()
 
 if __name__ == "__main__":
     main()
