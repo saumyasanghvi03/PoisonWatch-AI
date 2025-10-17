@@ -8,15 +8,11 @@ import json
 from datetime import datetime, timedelta
 import random
 import time
-import asyncio
-import threading
 from streamlit_autorefresh import st_autorefresh
-import speech_recognition as sr
-from PIL import Image
-import io
-import base64
-import networkx as nx
-import matplotlib.pyplot as plt
+import folium
+from streamlit_folium import folium_static
+import pycountry
+from geopy.geocoders import Nominatim
 
 # Page configuration for futuristic cyber theme
 st.set_page_config(
@@ -173,12 +169,132 @@ class QuantumThreatIntelligence:
         
         return pd.DataFrame(forecasts)
 
+class LiveCountryData:
+    def __init__(self):
+        self.country_cache = {}
+        self.threat_levels = {}
+        
+    def get_country_coordinates(self, country_name):
+        """Get coordinates for a country"""
+        if country_name in self.country_cache:
+            return self.country_cache[country_name]
+        
+        try:
+            geolocator = Nominatim(user_agent="cyber_threat_map")
+            location = geolocator.geocode(country_name)
+            if location:
+                self.country_cache[country_name] = (location.latitude, location.longitude)
+                return (location.latitude, location.longitude)
+        except:
+            pass
+        
+        # Fallback coordinates for major countries
+        fallback_coords = {
+            'United States': (39.8283, -98.5795),
+            'China': (35.8617, 104.1954),
+            'India': (20.5937, 78.9629),
+            'Germany': (51.1657, 10.4515),
+            'United Kingdom': (55.3781, -3.4360),
+            'Russia': (61.5240, 105.3188),
+            'Brazil': (-14.2350, -51.9253),
+            'Japan': (36.2048, 138.2529),
+            'Australia': (-25.2744, 133.7751),
+            'France': (46.6034, 1.8883)
+        }
+        return fallback_coords.get(country_name, (0, 0))
+    
+    def generate_live_country_threats(self):
+        """Generate live threat data for countries"""
+        countries = [
+            'United States', 'China', 'India', 'Germany', 'United Kingdom',
+            'Russia', 'Brazil', 'Japan', 'Australia', 'France', 'Canada',
+            'South Korea', 'Singapore', 'Israel', 'United Arab Emirates'
+        ]
+        
+        threats_data = []
+        current_time = datetime.now()
+        
+        for country in countries:
+            # Simulate realistic threat patterns based on country
+            base_threat = {
+                'United States': 0.8, 'China': 0.7, 'India': 0.6, 'Germany': 0.5,
+                'Russia': 0.75, 'Brazil': 0.4, 'Japan': 0.45, 'Australia': 0.35
+            }.get(country, 0.5)
+            
+            threat_level = min(1.0, base_threat + random.uniform(-0.2, 0.3))
+            
+            # Recent incidents in last 24 hours
+            recent_incidents = random.randint(5, 50)
+            
+            # Active threat types
+            threat_types = random.sample([
+                'Data Poisoning', 'Ransomware', 'Phishing', 'DDoS',
+                'APT Attacks', 'Insider Threats', 'Supply Chain'
+            ], random.randint(2, 4))
+            
+            lat, lon = self.get_country_coordinates(country)
+            
+            threats_data.append({
+                'country': country,
+                'threat_level': threat_level,
+                'recent_incidents': recent_incidents,
+                'active_threats': ', '.join(threat_types),
+                'latitude': lat,
+                'longitude': lon,
+                'last_updated': current_time - timedelta(minutes=random.randint(1, 60)),
+                'trend': random.choice(['increasing', 'decreasing', 'stable'])
+            })
+        
+        return pd.DataFrame(threats_data)
+    
+    def get_live_cyber_news_by_country(self):
+        """Get simulated cyber news by country"""
+        news_items = [
+            {
+                "headline": "US Financial Sector Targeted by Sophisticated Data Poisoning Campaign",
+                "country": "United States",
+                "severity": "Critical",
+                "timestamp": "15 minutes ago",
+                "source": "CISA Alert"
+            },
+            {
+                "headline": "Indian Government Systems Under APT Attack - Data Poisoning Suspected",
+                "country": "India",
+                "severity": "High",
+                "timestamp": "45 minutes ago",
+                "source": "CERT-In"
+            },
+            {
+                "headline": "Chinese State-Sponsored Hackers Targeting AI Research Centers",
+                "country": "China",
+                "severity": "High",
+                "timestamp": "2 hours ago",
+                "source": "MITRE ATT&CK"
+            },
+            {
+                "headline": "European Banking Authority Reports Training Data Manipulation",
+                "country": "Germany",
+                "severity": "Medium",
+                "timestamp": "3 hours ago",
+                "source": "ENISA"
+            },
+            {
+                "headline": "Russian Cybercrime Groups Exploiting AI System Vulnerabilities",
+                "country": "Russia",
+                "severity": "Critical",
+                "timestamp": "1 hour ago",
+                "source": "Interpol"
+            }
+        ]
+        return news_items
+
 class ARVisualization:
     def __init__(self):
         self.threat_networks = {}
     
     def create_3d_threat_network(self, incidents):
         """Create 3D network visualization of threat relationships"""
+        import networkx as nx
         G = nx.DiGraph()
         
         for incident in incidents:
@@ -220,6 +336,7 @@ def main():
     quantum_intel = QuantumThreatIntelligence()
     ar_viz = ARVisualization()
     voice_interface = VoiceCommandInterface()
+    country_data = LiveCountryData()
     
     # Auto-refresh every 20 seconds
     st_autorefresh(interval=20000, key="quantum_refresh")
@@ -260,7 +377,7 @@ def main():
         "🎯 VOICE COMMAND CENTER",
         "🔮 ATTACK SIMULATION 3D",
         "📊 QUANTUM ANALYTICS",
-        "⚡ LIVE OPERATIONS"
+        "🌍 LIVE GLOBAL OPERATIONS"
     ])
     
     with tab1:
@@ -282,7 +399,7 @@ def main():
         render_quantum_analytics(quantum_intel)
     
     with tab7:
-        render_live_operations()
+        render_live_global_operations(country_data)
 
 def render_quantum_dashboard(quantum_intel):
     """Render the main quantum dashboard"""
@@ -325,10 +442,10 @@ def render_quantum_dashboard(quantum_intel):
             st.write(f"**{metric}**")
             st.progress(value)
         
-        # Quantum circuit simulation
+        # Quantum circuit simulation - FIXED: use_container_width instead of use_column_width
         st.markdown("#### ⚛️ QUANTUM CIRCUIT")
         st.image("https://via.placeholder.com/300x150/000022/00ffff?text=Quantum+Security+Circuit", 
-                use_column_width=True)
+                use_container_width=True)
     
     # Predictive analytics row
     st.markdown("### 🔮 PREDICTIVE THREAT INTELLIGENCE")
@@ -379,82 +496,6 @@ def render_holographic_threat_map(ar_viz):
     
     fig.update_layout(height=600, title="3D Holographic Threat Distribution")
     st.plotly_chart(fig, use_container_width=True)
-    
-    # Threat network graph
-    st.markdown("### 🕸️ THREAT RELATIONSHIP NETWORK")
-    
-    # Generate sample incidents for network visualization
-    incidents = []
-    for i in range(20):
-        incident = {
-            'id': f"INC-{1000+i}",
-            'type': random.choice(['Data Poisoning', 'Model Evasion', 'Backdoor Attack', 'Training Manipulation']),
-            'severity': random.choice(['Low', 'Medium', 'High', 'Critical'])
-        }
-        incidents.append(incident)
-    
-    G = ar_viz.create_3d_threat_network(incidents)
-    
-    # Convert to Plotly network visualization
-    pos = nx.spring_layout(G, dim=3, seed=42)
-    
-    edge_x, edge_y, edge_z = [], [], []
-    for edge in G.edges():
-        x0, y0, z0 = pos[edge[0]]
-        x1, y1, z1 = pos[edge[1]]
-        edge_x.extend([x0, x1, None])
-        edge_y.extend([y0, y1, None])
-        edge_z.extend([z0, z1, None])
-    
-    node_x, node_y, node_z = [], [], []
-    node_color, node_size, node_text = [], [], []
-    for node in G.nodes():
-        x, y, z = pos[node]
-        node_x.append(x)
-        node_y.append(y)
-        node_z.append(z)
-        node_color.append(random.randint(0, 255))
-        node_size.append(10 if G.nodes[node]['severity'] == 'Low' else 
-                        20 if G.nodes[node]['severity'] == 'Medium' else 
-                        30 if G.nodes[node]['severity'] == 'High' else 40)
-        node_text.append(f"{node}<br>{G.nodes[node]['type']}")
-    
-    fig_network = go.Figure()
-    
-    fig_network.add_trace(go.Scatter3d(
-        x=edge_x, y=edge_y, z=edge_z,
-        line=dict(width=2, color='#888'),
-        hoverinfo='none',
-        mode='lines',
-        name='Connections'
-    ))
-    
-    fig_network.add_trace(go.Scatter3d(
-        x=node_x, y=node_y, z=node_z,
-        mode='markers',
-        hoverinfo='text',
-        text=node_text,
-        marker=dict(
-            size=node_size,
-            color=node_color,
-            colorscale='Viridis',
-            opacity=0.8,
-            line=dict(width=2, color='white')
-        ),
-        name='Threat Nodes'
-    ))
-    
-    fig_network.update_layout(
-        title="3D Threat Relationship Network",
-        showlegend=False,
-        scene=dict(
-            xaxis=dict(showbackground=False),
-            yaxis=dict(showbackground=False),
-            zaxis=dict(showbackground=False)
-        )
-    )
-    
-    st.plotly_chart(fig_network, use_container_width=True)
 
 def render_ai_prediction_engine(quantum_intel):
     """Render AI prediction and forecasting engine"""
@@ -729,71 +770,144 @@ def render_quantum_analytics(quantum_intel):
         st.metric("Response Time", f"{random.uniform(10, 50):.1f}ms")
         st.metric("Data Integrity", f"{random.uniform(0.95, 0.99):.1%}")
 
-def render_live_operations():
-    """Render live operations center"""
+def render_live_global_operations(country_data):
+    """Render live global operations with country data"""
     
-    st.markdown("### ⚡ LIVE SECURITY OPERATIONS")
+    st.markdown("### 🌍 LIVE GLOBAL CYBER OPERATIONS")
     
-    # Real-time monitoring dashboard
-    col1, col2 = st.columns(2)
+    # Auto-refresh component
+    if st.button("🔄 Refresh Live Data"):
+        st.rerun()
+    
+    # Get live country threat data
+    threats_df = country_data.generate_live_country_threats()
+    
+    # Create columns for different views
+    col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.markdown("#### 🔴 LIVE INCIDENT FEED")
+        st.markdown("#### 🗺️ LIVE THREAT HEATMAP")
         
-        # Simulate real-time incidents
-        incidents = []
-        for i in range(8):
-            incident = {
-                'time': (datetime.now() - timedelta(minutes=random.randint(1, 120))).strftime("%H:%M:%S"),
-                'type': random.choice(['Data Poisoning', 'Model Attack', 'System Breach', 'Anomaly Detected']),
-                'severity': random.choice(['Low', 'Medium', 'High', 'Critical']),
-                'system': random.choice(['Financial AI', 'Healthcare ML', 'Autonomous Systems', 'Fraud Detection']),
-                'status': random.choice(['Investigating', 'Contained', 'Active', 'Resolved'])
-            }
-            incidents.append(incident)
+        # Create interactive heatmap
+        fig = px.density_mapbox(
+            threats_df,
+            lat='latitude',
+            lon='longitude',
+            z='threat_level',
+            radius=30,
+            center=dict(lat=20, lon=0),
+            zoom=1,
+            mapbox_style="carto-darkmatter",
+            title='Global Cyber Threat Heatmap - Real Time',
+            color_continuous_scale="reds",
+            range_color=[0, 1]
+        )
         
-        for incident in incidents:
-            with st.container():
-                col_a, col_b, col_c = st.columns([1, 2, 1])
-                with col_a:
-                    st.write(f"`{incident['time']}`")
-                with col_b:
-                    st.write(f"**{incident['type']}** - {incident['system']}")
-                with col_c:
-                    severity_color = {
-                        'Low': '🟢', 'Medium': '🟡', 'High': '🟠', 'Critical': '🔴'
-                    }
-                    st.write(f"{severity_color[incident['severity']]} {incident['status']}")
-                st.markdown("---")
+        fig.update_layout(
+            height=500,
+            margin=dict(l=0, r=0, t=40, b=0)
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        st.markdown("#### 🛡️ ACTIVE DEFENSE STATUS")
+        st.markdown("#### 🚨 GLOBAL THREAT LEVEL")
         
-        defense_systems = [
-            {"name": "Quantum Encryption", "status": "🟢 Active", "efficiency": "98%"},
-            {"name": "AI Anomaly Detection", "status": "🟢 Active", "efficiency": "95%"},
-            {"name": "Behavioral Analysis", "status": "🟡 Degraded", "efficiency": "82%"},
-            {"name": "Threat Intelligence", "status": "🟢 Active", "efficiency": "96%"},
-            {"name": "Network Monitoring", "status": "🔴 Offline", "efficiency": "0%"}
-        ]
+        # Global threat metrics
+        total_incidents = threats_df['recent_incidents'].sum()
+        avg_threat_level = threats_df['threat_level'].mean()
+        high_risk_countries = len(threats_df[threats_df['threat_level'] > 0.7])
         
-        for system in defense_systems:
-            with st.container():
-                col_a, col_b, col_c = st.columns([2, 1, 1])
-                with col_a:
-                    st.write(system['name'])
-                with col_b:
-                    st.write(system['status'])
-                with col_c:
-                    st.write(system['efficiency'])
-                st.markdown("---")
+        st.metric("🌐 Total Incidents (24h)", f"{total_incidents}", "+12%")
+        st.metric("📊 Average Threat Level", f"{avg_threat_level:.0%}", "+5%")
+        st.metric("🔴 High Risk Countries", f"{high_risk_countries}", "+2")
         
-        # Emergency controls
-        st.markdown("#### 🚨 EMERGENCY CONTROLS")
-        if st.button("🛡️ ACTIVATE QUANTUM SHIELD", use_container_width=True, type="primary"):
-            st.success("Quantum Defense Shield Activated - All systems secured")
-        if st.button("🔴 INITIATE LOCKDOWN", use_container_width=True):
-            st.error("SYSTEM LOCKDOWN INITIATED - Emergency protocols engaged")
+        st.markdown("---")
+        st.markdown("#### 📈 TOP THREATENED COUNTRIES")
+        
+        # Top 5 threatened countries
+        top_threats = threats_df.nlargest(5, 'threat_level')[['country', 'threat_level', 'recent_incidents']]
+        for _, row in top_threats.iterrows():
+            st.write(f"**{row['country']}**")
+            st.progress(row['threat_level'])
+            st.write(f"Incidents: {row['recent_incidents']}")
+            st.markdown("---")
+    
+    # Country-specific threat details
+    st.markdown("### 📊 COUNTRY-SPECIFIC THREAT INTELLIGENCE")
+    
+    # Country selector
+    selected_country = st.selectbox(
+        "Select Country for Detailed Analysis:",
+        threats_df['country'].tolist()
+    )
+    
+    if selected_country:
+        country_info = threats_df[threats_df['country'] == selected_country].iloc[0]
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.markdown(f"#### {selected_country} Threat Overview")
+            st.metric("Current Threat Level", f"{country_info['threat_level']:.0%}")
+            st.metric("Recent Incidents", country_info['recent_incidents'])
+            st.metric("Trend", country_info['trend'].title())
+        
+        with col2:
+            st.markdown("#### 🎯 Active Threat Types")
+            threats_list = country_info['active_threats'].split(', ')
+            for threat in threats_list:
+                st.write(f"• {threat}")
+            
+            st.markdown("#### 🕒 Last Updated")
+            st.write(country_info['last_updated'].strftime("%Y-%m-%d %H:%M:%S"))
+        
+        with col3:
+            st.markdown("#### 🛡️ Recommended Actions")
+            recommendations = {
+                'High': [
+                    "Activate enhanced monitoring",
+                    "Deploy counter-measure AI models",
+                    "Increase security posture",
+                    "Coordinate with CERT teams"
+                ],
+                'Medium': [
+                    "Review security protocols",
+                    "Update threat intelligence",
+                    "Conduct security audit",
+                    "Train staff on new threats"
+                ],
+                'Low': [
+                    "Monitor threat feeds",
+                    "Update security patches",
+                    "Review access controls",
+                    "Maintain vigilance"
+                ]
+            }
+            
+            threat_category = 'High' if country_info['threat_level'] > 0.7 else 'Medium' if country_info['threat_level'] > 0.4 else 'Low'
+            
+            for action in recommendations[threat_category]:
+                st.write(f"• {action}")
+    
+    # Real-time incident feed by country
+    st.markdown("### 📰 LIVE COUNTRY CYBER NEWS FEED")
+    
+    news_items = country_data.get_live_cyber_news_by_country()
+    
+    for news in news_items:
+        with st.container():
+            col1, col2, col3 = st.columns([3, 1, 1])
+            with col1:
+                st.markdown(f"**{news['headline']}**")
+                st.markdown(f"*{news['source']} | {news['timestamp']}*")
+            with col2:
+                st.markdown(f"**{news['country']}**")
+            with col3:
+                severity_color = "red" if news['severity'] == 'Critical' else "orange" if news['severity'] == 'High' else "yellow"
+                st.markdown(f'<span style="color: {severity_color}; font-weight: bold;">{news["severity"]}</span>', unsafe_allow_html=True)
+            
+            st.markdown("---")
 
 def create_quantum_timeline():
     """Create quantum timeline visualization"""
