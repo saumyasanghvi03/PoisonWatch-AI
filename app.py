@@ -1006,13 +1006,17 @@ def render_unified_intelligence():
         
         with col2:
             st.markdown("#### 🎯 ACTIVE THREAT ACTORS")
-            threat_actors = st.session_state.holographic_intel.threat_intel.threat_actors
-            
-            for actor_id, actor in threat_actors.items():
-                with st.expander(f"🔴 {actor['name']}"):
-                    st.write(f"**Origin:** {actor['origin']}")
-                    st.write(f"**Targets:** {', '.join(actor['targets'])}")
-                    st.write(f"**Activity:** {random.choice(['High', 'Medium', 'Low'])}")
+            # FIXED: Check if threat_intel exists and has threat_actors
+            if hasattr(st.session_state.holographic_intel, 'threat_intel') and hasattr(st.session_state.holographic_intel.threat_intel, 'threat_actors'):
+                threat_actors = st.session_state.holographic_intel.threat_intel.threat_actors
+                
+                for actor_id, actor in threat_actors.items():
+                    with st.expander(f"🔴 {actor['name']}"):
+                        st.write(f"**Origin:** {actor['origin']}")
+                        st.write(f"**Targets:** {', '.join(actor['targets'])}")
+                        st.write(f"**Activity:** {random.choice(['High', 'Medium', 'Low'])}")
+            else:
+                st.warning("Threat intelligence data not available")
     
     with tab2:
         render_mitre_navigator()
@@ -1047,74 +1051,90 @@ def render_unified_defense():
         
         with col1:
             st.markdown("#### 📊 ENDPOINT RISK ANALYSIS")
-            risk_data = st.session_state.holographic_intel.xdr.get_endpoint_risk_analysis()
-            
-            metrics_cols = st.columns(4)
-            metrics_cols[0].metric("Total Endpoints", risk_data['total_endpoints'])
-            metrics_cols[1].metric("Healthy", risk_data['healthy'])
-            metrics_cols[2].metric("At Risk", risk_data['at_risk'])
-            metrics_cols[3].metric("Compromised", risk_data['compromised'])
-            
-            # Endpoint health chart
-            labels = ['Healthy', 'At Risk', 'Compromised']
-            values = [risk_data['healthy'], risk_data['at_risk'], risk_data['compromised']]
-            fig = px.pie(values=values, names=labels, title="Endpoint Health Distribution")
-            fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
-            st.plotly_chart(fig, use_container_width=True)
+            # FIXED: Check if xdr exists
+            if hasattr(st.session_state.holographic_intel, 'xdr'):
+                risk_data = st.session_state.holographic_intel.xdr.get_endpoint_risk_analysis()
+                
+                metrics_cols = st.columns(4)
+                metrics_cols[0].metric("Total Endpoints", risk_data['total_endpoints'])
+                metrics_cols[1].metric("Healthy", risk_data['healthy'])
+                metrics_cols[2].metric("At Risk", risk_data['at_risk'])
+                metrics_cols[3].metric("Compromised", risk_data['compromised'])
+                
+                # Endpoint health chart
+                labels = ['Healthy', 'At Risk', 'Compromised']
+                values = [risk_data['healthy'], risk_data['at_risk'], risk_data['compromised']]
+                fig = px.pie(values=values, names=labels, title="Endpoint Health Distribution")
+                fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("XDR data not available")
         
         with col2:
             st.markdown("#### 🚨 RECENT INCIDENTS")
-            incidents = st.session_state.holographic_intel.xdr.incidents[:5]
-            for incident in incidents:
-                st.markdown(f"""
-                **{incident['title']}**
-                - Severity: {incident['severity']}
-                - Status: {incident['status']}
-                - Created: {incident['created']}
-                """)
+            if hasattr(st.session_state.holographic_intel, 'xdr'):
+                incidents = st.session_state.holographic_intel.xdr.incidents[:5]
+                for incident in incidents:
+                    st.markdown(f"""
+                    **{incident['title']}**
+                    - Severity: {incident['severity']}
+                    - Status: {incident['status']}
+                    - Created: {incident['created']}
+                    """)
+            else:
+                st.warning("Incident data not available")
     
     with tab2:
         col1, col2 = st.columns(2)
         
         with col1:
             st.markdown("#### ☁️ CLOUD SECURITY POSTURE")
-            posture_score = st.session_state.holographic_intel.cloud_security.get_cloud_posture_score()
-            st.metric("Cloud Security Score", f"{posture_score:.1f}%")
-            
-            # Resource compliance
-            resources = st.session_state.holographic_intel.cloud_security.cloud_resources
-            compliant = len([r for r in resources if r['compliance'] == 'Compliant'])
-            st.metric("Compliant Resources", f"{compliant}/{len(resources)}")
+            if hasattr(st.session_state.holographic_intel, 'cloud_security'):
+                posture_score = st.session_state.holographic_intel.cloud_security.get_cloud_posture_score()
+                st.metric("Cloud Security Score", f"{posture_score:.1f}%")
+                
+                # Resource compliance
+                resources = st.session_state.holographic_intel.cloud_security.cloud_resources
+                compliant = len([r for r in resources if r['compliance'] == 'Compliant'])
+                st.metric("Compliant Resources", f"{compliant}/{len(resources)}")
+            else:
+                st.warning("Cloud security data not available")
         
         with col2:
             st.markdown("#### ⚠️ SECURITY FINDINGS")
-            findings = st.session_state.holographic_intel.cloud_security.security_findings
-            severity_counts = {}
-            for finding in findings:
-                severity = finding['severity']
-                severity_counts[severity] = severity_counts.get(severity, 0) + 1
-            
-            for severity, count in severity_counts.items():
-                st.metric(f"{severity} Findings", count)
+            if hasattr(st.session_state.holographic_intel, 'cloud_security'):
+                findings = st.session_state.holographic_intel.cloud_security.security_findings
+                severity_counts = {}
+                for finding in findings:
+                    severity = finding['severity']
+                    severity_counts[severity] = severity_counts.get(severity, 0) + 1
+                
+                for severity, count in severity_counts.items():
+                    st.metric(f"{severity} Findings", count)
+            else:
+                st.warning("Security findings not available")
     
     with tab3:
         st.markdown("#### 📜 COMPLIANCE DASHBOARD")
-        frameworks = st.session_state.holographic_intel.compliance.get_compliance_dashboard()
-        
-        cols = st.columns(len(frameworks))
-        for i, (framework_id, framework) in enumerate(frameworks.items()):
-            with cols[i]:
-                st.metric(framework['name'], f"{framework['compliance']}%")
-        
-        st.markdown("#### 🛡️ SECURITY CONTROLS")
-        controls = [
-            "🔐 Encryption at Rest - **Enabled**",
-            "🔑 Multi-Factor Authentication - **Enabled**",
-            "📝 Audit Logging - **Enabled**",
-            "🛡️ Network Segmentation - **Enabled**",
-        ]
-        for control in controls:
-            st.markdown(f"- {control}")
+        if hasattr(st.session_state.holographic_intel, 'compliance'):
+            frameworks = st.session_state.holographic_intel.compliance.get_compliance_dashboard()
+            
+            cols = st.columns(len(frameworks))
+            for i, (framework_id, framework) in enumerate(frameworks.items()):
+                with cols[i]:
+                    st.metric(framework['name'], f"{framework['compliance']}%")
+            
+            st.markdown("#### 🛡️ SECURITY CONTROLS")
+            controls = [
+                "🔐 Encryption at Rest - **Enabled**",
+                "🔑 Multi-Factor Authentication - **Enabled**",
+                "📝 Audit Logging - **Enabled**",
+                "🛡️ Network Segmentation - **Enabled**",
+            ]
+            for control in controls:
+                st.markdown(f"- {control}")
+        else:
+            st.warning("Compliance data not available")
 
 def render_identity_governance():
     """Renders identity and data governance"""
