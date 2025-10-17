@@ -272,191 +272,311 @@ def quantum_resource_manager():
                 pass
 
 class LiveDataIntegration:
-    """Live data integration from multiple threat intelligence sources"""
+    """Live data integration from multiple threat intelligence sources - IMPROVED VERSION"""
     
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Connection': 'keep-alive',
         })
+        self.timeout = 15  # Increased timeout
+        self.max_retries = 2
+    
+    def safe_request(self, url, method='GET', **kwargs):
+        """Make safe HTTP requests with error handling and retries"""
+        for attempt in range(self.max_retries):
+            try:
+                response = self.session.request(method, url, timeout=self.timeout, **kwargs)
+                response.raise_for_status()
+                return response
+            except requests.exceptions.Timeout:
+                if attempt == self.max_retries - 1:
+                    st.warning(f"⚠️ Request timeout for {url}. Using simulated data.")
+                    return None
+                time.sleep(1)  # Wait before retry
+            except requests.exceptions.RequestException as e:
+                if attempt == self.max_retries - 1:
+                    st.warning(f"⚠️ Network error for {url}: {str(e)}. Using simulated data.")
+                    return None
+                time.sleep(1)
+        return None
     
     def fetch_cisa_alerts(self):
-        """Fetch live CISA alerts from their RSS feed"""
+        """Fetch live CISA alerts from their RSS feed - IMPROVED"""
         try:
-            url = "https://www.cisa.gov/news-events/cybersecurity-advisories/all"
-            response = self.session.get(url, timeout=10)
-            soup = BeautifulSoup(response.content, 'html.parser')
+            # Try multiple CISA endpoints
+            endpoints = [
+                "https://www.cisa.gov/news-events/cybersecurity-advisories/all",
+                "https://www.cisa.gov/uscert/ncas/alerts",
+                "https://www.cisa.gov/uscert/ncas/current-activity"
+            ]
             
-            alerts = []
-            advisory_items = soup.find_all('div', class_='c-view__row')[:5]  # Get latest 5
-            
-            for item in advisory_items:
-                try:
-                    title_elem = item.find('a')
-                    date_elem = item.find('time')
+            for url in endpoints:
+                response = self.safe_request(url)
+                if response and response.status_code == 200:
+                    soup = BeautifulSoup(response.content, 'html.parser')
+                    alerts = []
                     
-                    if title_elem and date_elem:
-                        alert = {
-                            "title": title_elem.text.strip(),
-                            "link": "https://www.cisa.gov" + title_elem.get('href', ''),
-                            "date": date_elem.text.strip(),
-                            "severity": self._classify_cisa_severity(title_elem.text),
-                            "source": "CISA",
-                            "type": "Advisory"
-                        }
-                        alerts.append(alert)
-                except:
-                    continue
-            
-            # Add some simulated alerts if real ones fail
-            if not alerts:
-                alerts = self._get_simulated_cisa_alerts()
+                    # Try different parsing strategies
+                    selectors = [
+                        'div.c-view__row', 'div.view-content div.views-row',
+                        'article.node--type-news', 'div.alert-list-item'
+                    ]
+                    
+                    for selector in selectors:
+                        advisory_items = soup.select(selector)[:5]
+                        if advisory_items:
+                            break
+                    
+                    for item in advisory_items:
+                        try:
+                            # Multiple title selectors
+                            title_selectors = ['a', 'h2 a', 'h3 a', '.field--name-title a']
+                            title_elem = None
+                            for selector in title_selectors:
+                                title_elem = item.select_one(selector)
+                                if title_elem:
+                                    break
+                            
+                            # Multiple date selectors  
+                            date_selectors = ['time', '.date', '.field--name-created', '.posted-date']
+                            date_elem = None
+                            for selector in date_selectors:
+                                date_elem = item.select_one(selector)
+                                if date_elem:
+                                    break
+                            
+                            if title_elem:
+                                title = title_elem.get_text(strip=True)
+                                link = title_elem.get('href', '')
+                                if link and not link.startswith('http'):
+                                    link = "https://www.cisa.gov" + link
+                                
+                                date_text = date_elem.get_text(strip=True) if date_elem else "Recent"
+                                
+                                alert = {
+                                    "title": title,
+                                    "link": link,
+                                    "date": date_text,
+                                    "severity": self._classify_cisa_severity(title),
+                                    "source": "CISA",
+                                    "type": "Advisory"
+                                }
+                                alerts.append(alert)
+                        except Exception:
+                            continue
+                    
+                    if alerts:
+                        return alerts
                 
-            return alerts
+                time.sleep(0.5)  # Be respectful to the server
+            
+            # If all endpoints fail, use simulated data
+            return self._get_simulated_cisa_alerts()
             
         except Exception as e:
-            st.error(f"Error fetching CISA data: {str(e)}")
+            st.warning(f"⚠️ CISA data temporarily unavailable. Using simulated data.")
             return self._get_simulated_cisa_alerts()
     
     def _classify_cisa_severity(self, title):
         """Classify alert severity based on title keywords"""
         title_lower = title.lower()
-        if any(word in title_lower for word in ['critical', 'emergency', 'immediate']):
+        critical_words = ['critical', 'emergency', 'immediate', 'zero-day', '0-day']
+        high_words = ['high', 'urgent', 'exploit', 'weaponized']
+        medium_words = ['medium', 'moderate', 'update', 'patch']
+        
+        if any(word in title_lower for word in critical_words):
             return "CRITICAL"
-        elif any(word in title_lower for word in ['high', 'urgent']):
-            return "HIGH"
-        elif any(word in title_lower for word in ['medium', 'moderate']):
+        elif any(word in title_lower for word in high_words):
+            return "HIGH" 
+        elif any(word in title_lower for word in medium_words):
             return "MEDIUM"
         else:
             return "LOW"
     
     def _get_simulated_cisa_alerts(self):
-        """Fallback simulated CISA alerts"""
+        """Enhanced simulated CISA alerts"""
+        base_date = datetime.now()
         return [
             {
-                "title": "Critical Vulnerability in Network Infrastructure Devices",
-                "link": "https://www.cisa.gov",
-                "date": "2024-05-15",
+                "title": "Critical Vulnerability in Network Infrastructure Devices - CVE-2024-12345",
+                "link": "https://www.cisa.gov/known-exploited-vulnerabilities",
+                "date": (base_date - timedelta(days=1)).strftime("%Y-%m-%d"),
                 "severity": "CRITICAL",
                 "source": "CISA",
-                "type": "Advisory"
+                "type": "Emergency Directive"
             },
             {
-                "title": "Phishing Campaign Targeting Financial Sector",
-                "link": "https://www.cisa.gov", 
-                "date": "2024-05-10",
+                "title": "Advanced Phishing Campaign Targeting Financial Sector Organizations",
+                "link": "https://www.cisa.gov/news-events/alerts", 
+                "date": (base_date - timedelta(days=3)).strftime("%Y-%m-%d"),
                 "severity": "HIGH",
                 "source": "CISA",
                 "type": "Alert"
+            },
+            {
+                "title": "Ransomware Group Targeting Healthcare Infrastructure",
+                "link": "https://www.cisa.gov/stopransomware",
+                "date": (base_date - timedelta(days=5)).strftime("%Y-%m-%d"),
+                "severity": "HIGH",
+                "source": "CISA", 
+                "type": "Advisory"
+            },
+            {
+                "title": "Software Supply Chain Compromise in Third-Party Libraries",
+                "link": "https://www.cisa.gov/supply-chain-compromise",
+                "date": (base_date - timedelta(days=7)).strftime("%Y-%m-%d"),
+                "severity": "MEDIUM",
+                "source": "CISA",
+                "type": "Bulletin"
             }
         ]
     
     def fetch_mitre_techniques(self):
-        """Fetch MITRE ATT&CK techniques from official repository"""
+        """Fetch MITRE ATT&CK techniques - IMPROVED with better fallback"""
         try:
-            # Using MITRE's CTI repository
+            # Try primary MITRE CTI repository
             url = "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
-            response = self.session.get(url, timeout=15)
+            response = self.safe_request(url)
             
-            if response.status_code == 200:
+            if response and response.status_code == 200:
                 data = response.json()
                 techniques = []
                 
-                for obj in data['objects']:
-                    if obj['type'] == 'attack-pattern' and 'external_references' in obj:
+                for obj in data.get('objects', []):
+                    if obj.get('type') == 'attack-pattern':
                         # Extract technique information
-                        ext_refs = obj['external_references']
-                        mitre_id = next((ref['external_id'] for ref in ext_refs if ref['source_name'] == 'mitre-attack'), None)
+                        ext_refs = obj.get('external_references', [])
+                        mitre_id = next((ref['external_id'] for ref in ext_refs 
+                                       if ref.get('source_name') == 'mitre-attack'), None)
                         
                         if mitre_id and mitre_id.startswith('T'):
                             technique = {
                                 "id": mitre_id,
                                 "name": obj.get('name', ''),
-                                "description": obj.get('description', ''),
+                                "description": obj.get('description', '')[:200] + "..." if obj.get('description') and len(obj.get('description')) > 200 else obj.get('description', ''),
                                 "tactic": obj.get('kill_chain_phases', [{}])[0].get('phase_name', '') if obj.get('kill_chain_phases') else '',
                                 "platforms": obj.get('x_mitre_platforms', []),
                                 "data_sources": obj.get('x_mitre_data_sources', [])
                             }
                             techniques.append(technique)
                 
-                return techniques[:10]  # Return first 10 techniques
-            else:
-                return self._get_simulated_mitre_techniques()
+                return techniques[:12]  # Return first 12 techniques
+            
+            # If MITRE fetch fails, use enhanced simulated data
+            return self._get_simulated_mitre_techniques()
                 
         except Exception as e:
-            st.error(f"Error fetching MITRE data: {str(e)}")
+            st.warning(f"⚠️ MITRE data temporarily unavailable. Using enhanced simulated data.")
             return self._get_simulated_mitre_techniques()
     
     def _get_simulated_mitre_techniques(self):
-        """Fallback simulated MITRE techniques"""
+        """Enhanced simulated MITRE techniques"""
         return [
             {
                 "id": "T1566.001",
                 "name": "Phishing: Spearphishing Attachment",
-                "description": "Adversaries may send spearphishing emails with a malicious attachment",
+                "description": "Adversaries may send spearphishing emails with a malicious attachment in a targeted campaign.",
                 "tactic": "Initial Access",
                 "platforms": ["Windows", "Linux", "macOS"],
-                "data_sources": ["Network Traffic", "Email Gateway"]
+                "data_sources": ["Network Traffic", "Email Gateway", "File Monitoring"]
             },
             {
                 "id": "T1059.003",
                 "name": "Command and Scripting Interpreter: Windows Command Shell",
-                "description": "Adversaries may abuse the Windows command shell for execution",
+                "description": "Adversaries may abuse the Windows command shell for execution of malicious commands and payloads.",
                 "tactic": "Execution", 
                 "platforms": ["Windows"],
-                "data_sources": ["Process Monitoring", "Command Line"]
+                "data_sources": ["Process Monitoring", "Command Line", "PowerShell Logs"]
+            },
+            {
+                "id": "T1021.001",
+                "name": "Remote Desktop Protocol",
+                "description": "Adversaries may use RDP for lateral movement and remote control of systems.",
+                "tactic": "Lateral Movement",
+                "platforms": ["Windows"],
+                "data_sources": ["Network Traffic", "Authentication Logs", "RDP Sessions"]
+            },
+            {
+                "id": "T1486",
+                "name": "Data Encrypted for Impact",
+                "description": "Adversaries may encrypt data on target systems to disrupt availability and extort payments.",
+                "tactic": "Impact",
+                "platforms": ["Windows", "Linux", "macOS"],
+                "data_sources": ["File Access", "Process Monitoring", "Network Traffic"]
             }
         ]
     
     def fetch_global_threat_intel(self):
-        """Fetch global threat intelligence from multiple sources"""
+        """Fetch global threat intelligence from multiple sources - IMPROVED"""
         try:
-            # Simulated global threat data - in production, this would integrate with:
-            # - AlienVault OTX
-            # - ThreatConnect
-            # - VirusTotal
-            # - Abuse.ch
+            # Enhanced simulated global threat data
             threats = []
             
-            # Sample threat intelligence
             threat_sources = [
-                {"source": "AlienVault OTX", "pulse_count": random.randint(100, 1000)},
-                {"source": "ThreatConnect", "indicator_count": random.randint(500, 2000)},
-                {"source": "VirusTotal", "malicious_hashes": random.randint(1000, 5000)},
-                {"source": "Abuse.ch", "malware_families": random.randint(50, 200)}
+                {
+                    "source": "AlienVault OTX", 
+                    "pulse_count": random.randint(500, 2000),
+                    "malicious_ips": random.randint(1000, 5000),
+                    "description": "Community-driven threat intelligence"
+                },
+                {
+                    "source": "ThreatConnect", 
+                    "indicator_count": random.randint(1000, 3000),
+                    "campaigns": random.randint(10, 50),
+                    "description": "Enterprise threat intelligence platform"
+                },
+                {
+                    "source": "VirusTotal", 
+                    "malicious_hashes": random.randint(5000, 15000),
+                    "suspicious_files": random.randint(1000, 5000),
+                    "description": "File and URL reputation service"
+                },
+                {
+                    "source": "Abuse.ch", 
+                    "malware_families": random.randint(100, 300),
+                    "botnet_trackers": random.randint(20, 100),
+                    "description": "Malware and botnet intelligence"
+                }
             ]
             
             for source in threat_sources:
                 threat = {
                     "source": source["source"],
                     "metrics": source,
-                    "last_updated": datetime.now() - timedelta(hours=random.randint(1, 24)),
-                    "confidence": random.uniform(0.7, 0.95)
+                    "last_updated": datetime.now() - timedelta(hours=random.randint(1, 12)),
+                    "confidence": random.uniform(0.8, 0.98),
+                    "description": source["description"]
                 }
                 threats.append(threat)
             
             return threats
             
         except Exception as e:
-            st.error(f"Error fetching global threat intel: {str(e)}")
+            st.warning(f"⚠️ Global threat intelligence temporarily limited.")
             return []
     
     def fetch_vulnerability_data(self):
-        """Fetch recent vulnerability data from NVD"""
+        """Fetch recent vulnerability data - IMPROVED with better simulation"""
         try:
-            # Using NVD API for recent vulnerabilities
+            # Try NVD API with better error handling
             url = "https://services.nvd.nist.gov/rest/json/cves/1.0"
             params = {
-                'resultsPerPage': 10,
-                'startIndex': 0
+                'resultsPerPage': 8,
+                'startIndex': 0,
+                'pubStartDate': (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%dT00:00:00:000 UTC-00:00')
             }
-            response = self.session.get(url, timeout=10, params=params)
             
-            if response.status_code == 200:
+            response = self.safe_request(url, params=params)
+            
+            if response and response.status_code == 200:
                 data = response.json()
                 vulnerabilities = []
                 
-                for item in data.get('result', {}).get('CVE_Items', [])[:5]:
+                for item in data.get('result', {}).get('CVE_Items', [])[:6]:
                     cve_data = item['cve']
                     cve_id = cve_data['CVE_data_meta']['ID']
                     description = cve_data['description']['description_data'][0]['value']
@@ -465,12 +585,14 @@ class LiveDataIntegration:
                     cvss_score = 0.0
                     if 'impact' in item and 'baseMetricV3' in item['impact']:
                         cvss_score = item['impact']['baseMetricV3']['cvssV3']['baseScore']
+                    elif 'impact' in item and 'baseMetricV2' in item['impact']:
+                        cvss_score = item['impact']['baseMetricV2']['cvssV2']['baseScore']
                     
                     vulnerability = {
                         "cve_id": cve_id,
-                        "description": description[:200] + "..." if len(description) > 200 else description,
+                        "description": description[:150] + "..." if len(description) > 150 else description,
                         "cvss_score": cvss_score,
-                        "published_date": item.get('publishedDate', ''),
+                        "published_date": item.get('publishedDate', '').split('T')[0],
                         "severity": "CRITICAL" if cvss_score >= 9.0 else "HIGH" if cvss_score >= 7.0 else "MEDIUM" if cvss_score >= 4.0 else "LOW"
                     }
                     vulnerabilities.append(vulnerability)
@@ -480,30 +602,38 @@ class LiveDataIntegration:
                 return self._get_simulated_vulnerabilities()
                 
         except Exception as e:
-            st.error(f"Error fetching vulnerability data: {str(e)}")
+            st.warning(f"⚠️ Vulnerability data temporarily unavailable. Using enhanced simulated data.")
             return self._get_simulated_vulnerabilities()
     
     def _get_simulated_vulnerabilities(self):
-        """Fallback simulated vulnerability data"""
+        """Enhanced simulated vulnerability data"""
+        base_date = datetime.now()
         return [
             {
                 "cve_id": "CVE-2024-12345",
-                "description": "Remote code execution vulnerability in web application framework",
+                "description": "Critical remote code execution vulnerability in enterprise network infrastructure devices affecting multiple vendors.",
                 "cvss_score": 9.8,
-                "published_date": "2024-05-15",
+                "published_date": (base_date - timedelta(days=2)).strftime("%Y-%m-%d"),
                 "severity": "CRITICAL"
             },
             {
-                "cve_id": "CVE-2024-12346",
-                "description": "Privilege escalation in operating system kernel",
+                "cve_id": "CVE-2024-12346", 
+                "description": "Privilege escalation vulnerability in operating system kernel allowing local privilege elevation.",
                 "cvss_score": 7.8,
-                "published_date": "2024-05-14", 
+                "published_date": (base_date - timedelta(days=5)).strftime("%Y-%m-%d"),
                 "severity": "HIGH"
+            },
+            {
+                "cve_id": "CVE-2024-12347",
+                "description": "Information disclosure vulnerability in web application framework exposing sensitive data.",
+                "cvss_score": 6.5, 
+                "published_date": (base_date - timedelta(days=7)).strftime("%Y-%m-%d"),
+                "severity": "MEDIUM"
             }
         ]
 
 class QuantumThreatSimulator:
-    """Advanced Quantum Threat Simulation Engine - FIXED VERSION"""
+    """Advanced Quantum Threat Simulation Engine - IMPROVED VERSION"""
     
     def __init__(self):
         self.simulation_history = []
@@ -517,27 +647,27 @@ class QuantumThreatSimulator:
         scenario_templates = {
             'ransomware': {
                 'name': 'Quantum Ransomware Attack',
-                'description': 'Advanced ransomware with quantum encryption capabilities',
-                'indicators': ['File encryption patterns', 'Ransom notes', 'C2 communications'],
-                'mitre_techniques': ['T1486', 'T1566.001', 'T1059.003']
+                'description': 'Advanced ransomware with quantum encryption capabilities targeting critical infrastructure',
+                'indicators': ['File encryption patterns', 'Ransom notes', 'C2 communications', 'Bitcoin wallet activity'],
+                'mitre_techniques': ['T1486', 'T1566.001', 'T1059.003', 'T1027']
             },
             'supply_chain': {
                 'name': 'Supply Chain Compromise', 
-                'description': 'Third-party software supply chain attack',
-                'indicators': ['Anomalous updates', 'Code signatures', 'Network traffic'],
-                'mitre_techniques': ['T1195.002', 'T1554', 'T1071']
+                'description': 'Third-party software supply chain attack via compromised updates',
+                'indicators': ['Anomalous update packages', 'Invalid code signatures', 'Suspicious network traffic'],
+                'mitre_techniques': ['T1195.002', 'T1554', 'T1071', 'T1027']
             },
             'ai_poisoning': {
-                'name': 'AI Model Poisoning',
-                'description': 'Adversarial attacks on machine learning models',
-                'indicators': ['Model drift', 'Training data anomalies', 'Prediction errors'],
-                'mitre_techniques': ['T1565.001', 'T1591', 'T1588']
+                'name': 'AI Model Poisoning Attack',
+                'description': 'Adversarial attacks on machine learning models through training data manipulation',
+                'indicators': ['Model performance degradation', 'Training data anomalies', 'Prediction inconsistencies'],
+                'mitre_techniques': ['T1565.001', 'T1591', 'T1588', 'T1041']
             },
             'zero_day': {
-                'name': 'Zero-Day Exploitation',
-                'description': 'Exploitation of unknown vulnerabilities',
-                'indicators': ['Memory corruption', 'Privilege escalation', 'Lateral movement'],
-                'mitre_techniques': ['T1190', 'T1068', 'T1210']
+                'name': 'Zero-Day Exploitation Campaign',
+                'description': 'Exploitation of unknown vulnerabilities in widely deployed software',
+                'indicators': ['Memory corruption attempts', 'Privilege escalation patterns', 'Lateral movement'],
+                'mitre_techniques': ['T1190', 'T1068', 'T1210', 'T1055']
             }
         }
         
@@ -556,8 +686,9 @@ class QuantumThreatSimulator:
             'risk_score': self.calculate_risk_score(intensity, duration),
             'indicators': template['indicators'],
             'mitre_techniques': template['mitre_techniques'],
-            'quantum_entanglement': random.uniform(0.6, 0.95),
-            'defense_recommendations': self.generate_defense_recommendations(scenario_type, intensity)
+            'quantum_entanglement': random.uniform(0.7, 0.95),
+            'defense_recommendations': self.generate_defense_recommendations(scenario_type, intensity),
+            'estimated_impact': self.estimate_impact(scenario_type, intensity)
         }
         
         self.active_scenarios.append(scenario)
@@ -567,39 +698,75 @@ class QuantumThreatSimulator:
     
     def calculate_risk_score(self, intensity, duration):
         """Calculate quantum risk score for scenario"""
-        base_risk = intensity * 0.7 + (duration / 60) * 0.3
-        quantum_fluctuation = random.uniform(-0.1, 0.1)
+        base_risk = intensity * 0.6 + (duration / 60) * 0.4
+        quantum_fluctuation = random.uniform(-0.05, 0.05)
         return max(0.1, min(0.99, base_risk + quantum_fluctuation))
+    
+    def estimate_impact(self, scenario_type, intensity):
+        """Estimate potential impact of the threat scenario"""
+        impact_templates = {
+            'ransomware': {
+                'financial': intensity * 1000000,
+                'downtime': intensity * 48,  # hours
+                'data_loss': intensity * 0.8,
+                'reputation': intensity * 0.9
+            },
+            'supply_chain': {
+                'financial': intensity * 500000,
+                'downtime': intensity * 24,
+                'data_loss': intensity * 0.6, 
+                'reputation': intensity * 0.8
+            },
+            'ai_poisoning': {
+                'financial': intensity * 750000,
+                'downtime': intensity * 36,
+                'data_loss': intensity * 0.4,
+                'reputation': intensity * 0.7
+            },
+            'zero_day': {
+                'financial': intensity * 2000000,
+                'downtime': intensity * 72,
+                'data_loss': intensity * 0.9,
+                'reputation': intensity * 0.95
+            }
+        }
+        
+        return impact_templates.get(scenario_type, impact_templates['ransomware'])
     
     def generate_defense_recommendations(self, scenario_type, intensity):
         """Generate quantum defense recommendations"""
         recommendations = {
             'ransomware': [
-                "Deploy quantum-resistant backup systems",
-                "Implement behavioral analysis for encryption patterns",
-                "Activate temporal rollback protocols"
+                "Deploy quantum-resistant backup systems with air-gapping",
+                "Implement behavioral analysis for encryption pattern detection",
+                "Activate temporal rollback protocols for critical systems",
+                "Enable real-time ransomware behavioral blocking"
             ],
             'supply_chain': [
-                "Enable quantum code signing verification",
-                "Implement software bill of materials (SBOM)",
-                "Deploy runtime application self-protection"
+                "Enable quantum code signing verification with blockchain",
+                "Implement comprehensive software bill of materials (SBOM)",
+                "Deploy runtime application self-protection (RASP)",
+                "Establish third-party vendor security assessments"
             ],
             'ai_poisoning': [
-                "Activate adversarial training protocols",
-                "Implement model integrity monitoring",
-                "Deploy quantum-resistant model validation"
+                "Activate adversarial training protocols for ML models",
+                "Implement model integrity monitoring with drift detection", 
+                "Deploy quantum-resistant model validation frameworks",
+                "Establish AI governance and validation processes"
             ],
             'zero_day': [
-                "Enable quantum memory protection",
-                "Implement zero-trust microsegmentation",
-                "Deploy behavioral anomaly detection"
+                "Enable quantum memory protection with execution control",
+                "Implement zero-trust microsegmentation policies",
+                "Deploy behavioral anomaly detection with AI",
+                "Activate emergency patch management protocols"
             ]
         }
         
         base_recommendations = recommendations.get(scenario_type, recommendations['ransomware'])
         
         if intensity > 0.8:
-            base_recommendations.append("🚨 ACTIVATE QUANTUM EMERGENCY PROTOCOLS")
+            base_recommendations.append("🚨 ACTIVATE QUANTUM EMERGENCY RESPONSE PROTOCOLS")
+            base_recommendations.append("🔴 IMMEDIATE INCIDENT RESPONSE TEAM ACTIVATION")
         
         return base_recommendations
     
@@ -609,23 +776,27 @@ class QuantumThreatSimulator:
         if not scenario:
             return None
         
-        # Simulate attack progression
+        # Simulate attack progression with more realistic data
         progression_data = []
         current_time = scenario['start_time']
         
         for minute in range(scenario['duration']):
+            progress_ratio = minute / scenario['duration']
+            
             progression = {
                 'minute': minute,
-                'threat_level': scenario['risk_score'] * (minute / scenario['duration']),
-                'systems_affected': random.randint(0, 100) * (minute / scenario['duration']),
-                'data_breached': random.randint(0, 1000) * (minute / scenario['duration']),
-                'defense_effectiveness': max(0.1, 1 - (minute / scenario['duration']) * 0.5)
+                'threat_level': scenario['risk_score'] * (0.3 + 0.7 * progress_ratio),
+                'systems_affected': int(100 * (0.1 + 0.9 * progress_ratio)),
+                'data_breached': int(1000 * (0.05 + 0.95 * progress_ratio)),
+                'defense_effectiveness': max(0.1, 0.9 - (progress_ratio * 0.6)),
+                'financial_impact': scenario['estimated_impact']['financial'] * progress_ratio
             }
             progression_data.append(progression)
         
         scenario['progression'] = progression_data
         scenario['end_time'] = current_time + timedelta(minutes=scenario['duration'])
         scenario['status'] = 'COMPLETED'
+        scenario['final_impact'] = progression_data[-1] if progression_data else {}
         
         return scenario
     
@@ -637,26 +808,28 @@ class QuantumThreatSimulator:
                 'average_risk': 0,
                 'most_common_scenario': 'None',
                 'total_duration': 0,
-                'quantum_entanglement_avg': 0
+                'quantum_entanglement_avg': 0,
+                'success_rate': 0
             }
         
         total_simulations = len(self.simulation_history)
+        completed_simulations = len([s for s in self.simulation_history if s.get('status') == 'COMPLETED'])
         avg_risk_score = np.mean([s['risk_score'] for s in self.simulation_history])
         
-        # Safely get most common scenario
         scenario_types = [s.get('type', 'unknown') for s in self.simulation_history]
-        if scenario_types:
-            most_common_type = max(set(scenario_types), key=scenario_types.count)
-        else:
-            most_common_type = 'None'
+        most_common_type = max(set(scenario_types), key=scenario_types.count) if scenario_types else 'None'
         
         return {
             'total_simulations': total_simulations,
+            'completed_simulations': completed_simulations,
             'average_risk': avg_risk_score,
             'most_common_scenario': most_common_type,
             'total_duration': sum([s.get('duration', 0) for s in self.simulation_history]),
-            'quantum_entanglement_avg': np.mean([s.get('quantum_entanglement', 0) for s in self.simulation_history])
+            'quantum_entanglement_avg': np.mean([s.get('quantum_entanglement', 0) for s in self.simulation_history]),
+            'success_rate': completed_simulations / total_simulations if total_simulations > 0 else 0
         }
+
+# Rest of the classes remain the same as in your original code, but I'll include the critical ones for completeness
 
 class QuantumEntanglementEngine:
     """Quantum entanglement correlation engine"""
@@ -673,7 +846,7 @@ class QuantumEntanglementEngine:
         return network
 
 class LiveCISAIntegration:
-    """Live CISA data integration"""
+    """Live CISA data integration - IMPROVED"""
     
     def __init__(self):
         self.live_data = LiveDataIntegration()
@@ -681,7 +854,7 @@ class LiveCISAIntegration:
     def connect_cisa_data(self):
         """Connect to live CISA data"""
         with st.spinner("🔄 Connecting to CISA National Cyber Awareness System..."):
-            time.sleep(2)
+            time.sleep(1.5)
             return True
     
     def get_alerts(self):
@@ -695,11 +868,12 @@ class LiveCISAIntegration:
             'total_alerts': len(alerts),
             'critical_alerts': len([a for a in alerts if a.get('severity') == 'CRITICAL']),
             'high_alerts': len([a for a in alerts if a.get('severity') == 'HIGH']),
+            'medium_alerts': len([a for a in alerts if a.get('severity') == 'MEDIUM']),
             'last_updated': datetime.now()
         }
 
 class LiveMITREIntegration:
-    """Live MITRE ATT&CK integration"""
+    """Live MITRE ATT&CK integration - IMPROVED"""
     
     def __init__(self):
         self.live_data = LiveDataIntegration()
@@ -707,7 +881,7 @@ class LiveMITREIntegration:
     def connect_mitre_data(self):
         """Connect to live MITRE data"""
         with st.spinner("🔄 Loading MITRE ATT&CK Framework..."):
-            time.sleep(2)
+            time.sleep(1.5)
             return True
     
     def get_techniques(self):
@@ -788,23 +962,24 @@ class QuantumNeuralNetwork:
         return max(0.1, min(0.99, threat_level))
 
 class HolographicThreatIntelligence:
-    """Advanced holographic threat intelligence system - FIXED VERSION"""
+    """Advanced holographic threat intelligence system - IMPROVED VERSION"""
     
     def __init__(self):
         self.quantum_neural_net = QuantumNeuralNetwork()
         self.multiverse_scenarios = self._initialize_multiverse()
         self.cisa_integration = LiveCISAIntegration()
         self.mitre_integration = LiveMITREIntegration()
-        self.threat_simulator = QuantumThreatSimulator()  # FIXED: Proper initialization
+        self.threat_simulator = QuantumThreatSimulator()
         self.live_data = LiveDataIntegration()
         
     def _initialize_multiverse(self):
         """Initialize parallel universe threat scenarios"""
         return {
-            'prime_timeline': {'probability': 0.65, 'threat_level': 0.7},
-            'quantum_branch_1': {'probability': 0.15, 'threat_level': 0.9},
-            'quantum_branch_2': {'probability': 0.10, 'threat_level': 0.4},
-            'temporal_anomaly': {'probability': 0.05, 'threat_level': 0.95}
+            'prime_timeline': {'probability': 0.65, 'threat_level': 0.7, 'stability': 0.9},
+            'quantum_branch_1': {'probability': 0.15, 'threat_level': 0.9, 'stability': 0.6},
+            'quantum_branch_2': {'probability': 0.10, 'threat_level': 0.4, 'stability': 0.8},
+            'temporal_anomaly': {'probability': 0.05, 'threat_level': 0.95, 'stability': 0.3},
+            'cyber_utopia': {'probability': 0.05, 'threat_level': 0.1, 'stability': 0.95}
         }
 
 def main():
@@ -873,23 +1048,27 @@ def main():
             if st.button("🔄 Refresh Data", use_container_width=True):
                 st.rerun()
         
-        # Live Data Status
+        # Live Data Status with improved connectivity indicators
         st.markdown("### 📡 LIVE DATA STATUS")
         status_col1, status_col2, status_col3, status_col4 = st.columns(4)
         
         with status_col1:
             if st.session_state.cisa_connected:
                 st.success("🔴 LIVE CISA DATA")
-                st.metric("CISA Alerts", "Active", "Real-time")
+                metrics = st.session_state.holographic_intel.cisa_integration.get_metrics()
+                st.metric("CISA Alerts", metrics['total_alerts'], f"{metrics['critical_alerts']} Critical")
             else:
                 st.error("❌ CISA Offline")
+                st.info("Click 'Connect CISA' to enable")
         
         with status_col2:
             if st.session_state.mitre_connected:
                 st.success("🔴 LIVE MITRE DATA") 
-                st.metric("MITRE Techniques", "Loaded", "Updated")
+                metrics = st.session_state.holographic_intel.mitre_integration.get_metrics()
+                st.metric("MITRE Techniques", metrics['total_techniques'], f"{metrics['techniques_by_tactic']} Tactics")
             else:
                 st.error("❌ MITRE Offline")
+                st.info("Click 'Connect MITRE' to enable")
         
         with status_col3:
             if st.session_state.live_data_loaded:
@@ -897,10 +1076,11 @@ def main():
                 st.metric("Threat Sources", "4 Active", "Real-time")
             else:
                 st.warning("⚠️ Global Intel Pending")
+                st.info("Click 'Load Live Data'")
         
         with status_col4:
             st.info("🌐 DATA STREAMS")
-            st.metric("Vulnerabilities", "Live Feed", "NVD API")
+            st.metric("Vulnerabilities", "Live Feed", "Enhanced Simulation")
         
         # Advanced quantum metrics
         st.markdown("### 📊 REAL-TIME QUANTUM METRICS")
@@ -978,6 +1158,7 @@ def main():
         with tab8:
             render_defense_operations()
 
+# The rendering functions remain largely the same but will work with the improved data classes
 def render_neural_matrix():
     """Render advanced neural matrix dashboard with new features"""
     
@@ -1100,10 +1281,11 @@ def render_multiverse_analytics():
         st.markdown("#### 📈 MULTIVERSE TIMELINE ANALYSIS")
         
         # Enhanced timeline visualization
-        timelines = ['Prime Timeline', 'Quantum Branch 1', 'Quantum Branch 2', 'Temporal Anomaly']
-        probabilities = [0.65, 0.15, 0.10, 0.05]
-        threat_levels = [0.7, 0.9, 0.4, 0.95]
-        stability_scores = [0.9, 0.6, 0.8, 0.3]
+        multiverse = st.session_state.holographic_intel.multiverse_scenarios
+        timelines = list(multiverse.keys())
+        probabilities = [multiverse[t]['probability'] for t in timelines]
+        threat_levels = [multiverse[t]['threat_level'] for t in timelines]
+        stability_scores = [multiverse[t]['stability'] for t in timelines]
         
         fig = go.Figure(data=[
             go.Bar(name='Probability', x=timelines, y=probabilities, marker_color='#00ffff'),
@@ -1135,18 +1317,12 @@ def render_multiverse_analytics():
                 st.write(f"{stability:.0%}")
 
 def render_quantum_simulator():
-    """Render Quantum Threat Simulator - FIXED VERSION"""
+    """Render Quantum Threat Simulator - IMPROVED VERSION"""
     
     st.markdown("### 🎮 QUANTUM THREAT SIMULATOR")
     st.markdown("Create and run advanced threat scenarios to test your quantum defenses!")
     
-    # FIXED: Safe access to threat_simulator
-    if hasattr(st.session_state.holographic_intel, 'threat_simulator'):
-        simulator = st.session_state.holographic_intel.threat_simulator
-    else:
-        # Initialize if missing
-        st.session_state.holographic_intel.threat_simulator = QuantumThreatSimulator()
-        simulator = st.session_state.holographic_intel.threat_simulator
+    simulator = st.session_state.holographic_intel.threat_simulator
     
     col1, col2 = st.columns([1, 1])
     
@@ -1179,9 +1355,10 @@ def render_quantum_simulator():
         analytics = simulator.get_simulation_analytics()
         
         st.metric("Total Simulations", analytics['total_simulations'])
+        st.metric("Completed Simulations", analytics['completed_simulations'])
         st.metric("Average Risk Score", f"{analytics['average_risk']:.1%}")
         st.metric("Most Common Scenario", analytics['most_common_scenario'].replace("_", " ").title())
-        st.metric("Quantum Entanglement", f"{analytics['quantum_entanglement_avg']:.1%}")
+        st.metric("Success Rate", f"{analytics['success_rate']:.1%}")
         
         # New: Simulation recommendations
         st.markdown("#### 💡 RECOMMENDATIONS")
@@ -1190,6 +1367,8 @@ def render_quantum_simulator():
                 st.warning("High average risk detected. Consider enhancing defense protocols.")
             if analytics['most_common_scenario'] == 'ransomware':
                 st.info("Focus ransomware defense training and backup strategies.")
+            if analytics['success_rate'] < 0.8:
+                st.error("Low simulation success rate. Review defense configurations.")
     
     # Active Simulations with enhanced display
     st.markdown("#### 🎯 ACTIVE SIMULATIONS")
@@ -1205,6 +1384,7 @@ def render_quantum_simulator():
                     st.write(f"**Intensity:** {scenario['intensity']}")
                     st.write(f"**Duration:** {scenario['duration']} minutes")
                     st.write(f"**Quantum Entanglement:** {scenario['quantum_entanglement']:.1%}")
+                    st.write(f"**Status:** {scenario['status']}")
                 
                 with col_b:
                     st.write("**MITRE Techniques:**")
@@ -1256,7 +1436,7 @@ def render_quantum_simulator():
     st.plotly_chart(fig, use_container_width=True)
 
 def render_live_cisa_data():
-    """Render live CISA data integration"""
+    """Render live CISA data integration - IMPROVED"""
     
     st.markdown("### 🔗 LIVE CISA THREAT INTELLIGENCE")
     st.markdown('<span class="live-data-badge">LIVE DATA</span>', unsafe_allow_html=True)
@@ -1284,7 +1464,17 @@ def render_live_cisa_data():
     
     if cisa_alerts:
         for alert in cisa_alerts:
-            with st.expander(f"{alert['severity']} - {alert['title']}"):
+            # Color code based on severity
+            if alert['severity'] == 'CRITICAL':
+                border_color = "🔴"
+            elif alert['severity'] == 'HIGH':
+                border_color = "🟠" 
+            elif alert['severity'] == 'MEDIUM':
+                border_color = "🟡"
+            else:
+                border_color = "🟢"
+                
+            with st.expander(f"{border_color} {alert['severity']} - {alert['title']}"):
                 col_a, col_b = st.columns(2)
                 with col_a:
                     st.write(f"**Date:** {alert['date']}")
@@ -1292,7 +1482,7 @@ def render_live_cisa_data():
                     st.write(f"**Type:** {alert['type']}")
                 with col_b:
                     st.write(f"**Source:** {alert['source']}")
-                    if alert['link']:
+                    if alert['link'] and alert['link'].startswith('http'):
                         st.markdown(f"[View Alert]({alert['link']})")
     
     # New: CISA Alert Trends
@@ -1318,7 +1508,7 @@ def render_live_cisa_data():
     st.plotly_chart(fig, use_container_width=True)
 
 def render_live_mitre_data():
-    """Render live MITRE ATT&CK data"""
+    """Render live MITRE ATT&CK data - IMPROVED"""
     
     st.markdown("### 🎯 LIVE MITRE ATT&CK FRAMEWORK")
     st.markdown('<span class="live-data-badge">LIVE DATA</span>', unsafe_allow_html=True)
@@ -1365,22 +1555,24 @@ def render_live_mitre_data():
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'), height=300)
         st.plotly_chart(fig, use_container_width=True)
 
+# The remaining rendering functions (render_global_threat_map, render_vulnerability_intel, render_defense_operations)
+# would be similar to your original versions but adapted to work with the improved data classes
+
 def render_global_threat_map():
     """Render global threat intelligence map"""
-    
     st.markdown("### 🌍 GLOBAL THREAT INTELLIGENCE MAP")
-    st.markdown('<span class="live-data-badge">LIVE DATA</span>', unsafe_allow_html=True)
+    st.markdown('<span class="live-data-badge">SIMULATED DATA</span>', unsafe_allow_html=True)
     
-    # Create global threat map
+    # Create enhanced global threat map
     countries = [
-        {'country': 'United States', 'lat': 38.9072, 'lon': -77.0369, 'threat_level': random.uniform(0.7, 0.95), 'incidents': random.randint(50, 200)},
-        {'country': 'China', 'lat': 39.9042, 'lon': 116.4074, 'threat_level': random.uniform(0.6, 0.9), 'incidents': random.randint(30, 150)},
-        {'country': 'Russia', 'lat': 55.7558, 'lon': 37.6173, 'threat_level': random.uniform(0.5, 0.85), 'incidents': random.randint(20, 100)},
-        {'country': 'Germany', 'lat': 52.5200, 'lon': 13.4050, 'threat_level': random.uniform(0.4, 0.8), 'incidents': random.randint(10, 80)},
-        {'country': 'United Kingdom', 'lat': 51.5074, 'lon': -0.1278, 'threat_level': random.uniform(0.5, 0.85), 'incidents': random.randint(15, 90)},
-        {'country': 'India', 'lat': 28.6139, 'lon': 77.2090, 'threat_level': random.uniform(0.6, 0.9), 'incidents': random.randint(25, 120)},
-        {'country': 'Brazil', 'lat': -15.7975, 'lon': -47.8919, 'threat_level': random.uniform(0.4, 0.75), 'incidents': random.randint(8, 60)},
-        {'country': 'Japan', 'lat': 35.6762, 'lon': 139.6503, 'threat_level': random.uniform(0.5, 0.8), 'incidents': random.randint(12, 70)}
+        {'country': 'United States', 'lat': 38.9072, 'lon': -77.0369, 'threat_level': random.uniform(0.7, 0.95), 'incidents': random.randint(100, 500)},
+        {'country': 'China', 'lat': 39.9042, 'lon': 116.4074, 'threat_level': random.uniform(0.6, 0.9), 'incidents': random.randint(80, 400)},
+        {'country': 'Russia', 'lat': 55.7558, 'lon': 37.6173, 'threat_level': random.uniform(0.5, 0.85), 'incidents': random.randint(50, 300)},
+        {'country': 'Germany', 'lat': 52.5200, 'lon': 13.4050, 'threat_level': random.uniform(0.4, 0.8), 'incidents': random.randint(30, 200)},
+        {'country': 'United Kingdom', 'lat': 51.5074, 'lon': -0.1278, 'threat_level': random.uniform(0.5, 0.85), 'incidents': random.randint(40, 250)},
+        {'country': 'India', 'lat': 28.6139, 'lon': 77.2090, 'threat_level': random.uniform(0.6, 0.9), 'incidents': random.randint(60, 350)},
+        {'country': 'Brazil', 'lat': -15.7975, 'lon': -47.8919, 'threat_level': random.uniform(0.4, 0.75), 'incidents': random.randint(20, 150)},
+        {'country': 'Japan', 'lat': 35.6762, 'lon': 139.6503, 'threat_level': random.uniform(0.5, 0.8), 'incidents': random.randint(25, 180)}
     ]
     
     # Create Folium map
@@ -1415,28 +1607,29 @@ def render_global_threat_map():
     
     folium_static(m, width=1000, height=500)
     
-    # Threat statistics
+    # Enhanced threat statistics
     st.markdown("#### 📊 GLOBAL THREAT STATISTICS")
     col1, col2, col3, col4 = st.columns(4)
     
     total_incidents = sum([c['incidents'] for c in countries])
     avg_threat = np.mean([c['threat_level'] for c in countries])
     high_risk_countries = len([c for c in countries if c['threat_level'] > 0.7])
+    emerging_threats = random.randint(5, 20)
     
     with col1:
-        st.metric("🌐 Total Incidents", total_incidents)
+        st.metric("🌐 Total Incidents", f"{total_incidents:,}")
     with col2:
         st.metric("📊 Avg Threat Level", f"{avg_threat:.1%}")
     with col3:
         st.metric("🔴 High Risk Countries", high_risk_countries)
     with col4:
-        st.metric("🎯 Monitoring", f"{len(countries)} countries")
+        st.metric("🚨 Emerging Threats", emerging_threats)
 
 def render_vulnerability_intel():
-    """Render vulnerability intelligence dashboard"""
+    """Render vulnerability intelligence dashboard - IMPROVED"""
     
     st.markdown("### 📊 VULNERABILITY INTELLIGENCE DASHBOARD")
-    st.markdown('<span class="live-data-badge">LIVE DATA</span>', unsafe_allow_html=True)
+    st.markdown('<span class="live-data-badge">ENHANCED SIMULATION</span>', unsafe_allow_html=True)
     
     # Fetch live vulnerability data
     vulnerabilities = st.session_state.holographic_intel.live_data.fetch_vulnerability_data()
@@ -1446,9 +1639,10 @@ def render_vulnerability_intel():
     critical_vulns = len([v for v in vulnerabilities if v.get('severity') == 'CRITICAL'])
     high_vulns = len([v for v in vulnerabilities if v.get('severity') == 'HIGH'])
     avg_cvss = np.mean([v.get('cvss_score', 0) for v in vulnerabilities])
+    total_vulns = len(vulnerabilities)
     
     with col1:
-        st.metric("Total Vulnerabilities", len(vulnerabilities))
+        st.metric("Total Vulnerabilities", total_vulns)
     with col2:
         st.metric("🔴 Critical", critical_vulns)
     with col3:
@@ -1459,29 +1653,44 @@ def render_vulnerability_intel():
     st.markdown("#### 🚨 RECENT VULNERABILITIES")
     
     if vulnerabilities:
-        for vuln in vulnerabilities[:5]:
-            with st.expander(f"{vuln['cve_id']} - CVSS: {vuln['cvss_score']} - {vuln['severity']}"):
+        for vuln in vulnerabilities:
+            # Color code based on severity
+            if vuln['severity'] == 'CRITICAL':
+                border_color = "🔴"
+                st.error(f"{border_color} **{vuln['cve_id']}** - CVSS: {vuln['cvss_score']} - {vuln['severity']}")
+            elif vuln['severity'] == 'HIGH':
+                border_color = "🟠"
+                st.warning(f"{border_color} **{vuln['cve_id']}** - CVSS: {vuln['cvss_score']} - {vuln['severity']}")
+            else:
+                border_color = "🟡"
+                st.info(f"{border_color} **{vuln['cve_id']}** - CVSS: {vuln['cvss_score']} - {vuln['severity']}")
+            
+            with st.expander(f"View Details"):
                 st.write(f"**Description:** {vuln['description']}")
                 st.write(f"**Published:** {vuln['published_date']}")
                 st.write(f"**Severity:** {vuln['severity']}")
                 
                 # Risk assessment
                 if vuln['cvss_score'] >= 9.0:
-                    st.error("🚨 IMMEDIATE ACTION REQUIRED")
+                    st.error("🚨 IMMEDIATE ACTION REQUIRED - Critical infrastructure impact")
                 elif vuln['cvss_score'] >= 7.0:
-                    st.warning("⚠️ PRIORITY PATCHING RECOMMENDED")
+                    st.warning("⚠️ PRIORITY PATCHING RECOMMENDED - Significant risk")
+                elif vuln['cvss_score'] >= 4.0:
+                    st.info("🔧 SCHEDULE PATCHING - Moderate risk")
     
     # Vulnerability trends
     st.markdown("#### 📈 VULNERABILITY TRENDS")
     
-    # Create trend visualization
+    # Create enhanced trend visualization
     months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-    critical_trend = [random.randint(5, 15) for _ in months]
-    high_trend = [random.randint(10, 25) for _ in months]
+    critical_trend = [random.randint(2, 8) for _ in months]
+    high_trend = [random.randint(5, 15) for _ in months]
+    medium_trend = [random.randint(10, 25) for _ in months]
     
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=months, y=critical_trend, name='Critical', line=dict(color='red')))
     fig.add_trace(go.Scatter(x=months, y=high_trend, name='High', line=dict(color='orange')))
+    fig.add_trace(go.Scatter(x=months, y=medium_trend, name='Medium', line=dict(color='yellow')))
     
     fig.update_layout(
         title="Monthly Vulnerability Trends",
@@ -1504,11 +1713,12 @@ def render_defense_operations():
         st.markdown("#### 🎯 ACTIVE DEFENSE SYSTEMS")
         
         defenses = [
-            ("Quantum Firewall", random.uniform(0.85, 0.99), "🟢 ACTIVE", "Network perimeter protection"),
-            ("Neural IDS", random.uniform(0.80, 0.97), "🟢 ACTIVE", "Behavioral threat detection"),
-            ("Temporal Shield", random.uniform(0.75, 0.95), "🟡 STANDBY", "Time-based attack prevention"),
-            ("Holographic Grid", random.uniform(0.70, 0.92), "🟢 ACTIVE", "Decoy network deployment"),
-            ("Entanglement Crypto", random.uniform(0.88, 0.99), "🟢 ACTIVE", "Quantum-resistant encryption")
+            ("Quantum Firewall", random.uniform(0.85, 0.99), "🟢 ACTIVE", "Advanced network perimeter protection with AI"),
+            ("Neural IDS", random.uniform(0.80, 0.97), "🟢 ACTIVE", "Behavioral threat detection with machine learning"),
+            ("Temporal Shield", random.uniform(0.75, 0.95), "🟡 STANDBY", "Time-based attack prevention system"),
+            ("Holographic Grid", random.uniform(0.70, 0.92), "🟢 ACTIVE", "Decoy network deployment and deception"),
+            ("Entanglement Crypto", random.uniform(0.88, 0.99), "🟢 ACTIVE", "Quantum-resistant encryption protocols"),
+            ("AI Sentinel", random.uniform(0.82, 0.96), "🟢 ACTIVE", "Autonomous threat response system")
         ]
         
         for defense, efficiency, status, description in defenses:
@@ -1528,11 +1738,12 @@ def render_defense_operations():
         st.markdown("#### 🚀 DEFENSE METRICS")
         
         metrics_data = {
-            'Threats Blocked': f"{random.randint(1000, 5000):,}",
-            'False Positives': random.randint(5, 50),
-            'Response Time': f"{random.uniform(0.5, 5.0):.2f}ms",
-            'System Uptime': f"{random.uniform(99.5, 99.99):.2f}%",
-            'Threat Detection Rate': f"{random.uniform(95, 99.9):.1f}%"
+            'Threats Blocked': f"{random.randint(5000, 15000):,}",
+            'False Positives': f"{random.randint(5, 50)}",
+            'Response Time': f"{random.uniform(0.1, 2.0):.2f}ms",
+            'System Uptime': f"{random.uniform(99.8, 99.99):.2f}%",
+            'Threat Detection Rate': f"{random.uniform(98, 99.9):.1f}%",
+            'Prevention Success': f"{random.uniform(95, 99.5):.1f}%"
         }
         
         for metric, value in metrics_data.items():
@@ -1543,8 +1754,8 @@ def render_defense_operations():
         # New: Defense effectiveness chart
         st.markdown("#### 📊 DEFENSE EFFECTIVENESS")
         
-        defense_categories = ['Firewall', 'IDS', 'Encryption', 'Backup', 'Monitoring']
-        effectiveness = [random.uniform(0.8, 0.99) for _ in defense_categories]
+        defense_categories = ['Firewall', 'IDS', 'Encryption', 'Backup', 'Monitoring', 'Response']
+        effectiveness = [random.uniform(0.85, 0.99) for _ in defense_categories]
         
         fig = px.bar(x=defense_categories, y=effectiveness, 
                     title="Defense System Effectiveness",
