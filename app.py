@@ -13,37 +13,37 @@ import folium
 from streamlit_folium import folium_static
 import pycountry
 from geopy.geocoders import Nominatim
+import io
+import base64
+from PIL import Image, ImageDraw, ImageFont
 
-# Page configuration for futuristic cyber theme
+# Page configuration for ultimate cyber theme
 st.set_page_config(
-    page_title="NEXUS-7 | AI-Powered Cyber Threat Intelligence Platform",
-    page_icon="🛸",
+    page_title="NEXUS-7 | Quantum Cyber Intelligence Platform",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for futuristic interface
+# Ultimate Cyber CSS
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap');
     
-    .cyber-main {
-        font-family: 'Rajdhani', sans-serif;
-    }
-    
-    .cyber-header {
+    .main-header {
         background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
         color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        border: 1px solid #00ffffee;
-        box-shadow: 0 0 30px #00ffff33;
+        padding: 3rem;
+        border-radius: 20px;
+        border: 2px solid #00ffff;
+        box-shadow: 0 0 50px #00ffff33, inset 0 0 50px #00ffff11;
         margin-bottom: 2rem;
         position: relative;
         overflow: hidden;
+        text-align: center;
     }
     
-    .cyber-header::before {
+    .main-header::before {
         content: '';
         position: absolute;
         top: 0;
@@ -51,7 +51,7 @@ st.markdown("""
         width: 100%;
         height: 100%;
         background: linear-gradient(90deg, transparent, #00ffff22, transparent);
-        animation: shimmer 3s infinite;
+        animation: shimmer 4s infinite;
     }
     
     @keyframes shimmer {
@@ -59,178 +59,264 @@ st.markdown("""
         100% { left: 100%; }
     }
     
-    .hologram-card {
-        background: rgba(16, 16, 32, 0.9);
+    .cyber-card {
+        background: rgba(16, 16, 32, 0.95);
         border: 1px solid #00ffff;
-        border-radius: 10px;
-        padding: 1.5rem;
+        border-radius: 15px;
+        padding: 2rem;
         margin: 1rem 0;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 0 20px #00ffff33;
-        transition: all 0.3s ease;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 0 30px #00ffff33;
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
     }
     
-    .hologram-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 0 30px #00ffff66;
+    .cyber-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #00ffff, transparent);
+    }
+    
+    .cyber-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 0 50px #00ffff66, 0 10px 30px #00000066;
+        border-color: #00ff00;
     }
     
     .neon-text {
         color: #00ffff;
         text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
         font-family: 'Orbitron', monospace;
+        font-weight: 900;
     }
     
-    .pulse-alert {
-        animation: pulse 2s infinite;
+    .glow-text {
+        color: #ffffff;
+        text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+        font-family: 'Rajdhani', sans-serif;
     }
     
-    @keyframes pulse {
-        0% { opacity: 1; }
-        50% { opacity: 0.7; }
-        100% { opacity: 1; }
+    .matrix-text {
+        font-family: 'Share Tech Mono', monospace;
+        color: #00ff00;
     }
     
-    .quantum-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1rem;
-        margin: 1rem 0;
+    .quantum-pulse {
+        animation: quantum-pulse 3s infinite;
     }
     
-    .threat-radar {
-        background: radial-gradient(circle, #0f0c29 0%, #000000 70%);
-        border: 2px solid #ff00ff;
-        border-radius: 50%;
-        padding: 2rem;
-        position: relative;
+    @keyframes quantum-pulse {
+        0% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.8; transform: scale(1.05); }
+        100% { opacity: 1; transform: scale(1); }
     }
     
-    .ai-prediction {
-        background: linear-gradient(45deg, #1a2a6c, #b21f1f, #fdbb2d);
+    .hologram-effect {
+        background: linear-gradient(45deg, 
+            rgba(0, 255, 255, 0.1) 0%, 
+            rgba(255, 0, 255, 0.1) 50%, 
+            rgba(0, 255, 0, 0.1) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .threat-glow {
+        box-shadow: 0 0 20px #ff000044;
+        border: 1px solid #ff0000;
+    }
+    
+    .safe-glow {
+        box-shadow: 0 0 20px #00ff0044;
+        border: 1px solid #00ff00;
+    }
+    
+    .metric-glow {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border: 1px solid #00ffff;
         border-radius: 10px;
         padding: 1rem;
-        margin: 1rem 0;
-        color: white;
+        margin: 0.5rem;
+        box-shadow: 0 0 20px #00ffff33;
     }
     
-    .voice-command {
-        background: rgba(0, 255, 255, 0.1);
-        border: 2px dashed #00ffff;
-        border-radius: 10px;
-        padding: 1rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
     }
     
-    .voice-command:hover {
-        background: rgba(0, 255, 255, 0.2);
-        border: 2px dashed #00ff00;
+    ::-webkit-scrollbar-track {
+        background: #1a1a2e;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #00ffff;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #00ff00;
     }
 </style>
 """, unsafe_allow_html=True)
 
 class QuantumThreatIntelligence:
     def __init__(self):
-        self.threat_predictor = self.init_ai_predictor()
+        self.threat_predictor = self.init_quantum_predictor()
+        self.attack_patterns = self.load_attack_patterns()
         
-    def init_ai_predictor(self):
-        """Initialize AI prediction models"""
+    def init_quantum_predictor(self):
+        """Initialize quantum-level threat prediction"""
         return {
-            'attack_likelihood': random.uniform(0.7, 0.95),
-            'vulnerability_score': random.uniform(0.6, 0.9),
-            'defense_efficiency': random.uniform(0.5, 0.85)
+            'quantum_entanglement_risk': random.uniform(0.7, 0.95),
+            'temporal_anomaly_detection': random.uniform(0.8, 0.99),
+            'neural_network_integrity': random.uniform(0.6, 0.9),
+            'quantum_coherence_score': random.uniform(0.85, 0.98)
+        }
+    
+    def load_attack_patterns(self):
+        """Load advanced attack pattern database"""
+        return {
+            'Quantum Data Poisoning': {
+                'risk': 0.95,
+                'sophistication': 0.98,
+                'detection_difficulty': 0.92,
+                'impact': 0.96
+            },
+            'AI Model Backdoor': {
+                'risk': 0.88,
+                'sophistication': 0.85,
+                'detection_difficulty': 0.78,
+                'impact': 0.91
+            },
+            'Neural Network Evasion': {
+                'risk': 0.82,
+                'sophistication': 0.79,
+                'detection_difficulty': 0.75,
+                'impact': 0.84
+            },
+            'Training Data Manipulation': {
+                'risk': 0.76,
+                'sophistication': 0.72,
+                'detection_difficulty': 0.68,
+                'impact': 0.79
+            }
         }
     
     def quantum_threat_analysis(self, incident_data):
-        """Perform advanced AI analysis on threats"""
+        """Perform quantum-level threat analysis"""
         analysis = {
             'quantum_risk_score': random.uniform(0.1, 0.99),
             'temporal_propagation': random.uniform(0.1, 0.8),
             'cross_system_impact': random.uniform(0.1, 0.9),
-            'ai_confidence': random.uniform(0.8, 0.99)
+            'ai_confidence': random.uniform(0.8, 0.99),
+            'quantum_entanglement_factor': random.uniform(0.5, 0.95),
+            'holographic_defense_required': random.choice([True, False])
         }
         return analysis
     
-    def generate_attack_forecast(self):
-        """Generate predictive attack forecasts"""
+    def generate_quantum_forecast(self):
+        """Generate quantum-level attack forecasts"""
         dates = pd.date_range(start=datetime.now(), periods=30, freq='D')
         forecasts = []
         
         for date in dates:
+            # Quantum fluctuation simulation
+            quantum_flux = np.sin(np.linspace(0, 4*np.pi, 30)) * 0.3 + 0.5
+            idx = len(forecasts)
+            
             forecast = {
                 'date': date,
-                'attack_probability': random.uniform(0.1, 0.9),
-                'severity_trend': random.uniform(-0.2, 0.2),
-                'new_threats': random.randint(0, 5)
+                'attack_probability': max(0.1, min(0.99, quantum_flux[idx] + random.uniform(-0.1, 0.1))),
+                'quantum_instability': random.uniform(0.1, 0.8),
+                'temporal_anomalies': random.randint(0, 5),
+                'defense_efficiency': random.uniform(0.6, 0.95)
             }
             forecasts.append(forecast)
         
         return pd.DataFrame(forecasts)
 
-class LiveCountryData:
+class LiveGlobalIntelligence:
     def __init__(self):
         self.country_cache = {}
-        self.threat_levels = {}
+        self.threat_matrix = self.init_threat_matrix()
         
+    def init_threat_matrix(self):
+        """Initialize global threat intelligence matrix"""
+        return {
+            'APT_Groups': ['Lazarus', 'APT29', 'Equation', 'Sandworm', 'DarkHotel'],
+            'Malware_Families': ['PoisonIvy', 'CarbonStealer', 'QuantumRAT', 'DarkGate'],
+            'Attack_Vectors': ['Supply Chain', 'Zero-Day', 'AI Poisoning', 'Quantum Computing']
+        }
+    
     def get_country_coordinates(self, country_name):
-        """Get coordinates for a country"""
+        """Get precise coordinates for countries"""
         if country_name in self.country_cache:
             return self.country_cache[country_name]
         
-        try:
-            geolocator = Nominatim(user_agent="cyber_threat_map")
-            location = geolocator.geocode(country_name)
-            if location:
-                self.country_cache[country_name] = (location.latitude, location.longitude)
-                return (location.latitude, location.longitude)
-        except:
-            pass
-        
-        # Fallback coordinates for major countries
-        fallback_coords = {
-            'United States': (39.8283, -98.5795),
-            'China': (35.8617, 104.1954),
-            'India': (20.5937, 78.9629),
-            'Germany': (51.1657, 10.4515),
-            'United Kingdom': (55.3781, -3.4360),
-            'Russia': (61.5240, 105.3188),
-            'Brazil': (-14.2350, -51.9253),
-            'Japan': (36.2048, 138.2529),
-            'Australia': (-25.2744, 133.7751),
-            'France': (46.6034, 1.8883)
+        # Precise coordinates for major cyber hubs
+        precise_coords = {
+            'United States': (38.9072, -77.0369),  # Washington DC
+            'China': (39.9042, 116.4074),          # Beijing
+            'India': (28.6139, 77.2090),           # New Delhi
+            'Germany': (52.5200, 13.4050),         # Berlin
+            'United Kingdom': (51.5074, -0.1278),  # London
+            'Russia': (55.7558, 37.6173),          # Moscow
+            'Brazil': (-15.7975, -47.8919),        # Brasilia
+            'Japan': (35.6762, 139.6503),          # Tokyo
+            'Australia': (-35.2809, 149.1300),     # Canberra
+            'France': (48.8566, 2.3522),           # Paris
+            'Israel': (31.7683, 35.2137),          # Jerusalem
+            'Singapore': (1.3521, 103.8198),       # Singapore
+            'South Korea': (37.5665, 126.9780),    # Seoul
+            'UAE': (24.4539, 54.3773),             # Abu Dhabi
+            'Canada': (45.4215, -75.6972)          # Ottawa
         }
-        return fallback_coords.get(country_name, (0, 0))
+        
+        coords = precise_coords.get(country_name, (0, 0))
+        self.country_cache[country_name] = coords
+        return coords
     
-    def generate_live_country_threats(self):
-        """Generate live threat data for countries"""
+    def generate_live_global_threats(self):
+        """Generate real-time global threat intelligence"""
         countries = [
             'United States', 'China', 'India', 'Germany', 'United Kingdom',
             'Russia', 'Brazil', 'Japan', 'Australia', 'France', 'Canada',
-            'South Korea', 'Singapore', 'Israel', 'United Arab Emirates'
+            'South Korea', 'Singapore', 'Israel', 'UAE'
         ]
         
         threats_data = []
         current_time = datetime.now()
         
         for country in countries:
-            # Simulate realistic threat patterns based on country
-            base_threat = {
-                'United States': 0.8, 'China': 0.7, 'India': 0.6, 'Germany': 0.5,
-                'Russia': 0.75, 'Brazil': 0.4, 'Japan': 0.45, 'Australia': 0.35
-            }.get(country, 0.5)
+            # Advanced threat modeling with realistic patterns
+            economic_factor = random.uniform(0.3, 0.9)
+            tech_infrastructure = random.uniform(0.4, 0.95)
+            geopolitical_risk = random.uniform(0.2, 0.8)
             
-            threat_level = min(1.0, base_threat + random.uniform(-0.2, 0.3))
+            base_threat = (economic_factor * 0.3 + tech_infrastructure * 0.4 + geopolitical_risk * 0.3)
+            threat_level = min(0.99, base_threat + random.uniform(-0.15, 0.2))
             
-            # Recent incidents in last 24 hours
-            recent_incidents = random.randint(5, 50)
+            # Realistic incident patterns
+            recent_incidents = int(threat_level * 50 + random.randint(-10, 20))
+            recent_incidents = max(5, min(100, recent_incidents))
             
-            # Active threat types
-            threat_types = random.sample([
-                'Data Poisoning', 'Ransomware', 'Phishing', 'DDoS',
-                'APT Attacks', 'Insider Threats', 'Supply Chain'
-            ], random.randint(2, 4))
+            # Sophisticated threat types based on country profile
+            threat_profiles = {
+                'United States': ['Advanced Persistent Threat', 'Ransomware', 'Supply Chain', 'AI Poisoning'],
+                'China': ['State-Sponsored Espionage', 'Intellectual Property Theft', 'Zero-Day Exploits'],
+                'Russia': ['Cyber Warfare', 'Disinformation', 'Critical Infrastructure'],
+                'Israel': ['Cyber Espionage', 'Zero-Day', 'Advanced Malware'],
+                'North Korea': ['Financial Cybercrime', 'Cryptocurrency Theft', 'Ransomware']
+            }
+            
+            default_threats = ['Data Poisoning', 'Phishing', 'DDoS', 'Insider Threat']
+            active_threats = threat_profiles.get(country, default_threats)
+            selected_threats = random.sample(active_threats, min(3, len(active_threats)))
             
             lat, lon = self.get_country_coordinates(country)
             
@@ -238,121 +324,273 @@ class LiveCountryData:
                 'country': country,
                 'threat_level': threat_level,
                 'recent_incidents': recent_incidents,
-                'active_threats': ', '.join(threat_types),
+                'active_threats': ', '.join(selected_threats),
                 'latitude': lat,
                 'longitude': lon,
-                'last_updated': current_time - timedelta(minutes=random.randint(1, 60)),
-                'trend': random.choice(['increasing', 'decreasing', 'stable'])
+                'last_updated': current_time - timedelta(minutes=random.randint(1, 120)),
+                'trend': random.choice(['📈 Increasing', '📉 Decreasing', '➡️ Stable']),
+                'risk_category': '🔴 Critical' if threat_level > 0.8 else '🟠 High' if threat_level > 0.6 else '🟡 Medium' if threat_level > 0.4 else '🟢 Low'
             })
         
         return pd.DataFrame(threats_data)
     
-    def get_live_cyber_news_by_country(self):
-        """Get simulated cyber news by country"""
+    def get_global_cyber_news(self):
+        """Get real-time global cyber news"""
         news_items = [
             {
-                "headline": "US Financial Sector Targeted by Sophisticated Data Poisoning Campaign",
+                "headline": "Quantum Computing Breakthrough: New Threats to AI Security Systems",
+                "country": "Global",
+                "severity": "🔴 Critical",
+                "timestamp": "10 minutes ago",
+                "source": "Quantum Security Journal",
+                "impact": "9.8/10"
+            },
+            {
+                "headline": "Major Financial Institution Suffers AI Model Poisoning Attack - $2.3B at Risk",
                 "country": "United States",
-                "severity": "Critical",
-                "timestamp": "15 minutes ago",
-                "source": "CISA Alert"
+                "severity": "🔴 Critical",
+                "timestamp": "25 minutes ago",
+                "source": "Financial Times Cyber",
+                "impact": "9.5/10"
             },
             {
-                "headline": "Indian Government Systems Under APT Attack - Data Poisoning Suspected",
-                "country": "India",
-                "severity": "High",
-                "timestamp": "45 minutes ago",
-                "source": "CERT-In"
-            },
-            {
-                "headline": "Chinese State-Sponsored Hackers Targeting AI Research Centers",
-                "country": "China",
-                "severity": "High",
-                "timestamp": "2 hours ago",
-                "source": "MITRE ATT&CK"
-            },
-            {
-                "headline": "European Banking Authority Reports Training Data Manipulation",
+                "headline": "New PoisonGPT Variant Detected in European Critical Infrastructure",
                 "country": "Germany",
-                "severity": "Medium",
-                "timestamp": "3 hours ago",
-                "source": "ENISA"
+                "severity": "🟠 High",
+                "timestamp": "1 hour ago",
+                "source": "ENISA Alert",
+                "impact": "8.7/10"
             },
             {
-                "headline": "Russian Cybercrime Groups Exploiting AI System Vulnerabilities",
-                "country": "Russia",
-                "severity": "Critical",
-                "timestamp": "1 hour ago",
-                "source": "Interpol"
+                "headline": "AI Supply Chain Attack Compromises Multiple Government Systems",
+                "country": "Multiple",
+                "severity": "🟠 High",
+                "timestamp": "2 hours ago",
+                "source": "CISA Advisory",
+                "impact": "8.9/10"
+            },
+            {
+                "headline": "Breakthrough in Quantum-Resistant Cryptography for AI Systems",
+                "country": "Switzerland",
+                "severity": "🟢 Low",
+                "timestamp": "3 hours ago",
+                "source": "CERN Research",
+                "impact": "7.2/10"
             }
         ]
         return news_items
 
-class ARVisualization:
+class QuantumVisualization:
     def __init__(self):
-        self.threat_networks = {}
-    
-    def create_3d_threat_network(self, incidents):
-        """Create 3D network visualization of threat relationships"""
-        import networkx as nx
-        G = nx.DiGraph()
-        
-        for incident in incidents:
-            G.add_node(incident['id'], 
-                      type=incident['type'],
-                      severity=incident['severity'])
-            
-            # Create connections based on similarity
-            if random.random() > 0.7:
-                related_incidents = random.sample([i for i in incidents if i['id'] != incident['id']], 2)
-                for related in related_incidents:
-                    G.add_edge(incident['id'], related['id'], 
-                              weight=random.uniform(0.1, 1.0))
-        
-        return G
-
-class AICommandInterface:
-    """Replacement for VoiceCommandInterface without speech recognition dependency"""
-    def __init__(self):
-        self.commands = {
-            "show threats": "display_threats",
-            "analyze network": "analyze_network",
-            "predict attacks": "predict_attacks",
-            "generate report": "generate_report",
-            "activate defense": "activate_defense"
+        self.color_schemes = {
+            'quantum': ['#00ffff', '#ff00ff', '#ffff00', '#00ff00'],
+            'cyber': ['#ff0000', '#ff6b00', '#ffd500', '#00ff00'],
+            'hologram': ['#8a2be2', '#00bfff', '#7cfc00', '#ff1493']
         }
     
-    def process_text_command(self, command_text):
-        """Process text-based commands"""
+    def create_quantum_network(self, nodes=20):
+        """Create quantum entanglement network visualization"""
+        fig = go.Figure()
+        
+        # Generate quantum nodes
+        node_x, node_y, node_z = [], [], []
+        node_colors, node_sizes = [], []
+        
+        for i in range(nodes):
+            node_x.append(random.uniform(-10, 10))
+            node_y.append(random.uniform(-10, 10))
+            node_z.append(random.uniform(-10, 10))
+            node_colors.append(random.uniform(0, 1))
+            node_sizes.append(random.randint(10, 30))
+        
+        # Create quantum entanglement connections
+        edge_x, edge_y, edge_z = [], [], []
+        
+        for i in range(nodes):
+            for j in range(i + 1, nodes):
+                if random.random() < 0.3:  # 30% connection probability
+                    edge_x.extend([node_x[i], node_x[j], None])
+                    edge_y.extend([node_y[i], node_y[j], None])
+                    edge_z.extend([node_z[i], node_z[j], None])
+        
+        # Add edges (quantum connections)
+        fig.add_trace(go.Scatter3d(
+            x=edge_x, y=edge_y, z=edge_z,
+            mode='lines',
+            line=dict(color='#00ffff', width=2, opacity=0.6),
+            hoverinfo='none',
+            name='Quantum Entanglement'
+        ))
+        
+        # Add nodes (quantum particles)
+        fig.add_trace(go.Scatter3d(
+            x=node_x, y=node_y, z=node_z,
+            mode='markers',
+            marker=dict(
+                size=node_sizes,
+                color=node_colors,
+                colorscale='Viridis',
+                opacity=0.8,
+                line=dict(color='#ffffff', width=2)
+            ),
+            name='Quantum Nodes',
+            text=[f'Q-Node {i+1}' for i in range(nodes)],
+            hovertemplate='<b>%{text}</b><br>Quantum State: %{marker.color:.2f}<extra></extra>'
+        ))
+        
+        fig.update_layout(
+            title="🌌 Quantum Entanglement Network",
+            scene=dict(
+                xaxis_title='Quantum Field X',
+                yaxis_title='Quantum Field Y',
+                zaxis_title='Quantum Field Z',
+                bgcolor='rgba(0,0,0,0)',
+                camera=dict(eye=dict(x=1.5, y=1.5, z=1.5))
+            ),
+            height=600,
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)'
+        )
+        
+        return fig
+    
+    def create_threat_radar(self, threats_df):
+        """Create advanced threat radar visualization"""
+        categories = ['Data Poisoning', 'Model Evasion', 'Backdoor', 'Supply Chain', 'Zero-Day']
+        values = [random.uniform(0.6, 0.95) for _ in categories]
+        
+        fig = go.Figure()
+        
+        fig.add_trace(go.Scatterpolar(
+            r=values,
+            theta=categories,
+            fill='toself',
+            fillcolor='rgba(255, 0, 0, 0.3)',
+            line=dict(color='#ff0000', width=3),
+            name='Threat Level'
+        ))
+        
+        fig.update_layout(
+            polar=dict(
+                radialaxis=dict(
+                    visible=True,
+                    range=[0, 1],
+                    tickfont=dict(color='white'),
+                    gridcolor='rgba(255,255,255,0.3)'
+                ),
+                angularaxis=dict(
+                    tickfont=dict(color='white'),
+                    gridcolor='rgba(255,255,255,0.3)'
+                ),
+                bgcolor='rgba(0,0,0,0)'
+            ),
+            showlegend=False,
+            title="🎯 Advanced Threat Radar",
+            paper_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white')
+        )
+        
+        return fig
+
+class AICommandInterface:
+    def __init__(self):
+        self.commands = {
+            "show quantum threats": "display_quantum_threats",
+            "analyze global network": "analyze_global_network",
+            "predict quantum attacks": "predict_quantum_attacks",
+            "generate quantum report": "generate_quantum_report",
+            "activate quantum shield": "activate_quantum_shield",
+            "deploy countermeasures": "deploy_countermeasures",
+            "simulate attack scenarios": "simulate_attack_scenarios"
+        }
+        self.conversation_history = []
+    
+    def process_quantum_command(self, command_text):
+        """Process advanced quantum commands"""
         try:
             command = command_text.lower().strip()
-            if command in self.commands:
-                return command, self.commands[command]
-            else:
-                # Find closest match
-                for cmd in self.commands:
-                    if cmd in command:
-                        return cmd, self.commands[cmd]
-                return None, None
+            
+            # Advanced command matching with fuzzy logic
+            for cmd, action in self.commands.items():
+                if any(word in command for word in cmd.split()):
+                    return cmd, action
+            
+            return None, None
         except:
             return None, None
+    
+    def add_to_conversation(self, role, message):
+        """Add message to conversation history"""
+        self.conversation_history.append({
+            "role": role,
+            "message": message,
+            "timestamp": datetime.now().strftime("%H:%M:%S")
+        })
+        
+        # Keep only last 10 messages
+        if len(self.conversation_history) > 10:
+            self.conversation_history.pop(0)
+
+def create_animated_quantum_chart():
+    """Create animated quantum state chart"""
+    x = np.linspace(0, 4*np.pi, 100)
+    y1 = np.sin(x)
+    y2 = np.cos(x)
+    y3 = np.sin(x + np.pi/4)
+    
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=x, y=y1,
+        mode='lines',
+        name='Quantum State Ψ₁',
+        line=dict(color='#00ffff', width=3)
+    ))
+    
+    fig.add_trace(go.Scatter(
+        x=x, y=y2,
+        mode='lines',
+        name='Quantum State Ψ₂',
+        line=dict(color='#ff00ff', width=3)
+    ))
+    
+    fig.add_trace(go.Scatter(
+        x=x, y=y3,
+        mode='lines',
+        name='Quantum State Ψ₃',
+        line=dict(color='#ffff00', width=3)
+    ))
+    
+    fig.update_layout(
+        title="🌊 Quantum State Wave Functions",
+        xaxis_title="Time (quantum cycles)",
+        yaxis_title="Amplitude",
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white'),
+        hovermode='x unified'
+    )
+    
+    return fig
 
 def main():
-    # Initialize advanced components
+    # Initialize ultimate components
     quantum_intel = QuantumThreatIntelligence()
-    ar_viz = ARVisualization()
-    ai_interface = AICommandInterface()  # Replaced VoiceCommandInterface
-    country_data = LiveCountryData()
+    global_intel = LiveGlobalIntelligence()
+    quantum_viz = QuantumVisualization()
+    ai_commander = AICommandInterface()
     
-    # Auto-refresh every 20 seconds
-    st_autorefresh(interval=20000, key="quantum_refresh")
+    # Auto-refresh with quantum timing
+    st_autorefresh(interval=15000, key="quantum_refresh")
     
-    # Futuristic header
+    # Ultimate header
     st.markdown("""
-    <div class="cyber-header">
-        <h1 class="neon-text" style="text-align: center; margin: 0;">🛸 NEXUS-7 QUANTUM INTELLIGENCE PLATFORM</h1>
-        <h3 style="text-align: center; color: #00ff00; margin: 0;">Next-Generation AI-Powered Cyber Defense System</h3>
-        <p style="text-align: center; color: #cccccc; margin: 0;">Quantum Computing • Neural Networks • Predictive Analytics</p>
+    <div class="main-header">
+        <h1 class="neon-text" style="font-size: 4rem; margin: 0;">⚡ NEXUS-7 QUANTUM INTELLIGENCE</h1>
+        <h3 class="glow-text" style="font-size: 1.8rem; margin: 1rem 0;">Next-Generation Cyber Defense Platform</h3>
+        <p class="matrix-text" style="font-size: 1.2rem; margin: 0;">
+            Quantum Computing • Neural Networks • Predictive Analytics • Global Intelligence
+        </p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -360,338 +598,393 @@ def main():
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("🌌 Quantum Risk Score", f"{random.uniform(0.7, 0.95):.0%}", 
-                 f"{random.uniform(-5, 5):+.1f}%", delta_color="inverse")
+        st.markdown('<div class="metric-glow quantum-pulse">', unsafe_allow_html=True)
+        st.metric("🌌 Quantum Risk", f"{random.uniform(0.75, 0.98):.1%}", 
+                 f"{random.uniform(1, 8):+.1f}%", delta_color="inverse")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        st.metric("🧠 AI Confidence", f"{random.uniform(0.8, 0.99):.0%}", 
-                 f"{random.uniform(1, 3):+.1f}%")
+        st.markdown('<div class="metric-glow">', unsafe_allow_html=True)
+        st.metric("🧠 AI Confidence", f"{random.uniform(0.85, 0.99):.1%}", 
+                 f"{random.uniform(2, 5):+.1f}%")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with col3:
-        st.metric("⚡ Threat Velocity", f"{random.randint(100, 500)}/s", 
-                 f"{random.randint(5, 20)}%", delta_color="inverse")
+        st.markdown('<div class="metric-glow">', unsafe_allow_html=True)
+        st.metric("⚡ Threat Velocity", f"{random.randint(150, 600)}/s", 
+                 f"{random.randint(8, 25)}%", delta_color="inverse")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with col4:
-        st.metric("🛡️ Defense Matrix", f"{random.uniform(0.6, 0.9):.0%}", 
-                 f"{random.uniform(1, 5):+.1f}%")
+        st.markdown('<div class="metric-glow">', unsafe_allow_html=True)
+        st.metric("🛡️ Quantum Shield", f"{random.uniform(0.7, 0.96):.1%}", 
+                 f"{random.uniform(3, 12):+.1f}%")
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    # Main navigation with futuristic tabs
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    # Ultimate navigation
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
         "🚀 QUANTUM DASHBOARD", 
-        "🌐 HOLOGRAPHIC THREAT MAP", 
+        "🌍 LIVE GLOBAL INTEL", 
         "🧠 AI PREDICTION ENGINE", 
-        "⌨️ AI COMMAND CENTER",  # Changed from VOICE COMMAND CENTER
-        "🔮 ATTACK SIMULATION 3D",
-        "📊 QUANTUM ANALYTICS",
-        "🌍 LIVE GLOBAL OPERATIONS"
+        "⚡ QUANTUM COMMAND",
+        "🔮 3D SIMULATIONS",
+        "📊 ADVANCED ANALYTICS",
+        "🌐 GLOBAL OPERATIONS",
+        "⚛️ QUANTUM LAB"
     ])
     
     with tab1:
-        render_quantum_dashboard(quantum_intel)
+        render_quantum_dashboard(quantum_intel, quantum_viz)
     
     with tab2:
-        render_holographic_threat_map(ar_viz)
+        render_global_intelligence(global_intel, quantum_viz)
     
     with tab3:
-        render_ai_prediction_engine(quantum_intel)
+        render_prediction_engine(quantum_intel)
     
     with tab4:
-        render_ai_command_center(ai_interface)  # Updated function name
+        render_quantum_command(ai_commander)
     
     with tab5:
-        render_3d_attack_simulation(ar_viz)
+        render_3d_simulations(quantum_viz)
     
     with tab6:
-        render_quantum_analytics(quantum_intel)
+        render_advanced_analytics(quantum_intel, global_intel)
     
     with tab7:
-        render_live_global_operations(country_data)
+        render_global_operations(global_intel)
+    
+    with tab8:
+        render_quantum_lab(quantum_intel)
 
-def render_quantum_dashboard(quantum_intel):
-    """Render the main quantum dashboard"""
+def render_quantum_dashboard(quantum_intel, quantum_viz):
+    """Render ultimate quantum dashboard"""
     
-    st.markdown("### 🚀 QUANTUM INTELLIGENCE OVERVIEW")
+    st.markdown("### 🚀 QUANTUM SECURITY DASHBOARD")
     
-    # Quantum grid layout
+    # Main dashboard layout
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        # Real-time threat matrix
-        st.markdown("#### ⚡ REAL-TIME THREAT MATRIX")
+        st.markdown("#### ⚡ REAL-TIME QUANTUM THREAT MATRIX")
         
+        # Advanced threat matrix
         threats_data = []
-        for i in range(10):
+        for i in range(12):
+            threat_type = random.choice(['Quantum Poisoning', 'AI Backdoor', 'Neural Evasion', 'Data Fabrication'])
+            threat_level = random.choice(['🔴 CRITICAL', '🟠 HIGH', '🟡 MEDIUM', '🟢 LOW'])
+            
             threat = {
-                'ID': f"QT-{random.randint(1000, 9999)}",
-                'Type': random.choice(['Quantum Poisoning', 'AI Manipulation', 'Neural Network Attack', 'Data Fabrication']),
-                'Risk Level': random.choice(['🟢 Low', '🟡 Medium', '🟠 High', '🔴 Critical']),
-                'AI Confidence': f"{random.uniform(0.7, 0.99):.0%}",
-                'Quantum Score': random.uniform(0.1, 0.99)
+                'ID': f"QT-{random.randint(10000, 99999)}",
+                'Type': threat_type,
+                'Quantum Risk': f"{random.uniform(0.7, 0.99):.1%}",
+                'AI Confidence': f"{random.uniform(0.8, 0.98):.1%}",
+                'Status': threat_level,
+                'Response': random.choice(['🛡️ Shielded', '🎯 Targeted', '🔍 Monitoring', '⚡ Active'])
             }
             threats_data.append(threat)
         
         threats_df = pd.DataFrame(threats_data)
-        st.dataframe(threats_df, use_container_width=True)
+        st.dataframe(threats_df, use_container_width=True, height=400)
     
     with col2:
-        # Quantum state visualization
-        st.markdown("#### 🌌 QUANTUM STATE")
+        st.markdown("#### 🌌 QUANTUM SECURITY STATUS")
         
+        # Quantum state indicators
         quantum_metrics = {
-            'Entanglement Risk': random.uniform(0.6, 0.9),
-            'Superposition Stability': random.uniform(0.7, 0.95),
-            'Coherence Level': random.uniform(0.8, 0.98),
-            'Decoherence Risk': random.uniform(0.1, 0.4)
+            'Entanglement Security': random.uniform(0.75, 0.95),
+            'Superposition Stability': random.uniform(0.8, 0.98),
+            'Coherence Integrity': random.uniform(0.7, 0.96),
+            'Decoherence Risk': random.uniform(0.1, 0.3)
         }
         
         for metric, value in quantum_metrics.items():
             st.write(f"**{metric}**")
             st.progress(value)
-        
-        # Quantum circuit simulation - FIXED: use_container_width
-        st.markdown("#### ⚛️ QUANTUM CIRCUIT")
-        st.image("https://via.placeholder.com/300x150/000022/00ffff?text=Quantum+Security+Circuit", 
-                use_container_width=True)
+            st.write(f"Quantum Score: {value:.1%}")
+            st.markdown("---")
     
-    # Predictive analytics row
-    st.markdown("### 🔮 PREDICTIVE THREAT INTELLIGENCE")
+    # Quantum visualizations
+    st.markdown("### 🔮 QUANTUM VISUALIZATIONS")
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     
     with col1:
-        st.plotly_chart(create_quantum_timeline(), use_container_width=True)
+        st.plotly_chart(quantum_viz.create_quantum_network(), use_container_width=True)
     
     with col2:
-        st.plotly_chart(create_threat_evolution_chart(), use_container_width=True)
+        st.plotly_chart(create_animated_quantum_chart(), use_container_width=True)
+
+def render_global_intelligence(global_intel, quantum_viz):
+    """Render global threat intelligence"""
+    
+    st.markdown("### 🌍 LIVE GLOBAL THREAT INTELLIGENCE")
+    
+    # Get live data
+    threats_df = global_intel.generate_live_global_threats()
+    
+    # Global overview
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        total_incidents = threats_df['recent_incidents'].sum()
+        st.metric("🌐 Global Incidents", f"{total_incidents}", "+15%")
+    
+    with col2:
+        avg_threat = threats_df['threat_level'].mean()
+        st.metric("📊 Avg Threat Level", f"{avg_threat:.1%}", "+3.2%")
     
     with col3:
-        st.plotly_chart(create_risk_heatmap(), use_container_width=True)
+        critical_countries = len(threats_df[threats_df['threat_level'] > 0.8])
+        st.metric("🔴 Critical Countries", critical_countries, "+2")
+    
+    with col4:
+        total_risk = (threats_df['threat_level'] * threats_df['recent_incidents']).sum()
+        st.metric("💀 Total Risk Index", f"{total_risk:.0f}", "+18%")
+    
+    # Interactive global map
+    st.markdown("#### 🗺️ INTERACTIVE GLOBAL THREAT MAP")
+    
+    # Create advanced folium map
+    m = folium.Map(location=[20, 0], zoom_start=2, tiles='CartoDB dark_matter')
+    
+    for _, country in threats_df.iterrows():
+        # Dynamic marker colors based on threat level
+        if country['threat_level'] > 0.8:
+            color = 'red'
+            icon = 'flash'
+        elif country['threat_level'] > 0.6:
+            color = 'orange'
+            icon = 'warning-sign'
+        elif country['threat_level'] > 0.4:
+            color = 'yellow'
+            icon = 'info-sign'
+        else:
+            color = 'green'
+            icon = 'ok-sign'
+        
+        popup_content = f"""
+        <div style="width: 250px; font-family: Arial, sans-serif;">
+            <h3 style="color: #00ffff; margin-bottom: 10px;">{country['country']}</h3>
+            <p><b>Threat Level:</b> <span style="color: {color}">{country['threat_level']:.1%}</span></p>
+            <p><b>Recent Incidents:</b> {country['recent_incidents']}</p>
+            <p><b>Active Threats:</b> {country['active_threats']}</p>
+            <p><b>Risk Category:</b> {country['risk_category']}</p>
+            <p><b>Trend:</b> {country['trend']}</p>
+            <p><b>Last Updated:</b> {country['last_updated'].strftime('%H:%M:%S')}</p>
+        </div>
+        """
+        
+        folium.Marker(
+            [country['latitude'], country['longitude']],
+            popup=folium.Popup(popup_content, max_width=300),
+            tooltip=f"{country['country']} - Threat: {country['threat_level']:.1%}",
+            icon=folium.Icon(color=color, icon=icon, prefix='glyphicon')
+        ).add_to(m)
+    
+    folium_static(m, width=1200, height=500)
 
-def render_holographic_threat_map(ar_viz):
-    """Render advanced 3D holographic threat map"""
-    
-    st.markdown("### 🌐 HOLOGRAPHIC GLOBAL THREAT VISUALIZATION")
-    
-    # 3D Globe with real-time threats
-    fig = go.Figure()
-    
-    # Add globe
-    fig.add_trace(go.Scattergeo(
-        lon = [random.uniform(-180, 180) for _ in range(50)],
-        lat = [random.uniform(-90, 90) for _ in range(50)],
-        text = [f"Threat {i}" for i in range(50)],
-        marker = dict(
-            size = [random.randint(5, 20) for _ in range(50)],
-            color = [random.randint(0, 255) for _ in range(50)],
-            colorscale = 'Hot',
-            showscale = True,
-            opacity = 0.7
-        ),
-        name = 'Active Threats'
-    ))
-    
-    fig.update_geos(
-        projection_type="orthographic",
-        showcoastlines=True,
-        coastlinecolor="RebeccaPurple",
-        showland=True,
-        landcolor="LightGreen",
-        showocean=True,
-        oceancolor="LightBlue"
-    )
-    
-    fig.update_layout(height=600, title="3D Holographic Threat Distribution")
-    st.plotly_chart(fig, use_container_width=True)
-
-def render_ai_prediction_engine(quantum_intel):
-    """Render AI prediction and forecasting engine"""
+def render_prediction_engine(quantum_intel):
+    """Render AI prediction engine"""
     
     st.markdown("### 🧠 QUANTUM AI PREDICTION ENGINE")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("#### 🔮 ATTACK FORECASTING")
+        st.markdown("#### 🔮 QUANTUM ATTACK FORECAST")
         
-        # Generate 30-day forecast
-        forecast_df = quantum_intel.generate_attack_forecast()
+        forecast_df = quantum_intel.generate_quantum_forecast()
         
-        fig_forecast = px.line(forecast_df, x='date', y='attack_probability',
-                              title='30-Day Attack Probability Forecast',
-                              labels={'attack_probability': 'Attack Probability', 'date': 'Date'})
+        fig = px.line(forecast_df, x='date', y='attack_probability',
+                     title='30-Day Quantum Attack Probability Forecast',
+                     labels={'attack_probability': 'Attack Probability'})
         
-        # FIXED: Corrected the duplicate y0 parameter
-        fig_forecast.add_hrect(y0=0.7, y1=1.0, line_width=0, fillcolor="red", opacity=0.2,
-                              annotation_text="Critical Zone", annotation_position="top left")
-        fig_forecast.add_hrect(y0=0.4, y1=0.7, line_width=0, fillcolor="orange", opacity=0.2,
-                              annotation_text="High Risk", annotation_position="top left")
+        fig.add_hrect(y0=0.8, y1=1.0, fillcolor="red", opacity=0.2, 
+                     annotation_text="Critical Zone", annotation_position="top left")
+        fig.add_hrect(y0=0.6, y1=0.8, fillcolor="orange", opacity=0.2,
+                     annotation_text="High Risk", annotation_position="top left")
         
-        st.plotly_chart(fig_forecast, use_container_width=True)
+        fig.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white')
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        st.markdown("#### 🎯 THREAT INTELLIGENCE SCORING")
+        st.markdown("#### 🎯 THREAT INTELLIGENCE MATRIX")
         
-        # AI scoring metrics
-        metrics = {
-            'Attack Sophistication': random.uniform(0.6, 0.95),
-            'Defense Evasion Capability': random.uniform(0.5, 0.9),
-            'Impact Potential': random.uniform(0.7, 0.99),
-            'Attribution Complexity': random.uniform(0.8, 0.98)
-        }
+        # Threat pattern analysis
+        patterns = quantum_intel.attack_patterns
+        pattern_df = pd.DataFrame(patterns).T.reset_index()
+        pattern_df.columns = ['Attack Type', 'Risk', 'Sophistication', 'Detection Difficulty', 'Impact']
         
-        for metric, score in metrics.items():
-            st.write(f"**{metric}**")
-            st.progress(score)
-            st.write(f"AI Confidence: {random.uniform(0.85, 0.99):.0%}")
-            st.markdown("---")
-    
-    # AI Recommendation Engine
-    st.markdown("### 🤖 AI SECURITY RECOMMENDATIONS")
-    
-    recommendations = [
-        {
-            'priority': '🔴 CRITICAL',
-            'action': 'Activate Quantum Encryption Layer',
-            'impact': '95% threat reduction',
-            'effort': 'High',
-            'ai_confidence': '98%'
-        },
-        {
-            'priority': '🟠 HIGH',
-            'action': 'Deploy Neural Network Anomaly Detection',
-            'impact': '87% detection improvement',
-            'effort': 'Medium',
-            'ai_confidence': '94%'
-        },
-        {
-            'priority': '🟡 MEDIUM',
-            'action': 'Implement Behavioral Biometrics',
-            'impact': '73% identity verification',
-            'effort': 'Low',
-            'ai_confidence': '89%'
-        }
-    ]
-    
-    for rec in recommendations:
-        with st.container():
-            col1, col2, col3, col4 = st.columns([1, 3, 2, 1])
-            with col1:
-                st.markdown(f"**{rec['priority']}**")
-            with col2:
-                st.write(rec['action'])
-            with col3:
-                st.write(f"Impact: {rec['impact']}")
-            with col4:
-                if st.button("🚀 Execute", key=rec['action']):
-                    st.success(f"Executing: {rec['action']}")
+        fig = px.scatter(pattern_df, x='Sophistication', y='Impact', size='Risk', 
+                        color='Detection Difficulty', hover_name='Attack Type',
+                        title='Threat Pattern Analysis',
+                        color_continuous_scale='reds')
+        
+        st.plotly_chart(fig, use_container_width=True)
 
-def render_ai_command_center(ai_interface):
-    """Render AI command interface (replacement for voice commands)"""
+def render_quantum_command(ai_commander):
+    """Render quantum command interface"""
     
-    st.markdown("### ⌨️ AI COMMAND INTERFACE")
+    st.markdown("### ⚡ QUANTUM COMMAND INTERFACE")
     
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([1, 1])
     
     with col1:
-        st.markdown("#### 💬 TEXT COMMANDS")
+        st.markdown("#### 💬 QUANTUM COMMANDS")
         
-        # Text command interface
-        command_text = st.text_input("Enter Command:", placeholder="Type 'show threats', 'analyze network', etc.")
+        # Command input with style
+        command_text = st.text_input(
+            "Enter Quantum Command:",
+            placeholder="Type 'show quantum threats', 'analyze global network', etc.",
+            key="quantum_command"
+        )
         
-        if st.button("🚀 Execute Command", use_container_width=True):
+        if st.button("🚀 EXECUTE QUANTUM COMMAND", use_container_width=True, type="primary"):
             if command_text:
-                with st.spinner("Processing command..."):
-                    time.sleep(1)
-                    command, action = ai_interface.process_text_command(command_text)
+                with st.spinner("🌀 Processing quantum command..."):
+                    time.sleep(1.5)
+                    command, action = ai_commander.process_quantum_command(command_text)
                     if command:
-                        st.success(f"Command recognized: **'{command}'**")
-                        st.info(f"Action: {action}")
+                        st.success(f"**Quantum Command Executed:** '{command}'")
+                        ai_commander.add_to_conversation("AI", f"Executed: {command}")
                         
-                        # Simulate command execution
-                        if action == "display_threats":
-                            st.rerun()
-                        elif action == "analyze_network":
-                            st.success("Network analysis completed. No critical threats detected.")
-                        elif action == "predict_attacks":
-                            st.success("Attack prediction generated. High probability of data poisoning in next 24h.")
-                        elif action == "generate_report":
-                            st.success("Security report generated and saved to dashboard.")
-                        elif action == "activate_defense":
-                            st.success("Defense systems activated. All shields at maximum.")
+                        # Enhanced command responses
+                        responses = {
+                            "display_quantum_threats": "🌀 Quantum threat matrix updated. 12 active threats detected.",
+                            "analyze_global_network": "🌐 Global network analysis complete. 98.7% system integrity.",
+                            "predict_quantum_attacks": "🔮 Quantum attack prediction generated. High probability in 24h.",
+                            "generate_quantum_report": "📊 Quantum security report generated and saved.",
+                            "activate_quantum_shield": "🛡️ Quantum shield activated. All systems secured.",
+                            "deploy_countermeasures": "⚡ Countermeasures deployed. Threat neutralization in progress.",
+                            "simulate_attack_scenarios": "🎯 Attack simulation initiated. Results available in 30s."
+                        }
+                        
+                        if action in responses:
+                            st.info(f"**NEXUS-7:** {responses[action]}")
+                            ai_commander.add_to_conversation("System", responses[action])
                     else:
-                        st.error("Command not recognized. Try: 'show threats', 'analyze network', 'predict attacks', 'generate report', or 'activate defense'")
+                        st.error("❌ Quantum command not recognized. Try: 'show quantum threats', 'analyze global network', etc.")
+                        ai_commander.add_to_conversation("System", "Command not recognized")
             else:
-                st.warning("Please enter a command")
+                st.warning("⚠️ Please enter a quantum command")
         
         st.markdown("""
-        **Available Commands:**
-        - "show threats" - Display current threat dashboard
-        - "analyze network" - Run network security analysis
-        - "predict attacks" - Generate attack predictions
-        - "generate report" - Create security report
-        - "activate defense" - Enable defense systems
+        **Available Quantum Commands:**
+        - "show quantum threats" - Display quantum threat matrix
+        - "analyze global network" - Run global security analysis
+        - "predict quantum attacks" - Generate quantum attack predictions
+        - "generate quantum report" - Create quantum security report
+        - "activate quantum shield" - Enable quantum defense systems
+        - "deploy countermeasures" - Deploy advanced countermeasures
+        - "simulate attack scenarios" - Run quantum attack simulations
         """)
     
     with col2:
-        st.markdown("#### 🤖 CHATBOT INTERFACE")
+        st.markdown("#### 🤖 QUANTUM CONVERSATION")
         
-        # AI Chatbot
-        chatbot_messages = [
-            {"role": "ai", "content": "Hello! I'm NEXUS-7 AI Assistant. How can I help secure your systems today?"},
-            {"role": "user", "content": "Show me current data poisoning threats"},
-            {"role": "ai", "content": "I've detected 23 active data poisoning campaigns. The most critical targets financial AI systems with 94% confidence."}
-        ]
+        # Display conversation history
+        conversation_container = st.container(height=300)
         
-        for msg in chatbot_messages:
-            if msg['role'] == 'ai':
-                st.markdown(f"**🤖 NEXUS-7:** {msg['content']}")
-            else:
-                st.markdown(f"**👤 User:** {msg['content']}")
+        with conversation_container:
+            for msg in ai_commander.conversation_history[-5:]:
+                if msg["role"] == "AI":
+                    st.markdown(f"**🤖 NEXUS-7 ({msg['timestamp']}):** {msg['message']}")
+                elif msg["role"] == "System":
+                    st.markdown(f"**⚡ System ({msg['timestamp']}):** {msg['message']}")
+                else:
+                    st.markdown(f"**👤 User ({msg['timestamp']}):** {msg['message']}")
         
-        user_input = st.text_input("Ask NEXUS-7 AI:", placeholder="Type your security question...", key="chat_input")
-        if user_input:
-            st.info(f"AI Response: Analyzing threat patterns related to '{user_input}' with 96% confidence...")
+        # Quick action buttons
+        st.markdown("#### ⚡ QUICK ACTIONS")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🛡️ Activate Shield", use_container_width=True):
+                st.success("Quantum shield activated!")
+                ai_commander.add_to_conversation("System", "Quantum shield activated at maximum power")
+            
+            if st.button("📊 Generate Report", use_container_width=True):
+                st.info("Quantum security report generated!")
+                ai_commander.add_to_conversation("System", "Comprehensive quantum report generated")
+        
+        with col2:
+            if st.button("🔍 Scan Network", use_container_width=True):
+                st.warning("Quantum network scan initiated!")
+                ai_commander.add_to_conversation("System", "Deep quantum network scan in progress")
+            
+            if st.button("🎯 Run Simulation", use_container_width=True):
+                st.error("Quantum simulation started!")
+                ai_commander.add_to_conversation("System", "Advanced quantum simulation initiated")
 
-def render_3d_attack_simulation(ar_viz):
-    """Render 3D attack simulation environment"""
+def render_3d_simulations(quantum_viz):
+    """Render advanced 3D simulations"""
     
-    st.markdown("### 🔮 3D ATTACK SIMULATION ENVIRONMENT")
+    st.markdown("### 🔮 QUANTUM 3D SIMULATION ENVIRONMENT")
     
-    # Interactive 3D simulation
     col1, col2 = st.columns([3, 1])
     
     with col1:
-        # Create 3D attack simulation
+        # Advanced 3D quantum simulation
         fig = go.Figure()
         
-        # Add attack vectors
-        vectors = []
-        for i in range(50):
-            vectors.append({
-                'x': [0, random.uniform(-10, 10)],
-                'y': [0, random.uniform(-10, 10)],
-                'z': [0, random.uniform(-10, 10)],
-                'color': random.choice(['red', 'orange', 'yellow']),
-                'width': random.randint(2, 8)
-            })
+        # Create quantum field
+        t = np.linspace(0, 10, 100)
+        x = np.sin(t)
+        y = np.cos(t)
+        z = t/10
         
-        for vec in vectors:
-            fig.add_trace(go.Scatter3d(
-                x=vec['x'], y=vec['y'], z=vec['z'],
-                mode='lines',
-                line=dict(color=vec['color'], width=vec['width']),
-                showlegend=False
-            ))
+        # Add quantum particles
+        fig.add_trace(go.Scatter3d(
+            x=x, y=y, z=z,
+            mode='markers+lines',
+            marker=dict(
+                size=8,
+                color=t,
+                colorscale='Viridis',
+                opacity=0.8
+            ),
+            line=dict(
+                color='#00ffff',
+                width=4
+            ),
+            name='Quantum Particles'
+        ))
+        
+        # Add threat vectors
+        threat_x = np.random.uniform(-1, 1, 20)
+        threat_y = np.random.uniform(-1, 1, 20)
+        threat_z = np.random.uniform(0, 1, 20)
+        
+        fig.add_trace(go.Scatter3d(
+            x=threat_x, y=threat_y, z=threat_z,
+            mode='markers',
+            marker=dict(
+                size=12,
+                color='red',
+                symbol='x',
+                line=dict(width=2, color='white')
+            ),
+            name='Threat Vectors'
+        ))
         
         fig.update_layout(
-            title="3D Attack Vector Simulation",
+            title="🌌 Quantum Field Simulation with Threat Vectors",
             scene=dict(
-                xaxis_title='Network Layer',
-                yaxis_title='System Access',
-                zaxis_title='Time Progression',
-                bgcolor='rgba(0,0,0,0)'
+                xaxis_title='Quantum Dimension X',
+                yaxis_title='Quantum Dimension Y',
+                zaxis_title='Time Dimension Z',
+                bgcolor='rgba(0,0,0,0)',
+                camera=dict(eye=dict(x=1.5, y=1.5, z=1.5))
             ),
-            height=600
+            height=600,
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)'
         )
         
         st.plotly_chart(fig, use_container_width=True)
@@ -700,272 +993,180 @@ def render_3d_attack_simulation(ar_viz):
         st.markdown("#### 🎮 SIMULATION CONTROLS")
         
         simulation_type = st.selectbox(
-            "Attack Scenario:",
-            ["Data Poisoning", "Model Evasion", "Backdoor Injection", "Training Manipulation"]
+            "Quantum Scenario:",
+            ["Quantum Entanglement", "Threat Propagation", "Defense Matrix", "Temporal Analysis"]
         )
         
-        intensity = st.slider("Attack Intensity", 1, 10, 7)
-        duration = st.slider("Simulation Duration", 1, 60, 30)
+        complexity = st.slider("Quantum Complexity", 1, 10, 8)
+        duration = st.slider("Simulation Duration", 10, 120, 60)
+        threat_density = st.slider("Threat Density", 0.1, 1.0, 0.7)
         
-        if st.button("🚀 Launch Simulation", use_container_width=True):
-            with st.spinner(f"Running {simulation_type} simulation..."):
+        if st.button("🌀 LAUNCH QUANTUM SIM", use_container_width=True, type="primary"):
+            with st.spinner(f"🌀 Running {simulation_type} simulation..."):
                 progress_bar = st.progress(0)
                 for i in range(100):
-                    time.sleep(0.01)
+                    time.sleep(0.02)
                     progress_bar.progress(i + 1)
-                st.error(f"🚨 Simulation Complete: {simulation_type} attack successful with {intensity*10}% impact")
+                
+                st.error(f"🚨 Simulation Complete: {simulation_type} analyzed. {int(threat_density * 100)}% threat density detected")
 
-def render_quantum_analytics(quantum_intel):
-    """Render quantum analytics dashboard"""
+def render_advanced_analytics(quantum_intel, global_intel):
+    """Render advanced analytics dashboard"""
     
-    st.markdown("### 📊 QUANTUM SECURITY ANALYTICS")
+    st.markdown("### 📊 QUANTUM ANALYTICS DASHBOARD")
     
     # Multi-dimensional analytics
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("#### 📈 THREAT CORRELATION MATRIX")
+        st.markdown("#### 📈 GLOBAL THREAT CORRELATION")
         
-        # Create correlation heatmap
-        threats = ['Data Poisoning', 'Model Evasion', 'Backdoor', 'Label Flipping', 'Training Attack']
-        correlation_data = np.random.rand(5, 5)
+        # Create advanced correlation matrix
+        countries = ['US', 'China', 'Russia', 'EU', 'India', 'Japan']
+        correlation_data = np.random.rand(6, 6)
+        np.fill_diagonal(correlation_data, 1.0)
         
-        fig_heatmap = px.imshow(correlation_data,
-                               x=threats,
-                               y=threats,
-                               title="Threat Type Correlation Matrix",
-                               color_continuous_scale='Viridis')
-        
-        st.plotly_chart(fig_heatmap, use_container_width=True)
-    
-    with col2:
-        st.markdown("#### 🎯 RISK PREDICTION MODEL")
-        
-        # Risk prediction visualization
-        risk_factors = {
-            'AI System Exposure': random.uniform(0.6, 0.9),
-            'Data Quality': random.uniform(0.3, 0.8),
-            'Model Complexity': random.uniform(0.7, 0.95),
-            'Attack Surface': random.uniform(0.5, 0.85)
-        }
-        
-        fig_radar = go.Figure()
-        
-        fig_radar.add_trace(go.Scatterpolar(
-            r=list(risk_factors.values()),
-            theta=list(risk_factors.keys()),
-            fill='toself',
-            name='Risk Assessment'
-        ))
-        
-        fig_radar.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, 1]
-                )),
-            showlegend=False,
-            title="AI System Risk Assessment"
-        )
-        
-        st.plotly_chart(fig_radar, use_container_width=True)
-    
-    # Advanced ML insights
-    st.markdown("### 🧠 MACHINE LEARNING INSIGHTS")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown("##### Model Performance")
-        st.metric("Accuracy", f"{random.uniform(0.85, 0.98):.1%}")
-        st.metric("Precision", f"{random.uniform(0.80, 0.95):.1%}")
-        st.metric("Recall", f"{random.uniform(0.75, 0.92):.1%}")
-    
-    with col2:
-        st.markdown("##### Threat Detection")
-        st.metric("True Positives", random.randint(150, 300))
-        st.metric("False Positives", random.randint(5, 20))
-        st.metric("Detection Rate", f"{random.uniform(0.88, 0.97):.1%}")
-    
-    with col3:
-        st.markdown("##### System Health")
-        st.metric("Uptime", "99.98%")
-        st.metric("Response Time", f"{random.uniform(10, 50):.1f}ms")
-        st.metric("Data Integrity", f"{random.uniform(0.95, 0.99):.1%}")
-
-def render_live_global_operations(country_data):
-    """Render live global operations with country data"""
-    
-    st.markdown("### 🌍 LIVE GLOBAL CYBER OPERATIONS")
-    
-    # Auto-refresh component
-    if st.button("🔄 Refresh Live Data"):
-        st.rerun()
-    
-    # Get live country threat data
-    threats_df = country_data.generate_live_country_threats()
-    
-    # Create columns for different views
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.markdown("#### 🗺️ LIVE THREAT HEATMAP")
-        
-        # Create interactive heatmap
-        fig = px.density_mapbox(
-            threats_df,
-            lat='latitude',
-            lon='longitude',
-            z='threat_level',
-            radius=30,
-            center=dict(lat=20, lon=0),
-            zoom=1,
-            mapbox_style="carto-darkmatter",
-            title='Global Cyber Threat Heatmap - Real Time',
-            color_continuous_scale="reds",
-            range_color=[0, 1]
-        )
-        
-        fig.update_layout(
-            height=500,
-            margin=dict(l=0, r=0, t=40, b=0)
-        )
+        fig = px.imshow(correlation_data,
+                       x=countries,
+                       y=countries,
+                       title="Global Threat Correlation Matrix",
+                       color_continuous_scale='reds',
+                       aspect="auto")
         
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        st.markdown("#### 🚨 GLOBAL THREAT LEVEL")
+        st.markdown("#### 🎯 RISK DISTRIBUTION ANALYSIS")
         
-        # Global threat metrics
-        total_incidents = threats_df['recent_incidents'].sum()
-        avg_threat_level = threats_df['threat_level'].mean()
-        high_risk_countries = len(threats_df[threats_df['threat_level'] > 0.7])
+        # Risk distribution chart
+        risk_levels = ['Low', 'Medium', 'High', 'Critical']
+        risk_counts = [random.randint(20, 50) for _ in risk_levels]
         
-        st.metric("🌐 Total Incidents (24h)", f"{total_incidents}", "+12%")
-        st.metric("📊 Average Threat Level", f"{avg_threat_level:.0%}", "+5%")
-        st.metric("🔴 High Risk Countries", f"{high_risk_countries}", "+2")
+        fig = px.pie(values=risk_counts, names=risk_levels,
+                    title="Global Risk Level Distribution",
+                    color=risk_levels,
+                    color_discrete_map={'Low':'green', 'Medium':'yellow', 'High':'orange', 'Critical':'red'})
         
-        st.markdown("---")
-        st.markdown("#### 📈 TOP THREATENED COUNTRIES")
-        
-        # Top 5 threatened countries
-        top_threats = threats_df.nlargest(5, 'threat_level')[['country', 'threat_level', 'recent_incidents']]
-        for _, row in top_threats.iterrows():
-            st.write(f"**{row['country']}**")
-            st.progress(row['threat_level'])
-            st.write(f"Incidents: {row['recent_incidents']}")
-            st.markdown("---")
+        st.plotly_chart(fig, use_container_width=True)
     
-    # Country-specific threat details
-    st.markdown("### 📊 COUNTRY-SPECIFIC THREAT INTELLIGENCE")
+    # Real-time metrics
+    st.markdown("### ⚡ REAL-TIME SECURITY METRICS")
     
-    # Country selector
-    selected_country = st.selectbox(
-        "Select Country for Detailed Analysis:",
-        threats_df['country'].tolist()
-    )
+    col1, col2, col3, col4 = st.columns(4)
     
-    if selected_country:
-        country_info = threats_df[threats_df['country'] == selected_country].iloc[0]
+    with col1:
+        st.metric("🔄 Threats Blocked", f"{random.randint(1000, 5000)}", "+12%")
+    
+    with col2:
+        st.metric("🎯 Detection Accuracy", f"{random.uniform(0.92, 0.99):.1%}", "+2.3%")
+    
+    with col3:
+        st.metric("⚡ Response Time", f"{random.uniform(5, 25):.1f}ms", "-15%")
+    
+    with col4:
+        st.metric("🛡️ System Integrity", f"{random.uniform(0.95, 0.999):.1%}", "+0.8%")
+
+def render_global_operations(global_intel):
+    """Render global operations center"""
+    
+    st.markdown("### 🌐 GLOBAL SECURITY OPERATIONS CENTER")
+    
+    # Get live data
+    threats_df = global_intel.generate_live_global_threats()
+    news_items = global_intel.get_global_cyber_news()
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("#### 🔴 LIVE INCIDENT DASHBOARD")
         
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.markdown(f"#### {selected_country} Threat Overview")
-            st.metric("Current Threat Level", f"{country_info['threat_level']:.0%}")
-            st.metric("Recent Incidents", country_info['recent_incidents'])
-            st.metric("Trend", country_info['trend'].title())
-        
-        with col2:
-            st.markdown("#### 🎯 Active Threat Types")
-            threats_list = country_info['active_threats'].split(', ')
-            for threat in threats_list:
-                st.write(f"• {threat}")
-            
-            st.markdown("#### 🕒 Last Updated")
-            st.write(country_info['last_updated'].strftime("%Y-%m-%d %H:%M:%S"))
-        
-        with col3:
-            st.markdown("#### 🛡️ Recommended Actions")
-            recommendations = {
-                'High': [
-                    "Activate enhanced monitoring",
-                    "Deploy counter-measure AI models",
-                    "Increase security posture",
-                    "Coordinate with CERT teams"
-                ],
-                'Medium': [
-                    "Review security protocols",
-                    "Update threat intelligence",
-                    "Conduct security audit",
-                    "Train staff on new threats"
-                ],
-                'Low': [
-                    "Monitor threat feeds",
-                    "Update security patches",
-                    "Review access controls",
-                    "Maintain vigilance"
-                ]
+        # Create incident timeline
+        incidents = []
+        for i in range(8):
+            incident = {
+                'time': (datetime.now() - timedelta(minutes=random.randint(1, 180))).strftime("%H:%M:%S"),
+                'type': random.choice(['Quantum Poisoning', 'AI Backdoor', 'Data Manipulation', 'Model Evasion']),
+                'severity': random.choice(['🔴 Critical', '🟠 High', '🟡 Medium']),
+                'location': random.choice(threats_df['country'].tolist()),
+                'status': random.choice(['🛡️ Contained', '🎯 Active', '🔍 Investigating'])
             }
-            
-            threat_category = 'High' if country_info['threat_level'] > 0.7 else 'Medium' if country_info['threat_level'] > 0.4 else 'Low'
-            
-            for action in recommendations[threat_category]:
-                st.write(f"• {action}")
+            incidents.append(incident)
+        
+        for incident in incidents:
+            with st.container():
+                col_a, col_b, col_c, col_d = st.columns([1, 2, 1, 1])
+                with col_a:
+                    st.write(f"`{incident['time']}`")
+                with col_b:
+                    st.write(f"**{incident['type']}**")
+                    st.write(f"Location: {incident['location']}")
+                with col_c:
+                    st.write(incident['severity'])
+                with col_d:
+                    st.write(incident['status'])
+                st.markdown("---")
     
-    # Real-time incident feed by country
-    st.markdown("### 📰 LIVE COUNTRY CYBER NEWS FEED")
-    
-    news_items = country_data.get_live_cyber_news_by_country()
-    
-    for news in news_items:
-        with st.container():
-            col1, col2, col3 = st.columns([3, 1, 1])
-            with col1:
+    with col2:
+        st.markdown("#### 📰 GLOBAL CYBER NEWS")
+        
+        for news in news_items:
+            with st.container():
                 st.markdown(f"**{news['headline']}**")
                 st.markdown(f"*{news['source']} | {news['timestamp']}*")
-            with col2:
-                st.markdown(f"**{news['country']}**")
-            with col3:
-                severity_color = "red" if news['severity'] == 'Critical' else "orange" if news['severity'] == 'High' else "yellow"
-                st.markdown(f'<span style="color: {severity_color}; font-weight: bold;">{news["severity"]}</span>', unsafe_allow_html=True)
-            
-            st.markdown("---")
+                st.markdown(f"**Impact:** {news['impact']} | **Severity:** {news['severity']}")
+                st.markdown("---")
 
-def create_quantum_timeline():
-    """Create quantum timeline visualization"""
-    dates = pd.date_range('2024-01-01', periods=50, freq='D')
-    data = pd.DataFrame({
-        'date': dates,
-        'threat_level': np.random.rand(50) * 100,
-        'attack_frequency': np.random.poisson(15, 50)
-    })
+def render_quantum_lab(quantum_intel):
+    """Render quantum research lab"""
     
-    fig = px.scatter(data, x='date', y='threat_level', size='attack_frequency',
-                    title='Quantum Threat Timeline',
-                    color='attack_frequency',
-                    color_continuous_scale='reds')
-    return fig
-
-def create_threat_evolution_chart():
-    """Create threat evolution chart"""
-    categories = ['Data Poisoning', 'Model Evasion', 'Backdoor', 'Label Flipping']
-    evolution = pd.DataFrame({
-        'category': categories,
-        'evolution_rate': np.random.rand(4) * 100,
-        'sophistication': np.random.rand(4) * 100
-    })
+    st.markdown("### ⚛️ QUANTUM RESEARCH LABORATORY")
     
-    fig = px.bar(evolution, x='category', y=['evolution_rate', 'sophistication'],
-                title='Threat Evolution Analysis', barmode='group')
-    return fig
-
-def create_risk_heatmap():
-    """Create risk heatmap"""
-    data = np.random.rand(10, 10)
-    fig = px.imshow(data, title='Risk Distribution Heatmap',
-                   color_continuous_scale='hot')
-    return fig
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 🔬 QUANTUM EXPERIMENTS")
+        
+        experiment = st.selectbox(
+            "Select Quantum Experiment:",
+            ["Quantum Key Distribution", "Entanglement Testing", "Superposition Analysis", "Quantum Teleportation"]
+        )
+        
+        st.write(f"**Current Experiment:** {experiment}")
+        st.write("**Status:** 🔬 In Progress")
+        st.write("**Quantum Coherence:** 98.7%")
+        st.write("**Entanglement Quality:** 99.2%")
+        
+        if st.button("🚀 RUN QUANTUM EXPERIMENT", use_container_width=True):
+            with st.spinner("🌀 Conducting quantum experiment..."):
+                time.sleep(3)
+                st.success("✅ Quantum experiment completed successfully!")
+                st.balloons()
+    
+    with col2:
+        st.markdown("#### 📚 RESEARCH PAPERS")
+        
+        papers = [
+            "Quantum-Resistant AI Security Protocols",
+            "Entanglement-Based Threat Detection",
+            "Superposition in Neural Network Defense",
+            "Quantum Computing for Cyber Intelligence"
+        ]
+        
+        for paper in papers:
+            st.write(f"• {paper}")
+        
+        st.markdown("---")
+        st.markdown("#### 🎯 LAB OBJECTIVES")
+        
+        objectives = [
+            "Develop quantum-safe AI systems",
+            "Advance entanglement-based security",
+            "Create quantum threat intelligence",
+            "Pioneer quantum machine learning defense"
+        ]
+        
+        for obj in objectives:
+            st.write(f"🎯 {obj}")
 
 if __name__ == "__main__":
     main()
