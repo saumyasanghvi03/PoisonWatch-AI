@@ -116,25 +116,6 @@ st.markdown("""
         100% { opacity: 1; transform: scale(1); }
     }
     
-    .hologram-effect {
-        background: linear-gradient(45deg, 
-            rgba(0, 255, 255, 0.1) 0%, 
-            rgba(255, 0, 255, 0.1) 50%, 
-            rgba(0, 255, 0, 0.1) 100%);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    .threat-glow {
-        box-shadow: 0 0 20px #ff000044;
-        border: 1px solid #ff0000;
-    }
-    
-    .safe-glow {
-        box-shadow: 0 0 20px #00ff0044;
-        border: 1px solid #00ff00;
-    }
-    
     .metric-glow {
         background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
         border: 1px solid #00ffff;
@@ -142,24 +123,6 @@ st.markdown("""
         padding: 1rem;
         margin: 0.5rem;
         box-shadow: 0 0 20px #00ffff33;
-    }
-    
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: #1a1a2e;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: #00ffff;
-        border-radius: 4px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: #00ff00;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -389,7 +352,7 @@ class QuantumVisualization:
         }
     
     def create_quantum_network(self, nodes=20):
-        """Create quantum entanglement network visualization"""
+        """Create quantum entanglement network visualization - FIXED VERSION"""
         fig = go.Figure()
         
         # Generate quantum nodes
@@ -413,14 +376,18 @@ class QuantumVisualization:
                     edge_y.extend([node_y[i], node_y[j], None])
                     edge_z.extend([node_z[i], node_z[j], None])
         
-        # Add edges (quantum connections)
-        fig.add_trace(go.Scatter3d(
-            x=edge_x, y=edge_y, z=edge_z,
-            mode='lines',
-            line=dict(color='#00ffff', width=2, opacity=0.6),
-            hoverinfo='none',
-            name='Quantum Entanglement'
-        ))
+        # FIXED: Proper line configuration for 3D scatter
+        if edge_x:  # Only add edges if they exist
+            fig.add_trace(go.Scatter3d(
+                x=edge_x, y=edge_y, z=edge_z,
+                mode='lines',
+                line=dict(
+                    color='rgba(0, 255, 255, 0.6)',  # Using rgba for opacity
+                    width=2
+                ),
+                hoverinfo='none',
+                name='Quantum Entanglement'
+            ))
         
         # Add nodes (quantum particles)
         fig.add_trace(go.Scatter3d(
@@ -431,7 +398,7 @@ class QuantumVisualization:
                 color=node_colors,
                 colorscale='Viridis',
                 opacity=0.8,
-                line=dict(color='#ffffff', width=2)
+                line=dict(width=2, color='white')
             ),
             name='Quantum Nodes',
             text=[f'Q-Node {i+1}' for i in range(nodes)],
@@ -454,7 +421,7 @@ class QuantumVisualization:
         
         return fig
     
-    def create_threat_radar(self, threats_df):
+    def create_threat_radar(self):
         """Create advanced threat radar visualization"""
         categories = ['Data Poisoning', 'Model Evasion', 'Backdoor', 'Supply Chain', 'Zero-Day']
         values = [random.uniform(0.6, 0.95) for _ in categories]
@@ -573,6 +540,37 @@ def create_animated_quantum_chart():
     
     return fig
 
+def create_safe_3d_simulation():
+    """Create safe 3D simulation without Plotly errors"""
+    # Create a simple 3D scatter that's guaranteed to work
+    t = np.linspace(0, 10, 50)
+    x = np.sin(t)
+    y = np.cos(t)
+    z = t
+    
+    fig = go.Figure(data=[go.Scatter3d(
+        x=x, y=y, z=z,
+        mode='markers',
+        marker=dict(
+            size=8,
+            color=z,
+            colorscale='Viridis',
+            opacity=0.8
+        )
+    )])
+    
+    fig.update_layout(
+        title="🔮 Safe 3D Quantum Simulation",
+        scene=dict(
+            xaxis_title='X Axis',
+            yaxis_title='Y Axis', 
+            zaxis_title='Z Axis'
+        ),
+        height=500
+    )
+    
+    return fig
+
 def main():
     # Initialize ultimate components
     quantum_intel = QuantumThreatIntelligence()
@@ -646,7 +644,7 @@ def main():
         render_quantum_command(ai_commander)
     
     with tab5:
-        render_3d_simulations(quantum_viz)
+        render_3d_simulations()
     
     with tab6:
         render_advanced_analytics(quantum_intel, global_intel)
@@ -655,7 +653,7 @@ def main():
         render_global_operations(global_intel)
     
     with tab8:
-        render_quantum_lab(quantum_intel)
+        render_quantum_lab()
 
 def render_quantum_dashboard(quantum_intel, quantum_viz):
     """Render ultimate quantum dashboard"""
@@ -710,6 +708,7 @@ def render_quantum_dashboard(quantum_intel, quantum_viz):
     col1, col2 = st.columns(2)
     
     with col1:
+        # Use the fixed quantum network visualization
         st.plotly_chart(quantum_viz.create_quantum_network(), use_container_width=True)
     
     with col2:
@@ -783,6 +782,10 @@ def render_global_intelligence(global_intel, quantum_viz):
         ).add_to(m)
     
     folium_static(m, width=1200, height=500)
+    
+    # Threat radar
+    st.markdown("#### 🎯 GLOBAL THREAT RADAR")
+    st.plotly_chart(quantum_viz.create_threat_radar(), use_container_width=True)
 
 def render_prediction_engine(quantum_intel):
     """Render AI prediction engine"""
@@ -922,72 +925,16 @@ def render_quantum_command(ai_commander):
                 st.error("Quantum simulation started!")
                 ai_commander.add_to_conversation("System", "Advanced quantum simulation initiated")
 
-def render_3d_simulations(quantum_viz):
-    """Render advanced 3D simulations"""
+def render_3d_simulations():
+    """Render 3D simulations with safe implementation"""
     
-    st.markdown("### 🔮 QUANTUM 3D SIMULATION ENVIRONMENT")
+    st.markdown("### 🔮 3D QUANTUM SIMULATION ENVIRONMENT")
     
     col1, col2 = st.columns([3, 1])
     
     with col1:
-        # Advanced 3D quantum simulation
-        fig = go.Figure()
-        
-        # Create quantum field
-        t = np.linspace(0, 10, 100)
-        x = np.sin(t)
-        y = np.cos(t)
-        z = t/10
-        
-        # Add quantum particles
-        fig.add_trace(go.Scatter3d(
-            x=x, y=y, z=z,
-            mode='markers+lines',
-            marker=dict(
-                size=8,
-                color=t,
-                colorscale='Viridis',
-                opacity=0.8
-            ),
-            line=dict(
-                color='#00ffff',
-                width=4
-            ),
-            name='Quantum Particles'
-        ))
-        
-        # Add threat vectors
-        threat_x = np.random.uniform(-1, 1, 20)
-        threat_y = np.random.uniform(-1, 1, 20)
-        threat_z = np.random.uniform(0, 1, 20)
-        
-        fig.add_trace(go.Scatter3d(
-            x=threat_x, y=threat_y, z=threat_z,
-            mode='markers',
-            marker=dict(
-                size=12,
-                color='red',
-                symbol='x',
-                line=dict(width=2, color='white')
-            ),
-            name='Threat Vectors'
-        ))
-        
-        fig.update_layout(
-            title="🌌 Quantum Field Simulation with Threat Vectors",
-            scene=dict(
-                xaxis_title='Quantum Dimension X',
-                yaxis_title='Quantum Dimension Y',
-                zaxis_title='Time Dimension Z',
-                bgcolor='rgba(0,0,0,0)',
-                camera=dict(eye=dict(x=1.5, y=1.5, z=1.5))
-            ),
-            height=600,
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)'
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
+        # Use safe 3D simulation
+        st.plotly_chart(create_safe_3d_simulation(), use_container_width=True)
     
     with col2:
         st.markdown("#### 🎮 SIMULATION CONTROLS")
@@ -1116,7 +1063,7 @@ def render_global_operations(global_intel):
                 st.markdown(f"**Impact:** {news['impact']} | **Severity:** {news['severity']}")
                 st.markdown("---")
 
-def render_quantum_lab(quantum_intel):
+def render_quantum_lab():
     """Render quantum research lab"""
     
     st.markdown("### ⚛️ QUANTUM RESEARCH LABORATORY")
