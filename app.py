@@ -15,9 +15,7 @@ import asyncio
 import warnings
 import requests
 from bs4 import BeautifulSoup
-
 warnings.filterwarnings('ignore')
-
 # Advanced system optimization
 try:
     import resource
@@ -25,7 +23,6 @@ try:
     resource.setrlimit(resource.RLIMIT_NOFILE, (min(16384, hard), hard))
 except (ImportError, ValueError):
     pass
-
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="NEXUS-7 | Quantum Neural Defense Matrix",
@@ -33,19 +30,18 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
 # --- ADVANCED CYBER CSS ---
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600;700&display=swap');
-    
+   
     .neuro-header {
         background: linear-gradient(135deg, #0f0c29 0%, #302b63 30%, #24243e 70%, #000000 100%);
         color: white;
         padding: 2.5rem;
         border-radius: 20px;
         border: 1px solid #00ffff;
-        box-shadow: 
+        box-shadow:
             0 0 50px #00ffff33,
             inset 0 0 100px #00ffff11,
             0 0 0 1px #00ffff22;
@@ -55,7 +51,7 @@ st.markdown("""
         text-align: center;
         backdrop-filter: blur(20px);
     }
-    
+   
     .neuro-header::before {
         content: '';
         position: absolute;
@@ -66,13 +62,13 @@ st.markdown("""
         background: linear-gradient(90deg, transparent, #00ffff22, transparent);
         animation: neuro-shimmer 6s infinite;
     }
-    
+   
     @keyframes neuro-shimmer {
         0% { left: -100%; }
         50% { left: 100%; }
         100% { left: 100%; }
     }
-    
+   
     .quantum-card {
         background: linear-gradient(145deg, #0a0a1a, #151528);
         border: 1px solid #00ffff;
@@ -80,14 +76,14 @@ st.markdown("""
         padding: 1.8rem;
         margin: 0.8rem 0;
         backdrop-filter: blur(15px);
-        box-shadow: 
+        box-shadow:
             0 8px 32px rgba(0, 255, 255, 0.1),
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
         position: relative;
         overflow: hidden;
         transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
-    
+   
     .quantum-card::before {
         content: '';
         position: absolute;
@@ -98,23 +94,23 @@ st.markdown("""
         background: linear-gradient(90deg, transparent, #00ffff, #ff00ff, transparent);
         animation: border-glow 3s infinite;
     }
-    
+   
     @keyframes border-glow {
         0%, 100% { opacity: 0.3; }
         50% { opacity: 1; }
     }
-    
+   
     .quantum-card:hover {
         transform: translateY(-8px) scale(1.02);
-        box-shadow: 
+        box-shadow:
             0 20px 40px rgba(0, 255, 255, 0.2),
             0 0 80px rgba(255, 0, 255, 0.1);
         border-color: #ff00ff;
     }
-    
+   
     .neuro-text {
         color: #00ffff;
-        text-shadow: 
+        text-shadow:
             0 0 10px #00ffff,
             0 0 20px #00ffff,
             0 0 40px #00ffff;
@@ -125,12 +121,12 @@ st.markdown("""
         -webkit-text-fill-color: transparent;
         animation: text-pulse 4s infinite;
     }
-    
+   
     @keyframes text-pulse {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.8; }
     }
-    
+   
     .hologram-text {
         font-family: 'Exo 2', sans-serif;
         color: transparent;
@@ -139,12 +135,12 @@ st.markdown("""
         background-size: 400% 400%;
         animation: hologram-shift 6s ease infinite;
     }
-    
+   
     @keyframes hologram-shift {
         0%, 100% { background-position: 0% 50%; }
         50% { background-position: 100% 50%; }
     }
-    
+   
     .quantum-metric {
         background: linear-gradient(135deg, rgba(26, 26, 46, 0.9), rgba(22, 33, 62, 0.9));
         border: 1px solid;
@@ -152,13 +148,13 @@ st.markdown("""
         border-radius: 12px;
         padding: 1.2rem;
         margin: 0.4rem;
-        box-shadow: 
+        box-shadow:
             0 8px 32px rgba(0, 255, 255, 0.15),
             inset 0 0 20px rgba(0, 255, 255, 0.05);
         position: relative;
         overflow: hidden;
     }
-    
+   
     .quantum-metric::before {
         content: '';
         position: absolute;
@@ -169,12 +165,12 @@ st.markdown("""
         background: conic-gradient(transparent, rgba(0, 255, 255, 0.1), transparent 30%);
         animation: metric-rotate 8s linear infinite;
     }
-    
+   
     @keyframes metric-rotate {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
-    
+   
     .neural-activity {
         background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
         border: 1px solid #00ff00;
@@ -184,7 +180,7 @@ st.markdown("""
         position: relative;
         overflow: hidden;
     }
-    
+   
     .neural-activity::after {
         content: '';
         position: absolute;
@@ -195,12 +191,11 @@ st.markdown("""
         background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.2), transparent);
         animation: neural-scan 3s infinite;
     }
-    
+   
     @keyframes neural-scan {
         0% { left: -100%; }
         100% { left: 100%; }
     }
-
     .live-data-badge {
         background: linear-gradient(45deg, #ff0000, #ff6b00);
         color: white;
@@ -210,12 +205,11 @@ st.markdown("""
         font-weight: bold;
         animation: pulse 2s infinite;
     }
-    
+   
     @keyframes pulse {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.7; }
     }
-
     .log-container {
         background-color: #050510;
         color: #00ff00;
@@ -226,9 +220,17 @@ st.markdown("""
         overflow-y: scroll;
         border: 1px solid #00ff00;
     }
+    .hunt-query {
+        background: linear-gradient(135deg, #0a0a1a, #151528);
+        border: 1px solid #ff00ff;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        color: #ff00ff;
+        font-family: 'Share Tech Mono', monospace;
+    }
 </style>
 """, unsafe_allow_html=True)
-
 @contextmanager
 def quantum_resource_manager():
     """Advanced resource management"""
@@ -236,33 +238,31 @@ def quantum_resource_manager():
         yield
     finally:
         gc.collect()
-
 # --- BACKEND CLASSES (No changes from original) ---
-
 class LiveDataIntegration:
     """Live data integration from multiple threat intelligence sources"""
-    
+   
     def __init__(self):
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
-    
+   
     def fetch_cisa_alerts(self):
         """Fetch live CISA alerts"""
         try:
             url = "https://www.cisa.gov/news-events/cybersecurity-advisories"
             response = self.session.get(url, timeout=10)
             soup = BeautifulSoup(response.content, 'html.parser')
-            
+           
             alerts = []
             advisory_items = soup.find_all('div', class_='c-view__row')[:5]
-            
+           
             for item in advisory_items:
                 try:
                     title_elem = item.find('h3', class_='c-teaser__title').find('a')
                     date_elem = item.find('time')
-                    
+                   
                     if title_elem and date_elem:
                         alert = {
                             "title": title_elem.text.strip(),
@@ -275,16 +275,16 @@ class LiveDataIntegration:
                         alerts.append(alert)
                 except:
                     continue
-            
+           
             if not alerts:
                 alerts = self._get_simulated_cisa_alerts()
-                
+               
             return alerts
-            
+           
         except Exception as e:
             st.error(f"Error fetching CISA data: {str(e)}")
             return self._get_simulated_cisa_alerts()
-    
+   
     def _classify_cisa_severity(self, title):
         title_lower = title.lower()
         if any(word in title_lower for word in ['critical', 'emergency', 'immediate']):
@@ -295,28 +295,28 @@ class LiveDataIntegration:
             return "MEDIUM"
         else:
             return "LOW"
-    
+   
     def _get_simulated_cisa_alerts(self):
         return [
             {"title": "Critical Vulnerability in Network Infrastructure Devices", "link": "https://www.cisa.gov", "date": "2025-10-17", "severity": "CRITICAL", "source": "CISA", "type": "Advisory"},
             {"title": "Phishing Campaign Targeting Financial Sector", "link": "https://www.cisa.gov", "date": "2025-10-15", "severity": "HIGH", "source": "CISA", "type": "Alert"}
         ]
-    
+   
     def fetch_mitre_techniques(self):
         """Fetch MITRE ATT&CK techniques"""
         try:
             url = "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
             response = self.session.get(url, timeout=15)
-            
+           
             if response.status_code == 200:
                 data = response.json()
                 techniques = []
-                
+               
                 for obj in data['objects']:
                     if obj.get('type') == 'attack-pattern' and not obj.get('revoked', False):
                         ext_refs = obj.get('external_references', [])
                         mitre_id = next((ref['external_id'] for ref in ext_refs if ref.get('source_name') == 'mitre-attack'), None)
-                        
+                       
                         if mitre_id and mitre_id.startswith('T'):
                             technique = {
                                 "id": mitre_id,
@@ -327,43 +327,42 @@ class LiveDataIntegration:
                                 "data_sources": obj.get('x_mitre_data_sources', [])
                             }
                             techniques.append(technique)
-                
+               
                 return techniques[:10]
             else:
                 return self._get_simulated_mitre_techniques()
-                
+               
         except Exception as e:
             st.error(f"Error fetching MITRE data: {str(e)}")
             return self._get_simulated_mitre_techniques()
-    
+   
     def _get_simulated_mitre_techniques(self):
         return [
             {"id": "T1566.001", "name": "Phishing: Spearphishing Attachment", "description": "...", "tactic": "Initial Access", "platforms": ["Windows", "Linux"], "data_sources": ["Email Gateway"]},
             {"id": "T1059.003", "name": "Command and Scripting Interpreter: Windows Command Shell", "description": "...", "tactic": "Execution", "platforms": ["Windows"], "data_sources": ["Process Monitoring"]}
         ]
-    
+   
     def fetch_vulnerability_data(self):
         """Fetch recent vulnerability data from NVD"""
         try:
             url = "https://services.nvd.nist.gov/rest/json/cves/2.0?resultsPerPage=10"
             response = self.session.get(url, timeout=10)
-            
+           
             if response.status_code == 200:
                 data = response.json()
                 vulnerabilities = []
-                
+               
                 for item in data.get('vulnerabilities', []):
                     cve = item.get('cve', {})
                     cve_id = cve.get('id', 'N/A')
                     description = next((desc['value'] for desc in cve.get('descriptions', []) if desc['lang'] == 'en'), 'No description available.')
-                    
+                   
                     cvss_score = "N/A"
                     severity = "UNKNOWN"
                     if 'cvssMetricV31' in cve.get('metrics', {}):
                         metric = cve['metrics']['cvssMetricV31'][0]
                         cvss_score = metric['cvssData']['baseScore']
                         severity = metric['cvssData']['baseSeverity']
-
                     vulnerability = {
                         "cve_id": cve_id,
                         "description": description[:200] + "...",
@@ -372,26 +371,24 @@ class LiveDataIntegration:
                         "severity": severity
                     }
                     vulnerabilities.append(vulnerability)
-                
+               
                 return vulnerabilities
             else:
                 return self._get_simulated_vulnerabilities()
-                
+               
         except Exception as e:
             st.error(f"Error fetching vulnerability data: {str(e)}")
             return self._get_simulated_vulnerabilities()
-
     def _get_simulated_vulnerabilities(self):
         return [
             {"cve_id": "CVE-2025-12345", "description": "Remote code execution vulnerability...", "cvss_score": 9.8, "published_date": "2025-10-15", "severity": "CRITICAL"},
             {"cve_id": "CVE-2025-12346", "description": "Privilege escalation in OS kernel...", "cvss_score": 7.8, "published_date": "2025-10-14", "severity": "HIGH"}
         ]
-
 class QuantumThreatSimulator:
     def __init__(self):
         self.simulation_history = []
         self.active_scenarios = []
-    
+   
     def create_threat_scenario(self, scenario_type, intensity, target_sector, duration):
         scenario_id = f"SIM-{random.randint(10000, 99999)}"
         scenario_templates = {
@@ -413,11 +410,11 @@ class QuantumThreatSimulator:
         self.active_scenarios.append(scenario)
         self.simulation_history.append(scenario)
         return scenario
-    
+   
     def calculate_risk_score(self, intensity, duration):
         base_risk = intensity * 0.7 + (duration / 60) * 0.3
         return max(0.1, min(0.99, base_risk + random.uniform(-0.1, 0.1)))
-    
+   
     def generate_defense_recommendations(self, scenario_type, intensity):
         recommendations = {
             'ransomware': ["Deploy quantum-resistant backups", "Implement behavioral analysis", "Activate temporal rollback"],
@@ -429,15 +426,14 @@ class QuantumThreatSimulator:
         if intensity > 0.8:
             base_recommendations.append("🚨 ACTIVATE QUANTUM EMERGENCY PROTOCOLS")
         return base_recommendations
-    
+   
     def run_simulation(self, scenario_id):
         # Simulation logic remains the same
         return True
-
     def get_simulation_analytics(self):
         if not self.simulation_history:
             return {'total_simulations': 0, 'average_risk': 0, 'most_common_scenario': 'None', 'quantum_entanglement_avg': 0}
-        
+       
         scenario_types = [s.get('type', 'unknown') for s in self.simulation_history]
         return {
             'total_simulations': len(self.simulation_history),
@@ -445,12 +441,10 @@ class QuantumThreatSimulator:
             'most_common_scenario': max(set(scenario_types), key=scenario_types.count) if scenario_types else 'None',
             'quantum_entanglement_avg': np.mean([s.get('quantum_entanglement', 0) for s in self.simulation_history])
         }
-
 class QuantumNeuralNetwork:
     # Class remains the same
     def predict_quantum_threat(self, input_data):
         return max(0.1, min(0.99, random.uniform(0.4, 0.9)))
-
 class HolographicThreatIntelligence:
     """Main application state class"""
     def __init__(self):
@@ -459,9 +453,7 @@ class HolographicThreatIntelligence:
         self.quantum_neural_net = QuantumNeuralNetwork()
         self.cisa_integration = self.live_data
         self.mitre_integration = self.live_data
-
 # --- NEW FEATURE HELPER FUNCTIONS ---
-
 def get_simulated_log():
     """Generates a single simulated log entry."""
     log_templates = [
@@ -479,10 +471,10 @@ def get_simulated_log():
     files = ["/etc/passwd", "/var/www/config.php", "C:\\Users\\s.smith\\Documents\\project_alpha.docx"]
     resources = ["/api/v1/admin", "/db/customer_records"]
     servers = ["WEB_PROD_01", "DB_MASTER_A", "AUTH_SRV_3"]
-    
+   
     level, template = random.choice(log_templates)
     log = template.format(
-        user=random.choice(users), 
+        user=random.choice(users),
         ip=random.choice(ips),
         file=random.choice(files),
         resource=random.choice(resources),
@@ -490,7 +482,6 @@ def get_simulated_log():
         malicious_ip=f"123.45.67.{random.randint(1,254)}"
     )
     return f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} [{level}]: {log}"
-
 def analyze_log(log):
     """Generates an AI analysis for a given log entry."""
     log_lower = log.lower()
@@ -507,10 +498,7 @@ def analyze_log(log):
             return "ℹ️ INFO: Privileged account login detected. Verifying against location and time heuristics. No anomalies found."
         return "ℹ️ INFO: Standard user login. Activity appears normal."
     return "✅ INFO: Routine system event. No action required."
-
-
 # --- UI RENDERING FUNCTIONS ---
-
 def render_neural_matrix():
     st.markdown("### 🧠 QUANTUM NEURAL THREAT MATRIX")
     # This function remains largely the same, using random data for demonstration.
@@ -528,7 +516,6 @@ def render_neural_matrix():
             }
             threats_data.append(threat)
         st.dataframe(pd.DataFrame(threats_data), use_container_width=True, height=300)
-
     with col2:
         st.markdown("#### 🌊 NEURAL ACTIVITY MONITOR")
         activities = [('Quantum Processing', 0.95), ('Neural Inference', 0.98), ('Pattern Recognition', 0.90)]
@@ -537,7 +524,6 @@ def render_neural_matrix():
             st.write(f"**{activity}**")
             st.progress(random.uniform(level-0.1, level))
             st.markdown('</div>', unsafe_allow_html=True)
-
 def render_multiverse_analytics():
     # This function remains the same.
     st.markdown("### 🌌 MULTIVERSE THREAT INTELLIGENCE")
@@ -557,7 +543,6 @@ def render_multiverse_analytics():
         ])
         fig.update_layout(title="Multiverse Threat Timeline Analysis", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white'), height=400)
         st.plotly_chart(fig, use_container_width=True)
-
 def render_quantum_simulator():
     st.markdown("### 🎮 QUANTUM THREAT SIMULATOR")
     # This function remains the same.
@@ -571,14 +556,13 @@ def render_quantum_simulator():
             scenario = simulator.create_threat_scenario(scenario_type, intensity, "Financial", 30)
             st.session_state.active_simulations.append(scenario)
             st.success(f"🎯 Simulation {scenario['id']} Launched!")
-    
+   
     with col2:
         st.markdown("#### 📊 SIMULATION ANALYTICS")
         analytics = simulator.get_simulation_analytics()
         st.metric("Total Simulations", analytics['total_simulations'])
         st.metric("Average Risk Score", f"{analytics['average_risk']:.1%}")
         st.metric("Most Common Scenario", analytics['most_common_scenario'].replace("_", " ").title())
-
 def render_live_cisa_data():
     # This function remains the same.
     st.markdown("### 🔗 LIVE CISA THREAT INTELLIGENCE")
@@ -590,7 +574,6 @@ def render_live_cisa_data():
         with st.expander(f"{alert['severity']} - {alert['title']}"):
             st.write(f"**Date:** {alert['date']}")
             st.markdown(f"[View Alert]({alert['link']})")
-
 def render_live_mitre_data():
     # This function remains the same.
     st.markdown("### 🎯 LIVE MITRE ATT&CK FRAMEWORK")
@@ -602,7 +585,6 @@ def render_live_mitre_data():
         with st.expander(f"{technique['id']} - {technique['name']}"):
             st.write(f"**Tactic:** {technique['tactic']}")
             st.write(f"**Description:** {technique['description']}")
-
 def render_global_threat_map():
     # This function remains the same.
     st.markdown("### 🌍 GLOBAL THREAT INTELLIGENCE MAP")
@@ -615,7 +597,6 @@ def render_global_threat_map():
     for c in countries:
         folium.Marker([c['lat'], c['lon']], tooltip=f"{c['country']} - Threat: {c['threat']:.1%}", icon=folium.Icon(color='red')).add_to(m)
     folium_static(m, width=1000, height=500)
-
 def render_vulnerability_intel():
     # This function remains the same.
     st.markdown("### 📊 VULNERABILITY INTELLIGENCE DASHBOARD")
@@ -623,7 +604,6 @@ def render_vulnerability_intel():
     for vuln in vulnerabilities[:5]:
         with st.expander(f"{vuln['cve_id']} - CVSS: {vuln['cvss_score']} - {vuln['severity']}"):
             st.write(f"**Description:** {vuln['description']}")
-
 def render_defense_operations():
     # This function remains the same.
     st.markdown("### 🛡️ QUANTUM DEFENSE OPERATIONS CENTER")
@@ -637,58 +617,49 @@ def render_defense_operations():
         st.markdown("#### 🚀 DEFENSE METRICS")
         st.metric("Threats Blocked Today", f"{random.randint(1000, 5000):,}")
         st.metric("System Uptime", f"99.99%")
-
-# --- NEW TAB RENDERING FUNCTIONS ---
-
+# --- EXISTING NEW TAB RENDERING FUNCTIONS ---
 def render_live_nexus():
     """Renders the live data feed and AI analysis bot tab."""
     st.markdown("### 🧬 LIVE DATA NEXUS & AI ANALYST")
     st.markdown("Simulating real-time event streams from across the infrastructure. The **NEXUS-7 AI Analyst** interprets data to identify threats.")
-
     col1, col2 = st.columns(2)
-
     with col1:
         st.markdown("#### 📡 LIVE DATA INPUT STREAM")
         log_placeholder = st.empty()
-        
+       
     with col2:
         st.markdown("#### 🤖 NEXUS-7 AI ANALYST")
         analysis_placeholder = st.empty()
-
     log_history = "Initializing log stream...\n"
     analysis_history = "AI Analyst is online. Awaiting data...\n"
-    
+   
     log_placeholder.markdown(f'<div class="log-container">{log_history}</div>', unsafe_allow_html=True)
     analysis_placeholder.markdown(f'<div class="log-container" style="border-color: #00ffff;">{analysis_history}</div>', unsafe_allow_html=True)
-    
+   
     # This loop simulates live data. In a real app, this would be an async stream.
     for i in range(10): # Limit to 10 iterations for demo purposes
         new_log = get_simulated_log()
         log_history += f"{new_log}\n"
-        
+       
         new_analysis = analyze_log(new_log)
         analysis_history += f"[{datetime.now().strftime('%H:%M:%S')}] {new_analysis}\n"
-        
+       
         # Auto-scroll effect by slicing the history
         log_display = "<br>".join(log_history.split("\n")[-15:])
         analysis_display = "<br>".join(analysis_history.split("\n")[-15:])
-        
+       
         log_placeholder.markdown(f'<div class="log-container">{log_display}</div>', unsafe_allow_html=True)
         analysis_placeholder.markdown(f'<div class="log-container" style="border-color: #00ffff;">{analysis_display}</div>', unsafe_allow_html=True)
         time.sleep(random.uniform(1.5, 3.0))
-
 def render_identity_matrix():
     """Renders the Identity & Access Management dashboard."""
     st.markdown("### 👤 IDENTITY & ACCESS MATRIX")
     st.caption("Monitoring identity-based threats and access anomalies.")
-
     col1, col2, col3 = st.columns(3)
     col1.metric("👥 Privileged Accounts", "1,284")
     col2.metric("🚨 Risky Sign-ins (24h)", "47", delta="5")
     col3.metric("⏳ Stale Credentials", "312")
-
     st.markdown("---")
-
     col_a, col_b = st.columns([1, 2])
     with col_a:
         st.markdown("#### TOP RISKY USERS")
@@ -699,7 +670,7 @@ def render_identity_matrix():
         fig = px.bar(risky_users, x='Risk Score', y='User', orientation='h', title="Top 5 Risky Users", color='Risk Score', color_continuous_scale='reds')
         fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white'), yaxis={'categoryorder':'total ascending'})
         st.plotly_chart(fig, use_container_width=True)
-    
+   
     with col_b:
         st.markdown("#### RECENT HIGH-RISK SIGN-IN EVENTS")
         sign_in_data = [
@@ -712,18 +683,16 @@ def render_identity_matrix():
         st.dataframe(df, use_container_width=True)
         if st.session_state.get('mode') == 'Admin':
             st.button("Force MFA for all Risky Users", type="primary")
-
 def render_soar_playbooks():
     """Renders the Automated SOAR dashboard."""
     st.markdown("### ⚙️ AUTOMATED RESPONSE (SOAR)")
     st.caption("Orchestrating and automating security responses to active threats.")
-
     col1, col2 = st.columns([1, 2])
     with col1:
         st.markdown("#### PLAYBOOK CATALOG")
-        playbook = st.selectbox("Select a Playbook:", 
+        playbook = st.selectbox("Select a Playbook:",
                                 ("Ransomware Containment", "Phishing Response", "Insider Threat Investigation"))
-        
+       
         st.markdown("---")
         st.markdown("##### Playbook Steps:")
         steps = {
@@ -733,7 +702,6 @@ def render_soar_playbooks():
         }
         for step in steps.get(playbook, []):
             st.info(step)
-
     with col2:
         st.markdown("#### PLAYBOOK EXECUTION LOG")
         if st.button(f"🚀 Trigger '{playbook}' Playbook", disabled=(st.session_state.get('mode') != 'Admin')):
@@ -749,19 +717,17 @@ def render_soar_playbooks():
             log_placeholder.markdown(f'<div class="log-container">{log_text}</div>', unsafe_allow_html=True)
         else:
             st.markdown('<div class="log-container">Awaiting playbook execution...</div>', unsafe_allow_html=True)
-
 def render_data_governance():
     """Renders the Data Governance & DLP dashboard."""
     st.markdown("### 📂 DATA GOVERNANCE (DLP)")
     st.caption("Classifying sensitive data and preventing data loss.")
-    
+   
     col1, col2, col3 = st.columns(3)
     col1.metric("📑 Classified Documents", "1.2M")
     col2.metric("📤 Data Exfiltration Alerts (7d)", "14", delta="-2")
     col3.metric("📜 Policy Violations", "89")
-
     st.markdown("---")
-    
+   
     col_a, col_b = st.columns(2)
     with col_a:
         st.markdown("#### DATA SENSITIVITY DISTRIBUTION")
@@ -770,7 +736,6 @@ def render_data_governance():
         fig = go.Figure(data=[go.Pie(labels=labels, values=sizes, hole=.4)])
         fig.update_layout(title_text='Data Classification', paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
         st.plotly_chart(fig, use_container_width=True)
-
     with col_b:
         st.markdown("#### RECENT DLP ALERTS")
         dlp_alerts = [
@@ -783,9 +748,87 @@ def render_data_governance():
         st.dataframe(df, use_container_width=True)
         if st.session_state.get('mode') == 'Admin':
             st.button("Review All Pending Alerts", type="primary")
-
+# --- NEW INNOVATIVE TAB RENDERING FUNCTIONS (Inspired by referenced platforms) ---
+def render_threat_hunting():
+    """Renders a Threat Hunting dashboard inspired by Mandiant, Sentinel, and CrowdStrike."""
+    st.markdown("### 🔍 QUANTUM THREAT HUNTING WORKBENCH")
+    st.caption("AI-powered proactive hunting across endpoints, cloud, and network. Inspired by Mandiant's threat intel workbench and Sentinel's hunting queries.")
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        st.markdown("#### 🧠 HUNT QUERIES")
+        hunt_type = st.selectbox("Hunt Type:", ["Compromised Credentials (Mandiant Digital Monitoring)", "Shadow AI Detection (CrowdStrike)", "Behavioral Anomalies (Sentinel)"])
+        if st.button("🚀 EXECUTE HUNT", type="primary", disabled=(st.session_state.get('mode') != 'Admin')):
+            st.markdown(f'<div class="hunt-query">Query: Scanning for {hunt_type.lower()} across 10k endpoints...<br>Results: {random.randint(5, 50)} potential IOCs detected.</div>', unsafe_allow_html=True)
+            st.success("Hunt Complete! Review findings below.")
+    with col2:
+        st.markdown("#### 📈 HUNT ANALYTICS")
+        hunts_data = pd.DataFrame({
+            'Hunt Type': ['Credential Compromise', 'Shadow AI', 'Behavioral Anomaly', 'Zero-Day Indicators'],
+            'Detections': [23, 12, 45, 8],
+            'Risk Score': [0.87, 0.65, 0.92, 0.78]
+        })
+        fig = px.scatter(hunts_data, x='Detections', y='Hunt Type', size='Risk Score', color='Risk Score', title="Recent Hunt Outcomes", color_continuous_scale='plasma')
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
+        st.plotly_chart(fig, use_container_width=True)
+        st.markdown("#### TOP IOCs")
+        iocs = ["IP: 185.220.101.35 (Dark Web Leak)", "Hash: e3b0c442... (Malware Sample)", "Domain: shadowai-risk.com"]
+        for ioc in iocs:
+            st.code(ioc, language="text")
+def render_compliance_risk():
+    """Renders a Compliance & Risk dashboard inspired by Purview and Entra ID Protection."""
+    st.markdown("### ⚖️ COMPLIANCE & RISK GOVERNANCE")
+    st.caption("Continuous compliance assessments and identity risk remediation. Inspired by Microsoft Purview Compliance Manager and Entra ID Protection.")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("📋 Compliance Score", "92%", delta="2%")
+    col2.metric("🚨 Identity Risks (Open)", "18", delta="-3")
+    col3.metric("🔄 Assessments Run (30d)", "47")
+    st.markdown("---")
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.markdown("#### REGULATORY COVERAGE")
+        regs = ['GDPR', 'HIPAA', 'PCI-DSS', 'SOC 2']
+        scores = [95, 88, 92, 90]
+        fig = go.Figure(data=go.Bar(x=regs, y=scores, marker_color='#00ffff'))
+        fig.update_layout(title="Compliance Scores", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
+        st.plotly_chart(fig, use_container_width=True)
+    with col_b:
+        st.markdown("#### OPEN RISKS")
+        risks_data = [
+            {'Risk': 'Stale Privileged Credentials', 'Severity': 'High', 'Remediation': 'Auto-Revoke (Entra Inspired)'},
+            {'Risk': 'Unpatched MFA Bypass', 'Severity': 'Critical', 'Remediation': 'Enforce Passwordless'},
+            {'Risk': 'Data Residency Violation', 'Severity': 'Medium', 'Remediation': 'Geofence Policies (Purview)'},
+        ]
+        df = pd.DataFrame(risks_data)
+        st.dataframe(df, use_container_width=True)
+        if st.session_state.get('mode') == 'Admin':
+            st.button("Remediate All High Risks", type="primary")
+def render_xdr_unified():
+    """Renders a Unified XDR dashboard inspired by Cortex XDR and QRadar."""
+    st.markdown("### 🔗 UNIFIED XDR INTELLIGENCE")
+    st.caption("Correlating endpoint, network, cloud, and identity data with AI-driven root cause analysis. Inspired by Palo Alto Cortex XDR and IBM QRadar.")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("#### DATA SOURCES")
+        sources = ["Endpoints", "Network Flows", "Cloud Logs", "Identity Events"]
+        integrations = [98, 95, 92, 97]
+        for src, integ in zip(sources, integrations):
+            st.progress(integ / 100)
+            st.write(f"**{src}:** {integ}% Integrated")
+    with col2:
+        st.markdown("#### INCIDENT TIMELINE")
+        timeline_data = pd.DataFrame({
+            'Time': pd.date_range(start='2025-10-18 00:00', periods=24, freq='H'),
+            'Incidents': np.random.poisson(5, 24),
+            'Severity': np.random.choice(['Low', 'Medium', 'High'], 24)
+        })
+        fig = px.line(timeline_data, x='Time', y='Incidents', color='Severity', title="24h Incident Velocity")
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
+        st.plotly_chart(fig, use_container_width=True)
+        st.markdown("#### ROOT CAUSE INSIGHTS")
+        insights = ["Behavioral anomaly in endpoint led to network breach (Cortex-like analysis)", "Cloud misconfig correlated with identity compromise (QRadar visibility)"]
+        for insight in insights:
+            st.info(insight)
 # --- MAIN APPLICATION LOGIC ---
-
 def main():
     with quantum_resource_manager():
         # Initialize session state
@@ -797,11 +840,9 @@ def main():
             st.session_state.mitre_connected = False
         if 'active_simulations' not in st.session_state:
             st.session_state.active_simulations = []
-
         # --- MODE SELECTION (LOGIN) ---
         if 'mode' not in st.session_state:
             st.session_state.mode = "Locked"
-
         with st.sidebar:
             st.markdown("<h1 class='neuro-text'>NEXUS-7</h1>", unsafe_allow_html=True)
             st.markdown("---")
@@ -824,12 +865,11 @@ def main():
                 if st.button("Lock System"):
                     st.session_state.mode = "Locked"
                     st.rerun()
-
         if st.session_state.mode == "Locked":
             st.title("Welcome to the NEXUS-7 Quantum Neural Defense Matrix")
             st.warning("Please select a mode from the sidebar to continue.")
             st.stop()
-            
+           
         # --- HEADER ---
         st.markdown("""
         <div class="neuro-header">
@@ -839,7 +879,7 @@ def main():
             </h3>
         </div>
         """, unsafe_allow_html=True)
-        
+       
         # --- QUICK ACTIONS ---
         st.markdown("### 🚀 QUICK ACTIONS")
         cols = st.columns(5)
@@ -862,7 +902,6 @@ def main():
         with cols[4]:
             if st.button("🔄 Refresh Data", use_container_width=True):
                 st.rerun()
-
         # --- QUANTUM METRICS ---
         st.markdown("### 📊 REAL-TIME QUANTUM METRICS")
         m_cols = st.columns(6)
@@ -872,22 +911,25 @@ def main():
                 st.markdown('<div class="quantum-metric">', unsafe_allow_html=True)
                 st.metric(metrics[i], f"{random.uniform(0.75, 0.99):.1%}", f"{random.uniform(1, 5):+.1f}%")
                 st.markdown('</div>', unsafe_allow_html=True)
-        
-        # --- MAIN TABS ---
+       
+        # --- MAIN TABS (Updated with new innovative tabs) ---
         tabs = st.tabs([
             "🧠 NEURAL MATRIX",
-            "🧬 LIVE NEXUS & AI", # NEW
+            "🧬 LIVE NEXUS & AI",
             "🎮 QUANTUM SIMULATOR",
-            "👤 IDENTITY & ACCESS", # NEW
-            "⚙️ AUTOMATED SOAR", # NEW
-            "📂 DATA GOVERNANCE", # NEW
+            "👤 IDENTITY & ACCESS",
+            "⚙️ AUTOMATED SOAR",
+            "📂 DATA GOVERNANCE",
             "🔗 LIVE CISA DATA",
             "🎯 LIVE MITRE DATA",
             "🌍 GLOBAL THREAT MAP",
             "📊 VULNERABILITY INTEL",
-            "🛡️ DEFENSE OPS"
+            "🛡️ DEFENSE OPS",
+            "🔍 THREAT HUNTING",  # NEW: Mandiant/Sentinel/CrowdStrike inspired
+            "⚖️ COMPLIANCE & RISK",  # NEW: Purview/Entra inspired
+            "🔗 UNIFIED XDR"  # NEW: Cortex/QRadar inspired
         ])
-        
+       
         with tabs[0]: render_neural_matrix()
         with tabs[1]: render_live_nexus()
         with tabs[2]: render_quantum_simulator()
@@ -899,6 +941,8 @@ def main():
         with tabs[8]: render_global_threat_map()
         with tabs[9]: render_vulnerability_intel()
         with tabs[10]: render_defense_operations()
-
+        with tabs[11]: render_threat_hunting()
+        with tabs[12]: render_compliance_risk()
+        with tabs[13]: render_xdr_unified()
 if __name__ == "__main__":
     main()
