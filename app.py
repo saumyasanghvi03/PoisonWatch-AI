@@ -15,7 +15,6 @@ import speech_recognition as sr
 from PIL import Image
 import io
 import base64
-from transformers import pipeline
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -96,16 +95,6 @@ st.markdown("""
         100% { opacity: 1; }
     }
     
-    .matrix-bg {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        opacity: 0.1;
-    }
-    
     .quantum-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -148,7 +137,6 @@ st.markdown("""
 
 class QuantumThreatIntelligence:
     def __init__(self):
-        self.sentiment_analyzer = pipeline("sentiment-analysis")
         self.threat_predictor = self.init_ai_predictor()
         
     def init_ai_predictor(self):
@@ -206,35 +194,6 @@ class ARVisualization:
                               weight=random.uniform(0.1, 1.0))
         
         return G
-    
-    def generate_attack_timeline_3d(self, incidents):
-        """Generate 3D timeline visualization"""
-        fig = go.Figure()
-        
-        for incident in incidents:
-            size = 10 if incident['severity'] == 'Low' else 20 if incident['severity'] == 'Medium' else 30 if incident['severity'] == 'High' else 40
-            
-            fig.add_trace(go.Scatter3d(
-                x=[random.uniform(-10, 10)],
-                y=[random.uniform(-10, 10)],
-                z=[random.uniform(-10, 10)],
-                mode='markers',
-                marker=dict(
-                    size=size,
-                    color=random.randint(0, 255),
-                    colorscale='Viridis'
-                ),
-                name=incident['id'],
-                text=f"{incident['type']} - {incident['severity']}"
-            ))
-        
-        fig.update_layout(scene=dict(
-            xaxis_title='Attack Vector',
-            yaxis_title='Impact Scale',
-            zaxis_title='Time Progression'
-        ))
-        
-        return fig
 
 class VoiceCommandInterface:
     def __init__(self):
@@ -514,9 +473,10 @@ def render_ai_prediction_engine(quantum_intel):
                               title='30-Day Attack Probability Forecast',
                               labels={'attack_probability': 'Attack Probability', 'date': 'Date'})
         
+        # FIXED: Corrected the duplicate y0 parameter
         fig_forecast.add_hrect(y0=0.7, y1=1.0, line_width=0, fillcolor="red", opacity=0.2,
                               annotation_text="Critical Zone", annotation_position="top left")
-        fig_forecast.add_hrect(y0=0.4, y0=0.7, line_width=0, fillcolor="orange", opacity=0.2,
+        fig_forecast.add_hrect(y0=0.4, y1=0.7, line_width=0, fillcolor="orange", opacity=0.2,
                               annotation_text="High Risk", annotation_position="top left")
         
         st.plotly_chart(fig_forecast, use_container_width=True)
