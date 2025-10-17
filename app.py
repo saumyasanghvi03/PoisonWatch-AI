@@ -199,27 +199,6 @@ st.markdown("""
         0% { left: -100%; }
         100% { left: 100%; }
     }
-    
-    /* Advanced data grid */
-    .advanced-dataframe {
-        background: rgba(10, 10, 20, 0.95) !important;
-        border: 1px solid #00ffff !important;
-        border-radius: 8px !important;
-    }
-    
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: rgba(10, 10, 20, 0.8);
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(#00ffff, #ff00ff);
-        border-radius: 4px;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -270,6 +249,10 @@ class QuantumNeuralNetwork:
     
     def predict_quantum_threat(self, input_data):
         """Advanced quantum neural threat prediction"""
+        # Ensure input_data has at least 2 elements
+        if len(input_data) < 2:
+            input_data = np.random.rand(8)  # Fallback to random data
+        
         # Quantum state evolution
         quantum_state = np.dot(self.neural_weights['quantum_gates'], input_data[:2])
         quantum_state = quantum_state / np.linalg.norm(quantum_state)
@@ -303,67 +286,11 @@ class QuantumNeuralNetwork:
             
         return max(0.1, min(0.99, threat_level))
 
-class HolographicThreatIntelligence:
-    """Advanced holographic threat intelligence system"""
-    
-    def __init__(self):
-        self.quantum_neural_net = QuantumNeuralNetwork()
-        self.multiverse_scenarios = self._initialize_multiverse()
-        self.temporal_analysis = TemporalAnalyzer()
-        self.quantum_entanglement = QuantumEntanglementEngine()
-        
-    def _initialize_multiverse(self):
-        """Initialize parallel universe threat scenarios"""
-        return {
-            'prime_timeline': {'probability': 0.65, 'threat_level': 0.7},
-            'quantum_branch_1': {'probability': 0.15, 'threat_level': 0.9},
-            'quantum_branch_2': {'probability': 0.10, 'threat_level': 0.4},
-            'temporal_anomaly': {'probability': 0.05, 'threat_level': 0.95},
-            'neural_collapse': {'probability': 0.05, 'threat_level': 0.8}
-        }
-    
-    def holographic_threat_analysis(self, global_data):
-        """Perform multidimensional threat analysis"""
-        # Quantum neural prediction
-        neural_input = self._prepare_neural_input(global_data)
-        quantum_prediction = self.quantum_neural_net.predict_quantum_threat(neural_input)
-        
-        # Multiverse scenario analysis
-        multiverse_risk = sum(
-            scenario['probability'] * scenario['threat_level'] 
-            for scenario in self.multiverse_scenarios.values()
-        )
-        
-        # Temporal analysis
-        temporal_risk = self.temporal_analysis.analyze_temporal_patterns(global_data)
-        
-        # Quantum entanglement correlation
-        entanglement_factor = self.quantum_entanglement.calculate_entanglement(global_data)
-        
-        # Holographic synthesis
-        holographic_risk = (
-            quantum_prediction * 0.35 +
-            multiverse_risk * 0.25 +
-            temporal_risk * 0.25 +
-            entanglement_factor * 0.15
-        )
-        
-        return {
-            'holographic_risk': holographic_risk,
-            'quantum_prediction': quantum_prediction,
-            'multiverse_risk': multiverse_risk,
-            'temporal_risk': temporal_risk,
-            'entanglement_factor': entanglement_factor,
-            'dominant_timeline': max(self.multiverse_scenarios.items(), key=lambda x: x[1]['probability'])[0],
-            'quantum_coherence': random.uniform(0.85, 0.98)
-        }
-
 class TemporalAnalyzer:
     """Advanced temporal pattern analysis"""
     
     def __init__(self):
         self.temporal_patterns = []
-        self.fourier_analysis = FourierTransformer()
         
     def analyze_temporal_patterns(self, data):
         """Analyze threat patterns across time dimensions"""
@@ -419,27 +346,74 @@ class QuantumEntanglementEngine:
         
         return np.mean(correlations) if correlations else 0.5
 
-class FourierTransformer:
-    """Advanced Fourier analysis for pattern recognition"""
+class HolographicThreatIntelligence:
+    """Advanced holographic threat intelligence system"""
     
-    def transform_signal(self, signal):
-        """Perform Fourier transform on threat signals"""
-        if len(signal) < 2:
-            return {'dominant_frequency': 0, 'amplitude': 0, 'harmonic_content': 0}
+    def __init__(self):
+        self.quantum_neural_net = QuantumNeuralNetwork()
+        self.multiverse_scenarios = self._initialize_multiverse()
+        self.temporal_analysis = TemporalAnalyzer()
+        self.quantum_entanglement = QuantumEntanglementEngine()
         
-        # Simple DFT implementation
-        N = len(signal)
-        frequencies = np.fft.fft(signal)
-        amplitudes = np.abs(frequencies)
+    def _initialize_multiverse(self):
+        """Initialize parallel universe threat scenarios"""
+        return {
+            'prime_timeline': {'probability': 0.65, 'threat_level': 0.7},
+            'quantum_branch_1': {'probability': 0.15, 'threat_level': 0.9},
+            'quantum_branch_2': {'probability': 0.10, 'threat_level': 0.4},
+            'temporal_anomaly': {'probability': 0.05, 'threat_level': 0.95},
+            'neural_collapse': {'probability': 0.05, 'threat_level': 0.8}
+        }
+    
+    def _prepare_neural_input(self, global_data):
+        """Prepare neural network input from global data - FIXED METHOD"""
+        # Extract features from global data with fallbacks
+        features = [
+            global_data.get('threat_density', random.uniform(0.3, 0.8)),
+            global_data.get('attack_frequency', random.uniform(0.2, 0.9)),
+            global_data.get('complexity', random.uniform(0.4, 0.95)),
+            random.uniform(0.1, 0.9),  # Additional feature 1
+            random.uniform(0.1, 0.9),  # Additional feature 2
+            random.uniform(0.1, 0.9),  # Additional feature 3
+            random.uniform(0.1, 0.9),  # Additional feature 4
+            random.uniform(0.1, 0.9)   # Additional feature 5
+        ]
+        return np.array(features[:8])  # Ensure exactly 8 features
+    
+    def holographic_threat_analysis(self, global_data):
+        """Perform multidimensional threat analysis"""
+        # Quantum neural prediction
+        neural_input = self._prepare_neural_input(global_data)
+        quantum_prediction = self.quantum_neural_net.predict_quantum_threat(neural_input)
         
-        dominant_freq = np.argmax(amplitudes[1:N//2]) + 1  # Skip DC component
-        max_amplitude = np.max(amplitudes[1:N//2])
-        harmonic_content = np.sum(amplitudes[1:N//2]) / (N//2 - 1)
+        # Multiverse scenario analysis
+        multiverse_risk = sum(
+            scenario['probability'] * scenario['threat_level'] 
+            for scenario in self.multiverse_scenarios.values()
+        )
+        
+        # Temporal analysis
+        temporal_risk = self.temporal_analysis.analyze_temporal_patterns(global_data)
+        
+        # Quantum entanglement correlation
+        entanglement_factor = self.quantum_entanglement.calculate_entanglement(global_data)
+        
+        # Holographic synthesis
+        holographic_risk = (
+            quantum_prediction * 0.35 +
+            multiverse_risk * 0.25 +
+            temporal_risk * 0.25 +
+            entanglement_factor * 0.15
+        )
         
         return {
-            'dominant_frequency': dominant_freq,
-            'amplitude': max_amplitude,
-            'harmonic_content': harmonic_content
+            'holographic_risk': max(0.1, min(0.99, holographic_risk)),
+            'quantum_prediction': quantum_prediction,
+            'multiverse_risk': multiverse_risk,
+            'temporal_risk': temporal_risk,
+            'entanglement_factor': entanglement_factor,
+            'dominant_timeline': max(self.multiverse_scenarios.items(), key=lambda x: x[1]['probability'])[0],
+            'quantum_coherence': random.uniform(0.85, 0.98)
         }
 
 class AdvancedQuantumVisualization:
@@ -485,10 +459,13 @@ class AdvancedQuantumVisualization:
                 ))
         
         # Create quantum connections with entanglement effects
+        connection_count = 0
+        max_connections = layers * neurons_per_layer * 2  # Limit connections
+        
         for (layer1, neuron1), pos1 in neuron_positions.items():
             if layer1 < layers - 1:
                 for (layer2, neuron2), pos2 in neuron_positions.items():
-                    if layer2 == layer1 + 1 and random.random() < 0.4:
+                    if layer2 == layer1 + 1 and random.random() < 0.4 and connection_count < max_connections:
                         # Quantum entanglement connection
                         fig.add_trace(go.Scatter3d(
                             x=[pos1[0], pos2[0]],
@@ -503,6 +480,7 @@ class AdvancedQuantumVisualization:
                             opacity=0.6,
                             showlegend=False
                         ))
+                        connection_count += 1
         
         fig.update_layout(
             title="🧠 Quantum Neural Network Architecture",
