@@ -311,9 +311,9 @@ class ARVisualization:
         
         return G
 
-class VoiceCommandInterface:
+class AICommandInterface:
+    """Replacement for VoiceCommandInterface without speech recognition dependency"""
     def __init__(self):
-        self.recognizer = sr.Recognizer()
         self.commands = {
             "show threats": "display_threats",
             "analyze network": "analyze_network",
@@ -322,12 +322,18 @@ class VoiceCommandInterface:
             "activate defense": "activate_defense"
         }
     
-    def process_voice_command(self, audio_data):
-        """Process voice commands"""
+    def process_text_command(self, command_text):
+        """Process text-based commands"""
         try:
-            # This is a simulation - in production, integrate with actual speech recognition
-            command = random.choice(list(self.commands.keys()))
-            return command, self.commands[command]
+            command = command_text.lower().strip()
+            if command in self.commands:
+                return command, self.commands[command]
+            else:
+                # Find closest match
+                for cmd in self.commands:
+                    if cmd in command:
+                        return cmd, self.commands[cmd]
+                return None, None
         except:
             return None, None
 
@@ -335,7 +341,7 @@ def main():
     # Initialize advanced components
     quantum_intel = QuantumThreatIntelligence()
     ar_viz = ARVisualization()
-    voice_interface = VoiceCommandInterface()
+    ai_interface = AICommandInterface()  # Replaced VoiceCommandInterface
     country_data = LiveCountryData()
     
     # Auto-refresh every 20 seconds
@@ -374,7 +380,7 @@ def main():
         "🚀 QUANTUM DASHBOARD", 
         "🌐 HOLOGRAPHIC THREAT MAP", 
         "🧠 AI PREDICTION ENGINE", 
-        "🎯 VOICE COMMAND CENTER",
+        "⌨️ AI COMMAND CENTER",  # Changed from VOICE COMMAND CENTER
         "🔮 ATTACK SIMULATION 3D",
         "📊 QUANTUM ANALYTICS",
         "🌍 LIVE GLOBAL OPERATIONS"
@@ -390,7 +396,7 @@ def main():
         render_ai_prediction_engine(quantum_intel)
     
     with tab4:
-        render_voice_command_center(voice_interface)
+        render_ai_command_center(ai_interface)  # Updated function name
     
     with tab5:
         render_3d_attack_simulation(ar_viz)
@@ -442,7 +448,7 @@ def render_quantum_dashboard(quantum_intel):
             st.write(f"**{metric}**")
             st.progress(value)
         
-        # Quantum circuit simulation - FIXED: use_container_width instead of use_column_width
+        # Quantum circuit simulation - FIXED: use_container_width
         st.markdown("#### ⚛️ QUANTUM CIRCUIT")
         st.image("https://via.placeholder.com/300x150/000022/00ffff?text=Quantum+Security+Circuit", 
                 use_container_width=True)
@@ -579,34 +585,51 @@ def render_ai_prediction_engine(quantum_intel):
                 if st.button("🚀 Execute", key=rec['action']):
                     st.success(f"Executing: {rec['action']}")
 
-def render_voice_command_center(voice_interface):
-    """Render voice command interface"""
+def render_ai_command_center(ai_interface):
+    """Render AI command interface (replacement for voice commands)"""
     
-    st.markdown("### 🎯 VOICE COMMAND INTERFACE")
+    st.markdown("### ⌨️ AI COMMAND INTERFACE")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("#### 🎤 VOICE CONTROL")
+        st.markdown("#### 💬 TEXT COMMANDS")
         
-        # Voice command interface
-        if st.button("🎤 Start Voice Command", use_container_width=True):
-            with st.spinner("Listening for voice commands..."):
-                time.sleep(2)
-                command, action = voice_interface.process_voice_command(None)
-                if command:
-                    st.success(f"Command recognized: **'{command}'**")
-                    st.info(f"Action: {action}")
-                else:
-                    st.error("No command detected. Please try again.")
+        # Text command interface
+        command_text = st.text_input("Enter Command:", placeholder="Type 'show threats', 'analyze network', etc.")
+        
+        if st.button("🚀 Execute Command", use_container_width=True):
+            if command_text:
+                with st.spinner("Processing command..."):
+                    time.sleep(1)
+                    command, action = ai_interface.process_text_command(command_text)
+                    if command:
+                        st.success(f"Command recognized: **'{command}'**")
+                        st.info(f"Action: {action}")
+                        
+                        # Simulate command execution
+                        if action == "display_threats":
+                            st.rerun()
+                        elif action == "analyze_network":
+                            st.success("Network analysis completed. No critical threats detected.")
+                        elif action == "predict_attacks":
+                            st.success("Attack prediction generated. High probability of data poisoning in next 24h.")
+                        elif action == "generate_report":
+                            st.success("Security report generated and saved to dashboard.")
+                        elif action == "activate_defense":
+                            st.success("Defense systems activated. All shields at maximum.")
+                    else:
+                        st.error("Command not recognized. Try: 'show threats', 'analyze network', 'predict attacks', 'generate report', or 'activate defense'")
+            else:
+                st.warning("Please enter a command")
         
         st.markdown("""
-        **Available Voice Commands:**
-        - "Show threats" - Display current threat dashboard
-        - "Analyze network" - Run network security analysis
-        - "Predict attacks" - Generate attack predictions
-        - "Generate report" - Create security report
-        - "Activate defense" - Enable defense systems
+        **Available Commands:**
+        - "show threats" - Display current threat dashboard
+        - "analyze network" - Run network security analysis
+        - "predict attacks" - Generate attack predictions
+        - "generate report" - Create security report
+        - "activate defense" - Enable defense systems
         """)
     
     with col2:
@@ -625,7 +648,7 @@ def render_voice_command_center(voice_interface):
             else:
                 st.markdown(f"**👤 User:** {msg['content']}")
         
-        user_input = st.text_input("Ask NEXUS-7 AI:", placeholder="Type your security question...")
+        user_input = st.text_input("Ask NEXUS-7 AI:", placeholder="Type your security question...", key="chat_input")
         if user_input:
             st.info(f"AI Response: Analyzing threat patterns related to '{user_input}' with 96% confidence...")
 
