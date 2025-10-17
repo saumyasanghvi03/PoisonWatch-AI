@@ -13,9 +13,6 @@ import folium
 from streamlit_folium import folium_static
 import pycountry
 from geopy.geocoders import Nominatim
-import io
-import base64
-from PIL import Image, ImageDraw, ImageFont
 
 # Page configuration for ultimate cyber theme
 st.set_page_config(
@@ -83,7 +80,7 @@ st.markdown("""
     }
     
     .cyber-card:hover {
-        transform: translateY(-10px) scale(1.02);
+        transform: translateY(-5px) scale(1.01);
         box-shadow: 0 0 50px #00ffff66, 0 10px 30px #00000066;
         border-color: #00ff00;
     }
@@ -116,25 +113,6 @@ st.markdown("""
         100% { opacity: 1; transform: scale(1); }
     }
     
-    .hologram-effect {
-        background: linear-gradient(45deg, 
-            rgba(0, 255, 255, 0.1) 0%, 
-            rgba(255, 0, 255, 0.1) 50%, 
-            rgba(0, 255, 0, 0.1) 100%);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    .threat-glow {
-        box-shadow: 0 0 20px #ff000044;
-        border: 1px solid #ff0000;
-    }
-    
-    .safe-glow {
-        box-shadow: 0 0 20px #00ff0044;
-        border: 1px solid #00ff00;
-    }
-    
     .metric-glow {
         background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
         border: 1px solid #00ffff;
@@ -142,24 +120,6 @@ st.markdown("""
         padding: 1rem;
         margin: 0.5rem;
         box-shadow: 0 0 20px #00ffff33;
-    }
-    
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: #1a1a2e;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: #00ffff;
-        border-radius: 4px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: #00ff00;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -388,73 +348,58 @@ class QuantumVisualization:
             'hologram': ['#8a2be2', '#00bfff', '#7cfc00', '#ff1493']
         }
     
-    def create_quantum_network(self, nodes=20):
-        """Create quantum entanglement network visualization"""
-        fig = go.Figure()
-        
+    def create_quantum_network_2d(self, nodes=20):
+        """Create 2D quantum network visualization - SAFE VERSION"""
         # Generate quantum nodes
-        node_x, node_y, node_z = [], [], []
+        node_x, node_y = [], []
         node_colors, node_sizes = [], []
         
         for i in range(nodes):
             node_x.append(random.uniform(-10, 10))
             node_y.append(random.uniform(-10, 10))
-            node_z.append(random.uniform(-10, 10))
             node_colors.append(random.uniform(0, 1))
             node_sizes.append(random.randint(10, 30))
         
-        # Create quantum entanglement connections
-        edge_x, edge_y, edge_z = [], [], []
+        # Create DataFrame for Plotly
+        node_df = pd.DataFrame({
+            'x': node_x,
+            'y': node_y,
+            'color': node_colors,
+            'size': node_sizes,
+            'node_id': [f'Q-Node {i+1}' for i in range(nodes)]
+        })
         
+        # Create 2D scatter plot
+        fig = px.scatter(node_df, x='x', y='y', size='size', color='color',
+                        hover_name='node_id', title='🌌 Quantum Network (2D)',
+                        color_continuous_scale='Viridis',
+                        size_max=30)
+        
+        # Add connections as lines
         for i in range(nodes):
             for j in range(i + 1, nodes):
-                if random.random() < 0.3:  # 30% connection probability
-                    edge_x.extend([node_x[i], node_x[j], None])
-                    edge_y.extend([node_y[i], node_y[j], None])
-                    edge_z.extend([node_z[i], node_z[j], None])
-        
-        # Add edges (quantum connections)
-        fig.add_trace(go.Scatter3d(
-            x=edge_x, y=edge_y, z=edge_z,
-            mode='lines',
-            line=dict(color='#00ffff', width=2, opacity=0.6),
-            hoverinfo='none',
-            name='Quantum Entanglement'
-        ))
-        
-        # Add nodes (quantum particles)
-        fig.add_trace(go.Scatter3d(
-            x=node_x, y=node_y, z=node_z,
-            mode='markers',
-            marker=dict(
-                size=node_sizes,
-                color=node_colors,
-                colorscale='Viridis',
-                opacity=0.8,
-                line=dict(color='#ffffff', width=2)
-            ),
-            name='Quantum Nodes',
-            text=[f'Q-Node {i+1}' for i in range(nodes)],
-            hovertemplate='<b>%{text}</b><br>Quantum State: %{marker.color:.2f}<extra></extra>'
-        ))
+                if random.random() < 0.2:  # 20% connection probability
+                    fig.add_trace(go.Scatter(
+                        x=[node_x[i], node_x[j]],
+                        y=[node_y[i], node_y[j]],
+                        mode='lines',
+                        line=dict(color='rgba(0, 255, 255, 0.3)', width=1),
+                        showlegend=False,
+                        hoverinfo='none'
+                    ))
         
         fig.update_layout(
-            title="🌌 Quantum Entanglement Network",
-            scene=dict(
-                xaxis_title='Quantum Field X',
-                yaxis_title='Quantum Field Y',
-                zaxis_title='Quantum Field Z',
-                bgcolor='rgba(0,0,0,0)',
-                camera=dict(eye=dict(x=1.5, y=1.5, z=1.5))
-            ),
-            height=600,
             paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)'
+            plot_bgcolor='rgba(0,0,0,0)',
+            font=dict(color='white'),
+            height=500,
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)
         )
         
         return fig
     
-    def create_threat_radar(self, threats_df):
+    def create_threat_radar(self):
         """Create advanced threat radar visualization"""
         categories = ['Data Poisoning', 'Model Evasion', 'Backdoor', 'Supply Chain', 'Zero-Day']
         values = [random.uniform(0.6, 0.95) for _ in categories]
@@ -573,6 +518,23 @@ def create_animated_quantum_chart():
     
     return fig
 
+def create_cyber_heatmap():
+    """Create cyber threat heatmap"""
+    data = np.random.rand(10, 10)
+    
+    fig = px.imshow(data, 
+                   title='🔥 Cyber Threat Heatmap',
+                   color_continuous_scale='reds',
+                   aspect='auto')
+    
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='white')
+    )
+    
+    return fig
+
 def main():
     # Initialize ultimate components
     quantum_intel = QuantumThreatIntelligence()
@@ -627,9 +589,9 @@ def main():
         "🌍 LIVE GLOBAL INTEL", 
         "🧠 AI PREDICTION ENGINE", 
         "⚡ QUANTUM COMMAND",
-        "🔮 3D SIMULATIONS",
         "📊 ADVANCED ANALYTICS",
         "🌐 GLOBAL OPERATIONS",
+        "🗺️ THREAT MAP",
         "⚛️ QUANTUM LAB"
     ])
     
@@ -637,7 +599,7 @@ def main():
         render_quantum_dashboard(quantum_intel, quantum_viz)
     
     with tab2:
-        render_global_intelligence(global_intel, quantum_viz)
+        render_global_intelligence(global_intel)
     
     with tab3:
         render_prediction_engine(quantum_intel)
@@ -646,16 +608,16 @@ def main():
         render_quantum_command(ai_commander)
     
     with tab5:
-        render_3d_simulations(quantum_viz)
-    
-    with tab6:
         render_advanced_analytics(quantum_intel, global_intel)
     
-    with tab7:
+    with tab6:
         render_global_operations(global_intel)
     
+    with tab7:
+        render_threat_map(global_intel)
+    
     with tab8:
-        render_quantum_lab(quantum_intel)
+        render_quantum_lab()
 
 def render_quantum_dashboard(quantum_intel, quantum_viz):
     """Render ultimate quantum dashboard"""
@@ -710,12 +672,13 @@ def render_quantum_dashboard(quantum_intel, quantum_viz):
     col1, col2 = st.columns(2)
     
     with col1:
-        st.plotly_chart(quantum_viz.create_quantum_network(), use_container_width=True)
+        # Use the safe 2D quantum network visualization
+        st.plotly_chart(quantum_viz.create_quantum_network_2d(), use_container_width=True)
     
     with col2:
         st.plotly_chart(create_animated_quantum_chart(), use_container_width=True)
 
-def render_global_intelligence(global_intel, quantum_viz):
+def render_global_intelligence(global_intel):
     """Render global threat intelligence"""
     
     st.markdown("### 🌍 LIVE GLOBAL THREAT INTELLIGENCE")
@@ -742,47 +705,14 @@ def render_global_intelligence(global_intel, quantum_viz):
         total_risk = (threats_df['threat_level'] * threats_df['recent_incidents']).sum()
         st.metric("💀 Total Risk Index", f"{total_risk:.0f}", "+18%")
     
-    # Interactive global map
-    st.markdown("#### 🗺️ INTERACTIVE GLOBAL THREAT MAP")
+    # Country threat table
+    st.markdown("#### 📋 COUNTRY THREAT ANALYSIS")
     
-    # Create advanced folium map
-    m = folium.Map(location=[20, 0], zoom_start=2, tiles='CartoDB dark_matter')
+    display_df = threats_df[['country', 'threat_level', 'recent_incidents', 'risk_category', 'trend']].copy()
+    display_df['threat_level'] = display_df['threat_level'].apply(lambda x: f"{x:.1%}")
+    display_df = display_df.sort_values('recent_incidents', ascending=False)
     
-    for _, country in threats_df.iterrows():
-        # Dynamic marker colors based on threat level
-        if country['threat_level'] > 0.8:
-            color = 'red'
-            icon = 'flash'
-        elif country['threat_level'] > 0.6:
-            color = 'orange'
-            icon = 'warning-sign'
-        elif country['threat_level'] > 0.4:
-            color = 'yellow'
-            icon = 'info-sign'
-        else:
-            color = 'green'
-            icon = 'ok-sign'
-        
-        popup_content = f"""
-        <div style="width: 250px; font-family: Arial, sans-serif;">
-            <h3 style="color: #00ffff; margin-bottom: 10px;">{country['country']}</h3>
-            <p><b>Threat Level:</b> <span style="color: {color}">{country['threat_level']:.1%}</span></p>
-            <p><b>Recent Incidents:</b> {country['recent_incidents']}</p>
-            <p><b>Active Threats:</b> {country['active_threats']}</p>
-            <p><b>Risk Category:</b> {country['risk_category']}</p>
-            <p><b>Trend:</b> {country['trend']}</p>
-            <p><b>Last Updated:</b> {country['last_updated'].strftime('%H:%M:%S')}</p>
-        </div>
-        """
-        
-        folium.Marker(
-            [country['latitude'], country['longitude']],
-            popup=folium.Popup(popup_content, max_width=300),
-            tooltip=f"{country['country']} - Threat: {country['threat_level']:.1%}",
-            icon=folium.Icon(color=color, icon=icon, prefix='glyphicon')
-        ).add_to(m)
-    
-    folium_static(m, width=1200, height=500)
+    st.dataframe(display_df, use_container_width=True)
 
 def render_prediction_engine(quantum_intel):
     """Render AI prediction engine"""
@@ -922,94 +852,6 @@ def render_quantum_command(ai_commander):
                 st.error("Quantum simulation started!")
                 ai_commander.add_to_conversation("System", "Advanced quantum simulation initiated")
 
-def render_3d_simulations(quantum_viz):
-    """Render advanced 3D simulations"""
-    
-    st.markdown("### 🔮 QUANTUM 3D SIMULATION ENVIRONMENT")
-    
-    col1, col2 = st.columns([3, 1])
-    
-    with col1:
-        # Advanced 3D quantum simulation
-        fig = go.Figure()
-        
-        # Create quantum field
-        t = np.linspace(0, 10, 100)
-        x = np.sin(t)
-        y = np.cos(t)
-        z = t/10
-        
-        # Add quantum particles
-        fig.add_trace(go.Scatter3d(
-            x=x, y=y, z=z,
-            mode='markers+lines',
-            marker=dict(
-                size=8,
-                color=t,
-                colorscale='Viridis',
-                opacity=0.8
-            ),
-            line=dict(
-                color='#00ffff',
-                width=4
-            ),
-            name='Quantum Particles'
-        ))
-        
-        # Add threat vectors
-        threat_x = np.random.uniform(-1, 1, 20)
-        threat_y = np.random.uniform(-1, 1, 20)
-        threat_z = np.random.uniform(0, 1, 20)
-        
-        fig.add_trace(go.Scatter3d(
-            x=threat_x, y=threat_y, z=threat_z,
-            mode='markers',
-            marker=dict(
-                size=12,
-                color='red',
-                symbol='x',
-                line=dict(width=2, color='white')
-            ),
-            name='Threat Vectors'
-        ))
-        
-        fig.update_layout(
-            title="🌌 Quantum Field Simulation with Threat Vectors",
-            scene=dict(
-                xaxis_title='Quantum Dimension X',
-                yaxis_title='Quantum Dimension Y',
-                zaxis_title='Time Dimension Z',
-                bgcolor='rgba(0,0,0,0)',
-                camera=dict(eye=dict(x=1.5, y=1.5, z=1.5))
-            ),
-            height=600,
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)'
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        st.markdown("#### 🎮 SIMULATION CONTROLS")
-        
-        simulation_type = st.selectbox(
-            "Quantum Scenario:",
-            ["Quantum Entanglement", "Threat Propagation", "Defense Matrix", "Temporal Analysis"]
-        )
-        
-        complexity = st.slider("Quantum Complexity", 1, 10, 8)
-        duration = st.slider("Simulation Duration", 10, 120, 60)
-        threat_density = st.slider("Threat Density", 0.1, 1.0, 0.7)
-        
-        if st.button("🌀 LAUNCH QUANTUM SIM", use_container_width=True, type="primary"):
-            with st.spinner(f"🌀 Running {simulation_type} simulation..."):
-                progress_bar = st.progress(0)
-                for i in range(100):
-                    time.sleep(0.02)
-                    progress_bar.progress(i + 1)
-                
-                st.error(f"🚨 Simulation Complete: {simulation_type} analyzed. {int(threat_density * 100)}% threat density detected")
-
 def render_advanced_analytics(quantum_intel, global_intel):
     """Render advanced analytics dashboard"""
     
@@ -1116,7 +958,58 @@ def render_global_operations(global_intel):
                 st.markdown(f"**Impact:** {news['impact']} | **Severity:** {news['severity']}")
                 st.markdown("---")
 
-def render_quantum_lab(quantum_intel):
+def render_threat_map(global_intel):
+    """Render interactive threat map"""
+    
+    st.markdown("### 🗺️ INTERACTIVE GLOBAL THREAT MAP")
+    
+    # Get live data
+    threats_df = global_intel.generate_live_global_threats()
+    
+    # Create advanced folium map
+    m = folium.Map(location=[20, 0], zoom_start=2, tiles='CartoDB dark_matter')
+    
+    for _, country in threats_df.iterrows():
+        # Dynamic marker colors based on threat level
+        if country['threat_level'] > 0.8:
+            color = 'red'
+            icon = 'flash'
+        elif country['threat_level'] > 0.6:
+            color = 'orange'
+            icon = 'warning-sign'
+        elif country['threat_level'] > 0.4:
+            color = 'yellow'
+            icon = 'info-sign'
+        else:
+            color = 'green'
+            icon = 'ok-sign'
+        
+        popup_content = f"""
+        <div style="width: 250px; font-family: Arial, sans-serif;">
+            <h3 style="color: #00ffff; margin-bottom: 10px;">{country['country']}</h3>
+            <p><b>Threat Level:</b> <span style="color: {color}">{country['threat_level']:.1%}</span></p>
+            <p><b>Recent Incidents:</b> {country['recent_incidents']}</p>
+            <p><b>Active Threats:</b> {country['active_threats']}</p>
+            <p><b>Risk Category:</b> {country['risk_category']}</p>
+            <p><b>Trend:</b> {country['trend']}</p>
+            <p><b>Last Updated:</b> {country['last_updated'].strftime('%H:%M:%S')}</p>
+        </div>
+        """
+        
+        folium.Marker(
+            [country['latitude'], country['longitude']],
+            popup=folium.Popup(popup_content, max_width=300),
+            tooltip=f"{country['country']} - Threat: {country['threat_level']:.1%}",
+            icon=folium.Icon(color=color, icon=icon, prefix='glyphicon')
+        ).add_to(m)
+    
+    folium_static(m, width=1200, height=500)
+    
+    # Additional heatmap visualization
+    st.markdown("#### 🔥 THREAT HEATMAP")
+    st.plotly_chart(create_cyber_heatmap(), use_container_width=True)
+
+def render_quantum_lab():
     """Render quantum research lab"""
     
     st.markdown("### ⚛️ QUANTUM RESEARCH LABORATORY")
