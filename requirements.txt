@@ -1,6 +1,37 @@
+# Core AI & Quantum Computing
 streamlit>=1.28.0
 pandas>=2.0.0
 numpy>=1.24.0
 plotly>=5.15.0
-requests>=2.31.0
+scikit-learn>=1.3.0
+transformers>=4.30.0
+torch>=2.0.0
+
+# Advanced Visualization
+networkx>=3.1
+matplotlib>=3.7.0
+seaborn>=0.12.0
+pyvis>=0.3.0
+
+# Voice & AI Integration
+speechrecognition>=3.10.0
+pyaudio>=0.2.11
+openai>=1.0.0
+
+# Real-time Features
 streamlit-autorefresh>=0.1.7
+asyncio>=3.4.3
+websockets>=12.0
+
+# Security & Cryptography
+cryptography>=41.0.0
+qiskit>=0.44.0  # Quantum computing simulation
+
+# Image & Media Processing
+pillow>=10.0.0
+opencv-python>=4.8.0
+
+# Additional Utilities
+python-dateutil>=2.8.0
+pytz>=2023.0
+requests>=2.31.0
