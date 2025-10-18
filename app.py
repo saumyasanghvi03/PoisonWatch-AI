@@ -190,6 +190,22 @@ st.markdown("""
         max-width: 500px;
         backdrop-filter: blur(15px);
     }
+    
+    .explanation-box {
+        background: rgba(0, 255, 255, 0.1);
+        border: 1px solid #00ffff;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+        font-family: 'Exo 2', sans-serif;
+    }
+    
+    .explanation-title {
+        color: #00ffff;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -200,6 +216,319 @@ def quantum_resource_manager():
         yield
     finally:
         gc.collect()
+
+# --- EXPLANATION FUNCTIONS ---
+
+def explain_network_scan_results(hosts):
+    """Explain network scan results to user"""
+    explanation = f"""
+    <div class="explanation-box">
+        <div class="explanation-title">📊 NETWORK SCAN EXPLANATION</div>
+        <p><strong>What this means:</strong> We scanned your network and found <strong>{len(hosts)} active devices</strong>. Each device represents a computer, server, or IoT device connected to your network.</p>
+        
+        <p><strong>Key findings:</strong></p>
+        <ul>
+            <li>🟢 <strong>Active hosts</strong> are devices currently online and responding</li>
+            <li>🔍 <strong>Port 80 open</strong> means these devices are running web services</li>
+            <li>🌐 Each IP address represents a unique device on your network</li>
+        </ul>
+        
+        <p><strong>What you should do:</strong></p>
+        <ul>
+            <li>✅ Verify all detected devices are authorized</li>
+            <li>🔒 Check for unknown devices that shouldn't be on your network</li>
+            <li>📋 Maintain an inventory of all approved devices</li>
+            <li>🚨 Investigate any unfamiliar IP addresses immediately</li>
+        </ul>
+        
+        <p><strong>Technical details:</strong> This scan uses TCP connection attempts to port 80 to identify active hosts. Devices that respond are considered 'alive' and part of your network infrastructure.</p>
+    </div>
+    """
+    return explanation
+
+def explain_dark_web_findings(threats):
+    """Explain dark web monitoring results"""
+    if not threats:
+        explanation = """
+        <div class="explanation-box">
+            <div class="explanation-title">✅ NO THREATS DETECTED</div>
+            <p><strong>Good news!</strong> Our dark web monitoring didn't find any immediate threats targeting your organization.</p>
+            
+            <p><strong>What this means:</strong></p>
+            <ul>
+                <li>🟢 Your company credentials aren't currently being traded on dark web markets</li>
+                <li>🔒 No discussions about attacking your organization were found</li>
+                <li>🛡️ Your digital footprint appears clean on monitored underground forums</li>
+            </ul>
+            
+            <p><strong>Maintenance recommendations:</strong></p>
+            <ul>
+                <li>Continue regular dark web monitoring (weekly recommended)</li>
+                <li>Maintain strong password policies and MFA</li>
+                <li>Educate employees about phishing prevention</li>
+                <li>Keep all systems patched and updated</li>
+            </ul>
+        </div>
+        """
+    else:
+        explanation = f"""
+        <div class="explanation-box">
+            <div class="explanation-title">🚨 DARK WEB THREAT ANALYSIS</div>
+            <p><strong>Critical findings:</strong> We detected <strong>{len(threats)} active threats</strong> targeting your organization on dark web platforms.</p>
+            
+            <p><strong>Threat breakdown:</strong></p>
+            <ul>
+        """
+        
+        for threat in threats:
+            explanation += f'<li>🔴 <strong>{threat["type"]}</strong> - {threat["description"]} (Confidence: {threat["confidence"]})</li>'
+        
+        explanation += """
+            </ul>
+            
+            <p><strong>Immediate actions required:</strong></p>
+            <ul>
+                <li>🔄 <strong>Password reset</strong> for all employee accounts</li>
+                <li>🔐 <strong>Enable MFA</strong> immediately if not already active</li>
+                <li>📧 <strong>Security awareness training</strong> about credential phishing</li>
+                <li>👨‍💼 <strong>Notify security team</strong> for incident response</li>
+                <li>📞 <strong>Contact law enforcement</strong> if sensitive data is involved</li>
+            </ul>
+            
+            <p><strong>About dark web monitoring:</strong> We scan underground forums, hacker marketplaces, and leak sites where cybercriminals trade stolen data and plan attacks. Early detection allows proactive defense.</p>
+        </div>
+        """
+    
+    return explanation
+
+def explain_nmap_results(target, result):
+    """Explain Nmap scan results"""
+    explanation = f"""
+    <div class="explanation-box">
+        <div class="explanation-title">🔍 NMAP SCAN ANALYSIS</div>
+        <p><strong>Scan target:</strong> {target}</p>
+        
+        <p><strong>What Nmap does:</strong> Nmap (Network Mapper) is a security scanner used to discover hosts and services on a computer network by sending packets and analyzing responses.</p>
+        
+        <p><strong>Key findings explained:</strong></p>
+        <ul>
+            <li>🟢 <strong>Open ports</strong> represent services running on the target</li>
+            <li>🔒 <strong>Port 22/SSH</strong> - Secure Shell for remote administration</li>
+            <li>🌐 <strong>Port 80/HTTP</strong> - Web server (unencrypted)</li>
+            <li>🔐 <strong>Port 443/HTTPS</strong> - Secure web server (encrypted)</li>
+            <li>🖥️ <strong>Port 3389</strong> - Remote Desktop Protocol (Windows)</li>
+        </ul>
+        
+        <p><strong>Security implications:</strong></p>
+        <ul>
+            <li>✅ Normal to have common services like SSH, HTTP, HTTPS</li>
+            <li>⚠️ Each open port is a potential entry point for attackers</li>
+            <li>🔒 Ensure all services are properly secured and updated</li>
+            <li>🚫 Close any unnecessary ports to reduce attack surface</li>
+        </ul>
+        
+        <p><strong>Next steps:</strong></p>
+        <ul>
+            <li>Run vulnerability scan on detected services</li>
+            <li>Verify all open services are necessary and authorized</li>
+            <li>Check for security patches for detected software versions</li>
+            <li>Consider port security and firewall rules</li>
+        </ul>
+    </div>
+    """
+    return explanation
+
+def explain_vulnerability_scan_results(target, result):
+    """Explain vulnerability scan findings"""
+    explanation = f"""
+    <div class="explanation-box">
+        <div class="explanation-title">🎯 VULNERABILITY SCAN ANALYSIS</div>
+        <p><strong>Scan target:</strong> {target}</p>
+        
+        <p><strong>What this scan does:</strong> Nikto is a web server scanner that tests for dangerous files/CGIs, outdated server software, and other problems.</p>
+        
+        <p><strong>Common findings explained:</strong></p>
+        <ul>
+            <li>🛡️ <strong>Server version disclosure</strong> - Attackers can target known vulnerabilities</li>
+            <li>📁 <strong>Interesting directories</strong> - /admin, /backup may contain sensitive data</li>
+            <li>⚙️ <strong>Configuration files</strong> - phpinfo.php can reveal system information</li>
+            <li>📊 <strong>Directory listings</strong> - Exposes file structure to attackers</li>
+        </ul>
+        
+        <p><strong>Risk assessment:</strong></p>
+        <ul>
+            <li>🔴 <strong>High risk:</strong> Exposed admin interfaces, configuration files</li>
+            <li>🟠 <strong>Medium risk:</strong> Version disclosure, directory listings</li>
+            <li>🟡 <strong>Low risk:</strong> Common files, standard directories</li>
+        </ul>
+        
+        <p><strong>Remediation steps:</strong></p>
+        <ul>
+            <li>🔄 <strong>Update software</strong> to latest versions</li>
+            <li>🚫 <strong>Remove unnecessary files</strong> and directories</li>
+            <li>🔐 <strong>Secure admin interfaces</strong> with strong authentication</li>
+            <li>📁 <strong>Disable directory listings</strong> in server configuration</li>
+            <li>👁️ <strong>Regular scanning</strong> to catch new vulnerabilities</li>
+        </ul>
+    </div>
+    """
+    return explanation
+
+def explain_wireless_scan_results(result):
+    """Explain wireless network security findings"""
+    explanation = """
+    <div class="explanation-box">
+        <div class="explanation-title">📡 WIRELESS SECURITY ANALYSIS</div>
+        
+        <p><strong>Wireless network security assessment:</strong></p>
+        
+        <p><strong>Encryption types explained:</strong></p>
+        <ul>
+            <li>🟢 <strong>WPA2/WPA3</strong> - Current security standards (secure)</li>
+            <li>🔴 <strong>WEP/OPEN</strong> - Completely insecure, easily compromised</li>
+            <li>🟡 <strong>WPA</strong> - Older standard with known vulnerabilities</li>
+        </ul>
+        
+        <p><strong>Signal strength implications:</strong></p>
+        <ul>
+            <li>📶 <strong>Strong signal (70-100%)</strong> - Good connectivity, but wider coverage area</li>
+            <li>📶 <strong>Medium signal (40-70%)</strong> - Adequate for most purposes</li>
+            <li>📶 <strong>Weak signal (0-40%)</strong> - Poor connectivity, limited range</li>
+        </ul>
+        
+        <p><strong>Critical security issues detected:</strong></p>
+        <ul>
+            <li>🚨 <strong>Open network (Free_WiFi)</strong> - No encryption, all traffic visible</li>
+            <li>⚠️ <strong>Weak signals</strong> - May indicate rogue access points</li>
+        </ul>
+        
+        <p><strong>Wireless security recommendations:</strong></p>
+        <ul>
+            <li>🔐 <strong>Always use WPA2 or WPA3 encryption</strong></li>
+            <li>🔑 <strong>Use strong, complex passwords</strong> (15+ characters)</li>
+            <li>🏢 <strong>Hide SSID</strong> for corporate networks</li>
+            <li>📡 <strong>Monitor for rogue access points</strong> regularly</li>
+            <li>👥 <strong>Separate guest network</strong> from main corporate network</li>
+            <li>🔄 <strong>Regular security audits</strong> of wireless infrastructure</li>
+        </ul>
+    </div>
+    """
+    return explanation
+
+def explain_cisa_alerts(alerts):
+    """Explain CISA vulnerability alerts"""
+    explanation = f"""
+    <div class="explanation-box">
+        <div class="explanation-title">🌐 CISA THREAT INTELLIGENCE EXPLANATION</div>
+        
+        <p><strong>About CISA alerts:</strong> The Cybersecurity and Infrastructure Security Agency (CISA) publishes known exploited vulnerabilities that pose significant risk to federal enterprises.</p>
+        
+        <p><strong>Current threat landscape:</strong> We found <strong>{len(alerts)} active critical vulnerabilities</strong> being exploited in the wild.</p>
+        
+        <p><strong>Alert severity explained:</strong></p>
+        <ul>
+            <li>🔴 <strong>CRITICAL</strong> - Immediate patching required (within 24 hours)</li>
+            <li>🟠 <strong>HIGH</strong> - Patch within 72 hours recommended</li>
+            <li>🟡 <strong>MEDIUM</strong> - Patch during next maintenance window</li>
+            <li>🟢 <strong>LOW</strong> - Monitor and plan for future updates</li>
+        </ul>
+        
+        <p><strong>Why these matter:</strong></p>
+        <ul>
+            <li>🎯 <strong>Actively exploited</strong> - Attackers are using these right now</li>
+            <li>🌍 <strong>Widespread impact</strong> - Affects common software/platforms</li>
+            <li>💥 <strong>Serious consequences</strong> - Can lead to system compromise</li>
+        </ul>
+        
+        <p><strong>Recommended actions:</strong></p>
+        <ul>
+            <li>📋 <strong>Inventory affected systems</strong> in your environment</li>
+            <li>🔄 <strong>Prioritize patching</strong> based on severity</li>
+            <li>👁️ <strong>Monitor for exploitation attempts</strong></li>
+            <li>📚 <strong>Review CISA guidance</strong> for specific mitigation steps</li>
+            <li>🛡️ <strong>Implement compensating controls</strong> if immediate patching isn't possible</li>
+        </ul>
+    </div>
+    """
+    return explanation
+
+def explain_system_health(metrics):
+    """Explain system health metrics"""
+    explanation = f"""
+    <div class="explanation-box">
+        <div class="explanation-title">💻 SYSTEM HEALTH ANALYSIS</div>
+        
+        <p><strong>Current system status:</strong> Your security monitoring system is operating within normal parameters.</p>
+        
+        <p><strong>Performance metrics explained:</strong></p>
+        <ul>
+            <li>⚡ <strong>CPU Usage ({metrics['cpu_usage']:.1f}%)</strong> - Processor workload. Optimal: below 80%</li>
+            <li>💾 <strong>Memory Usage ({metrics['memory_usage']:.1f}%)</strong> - RAM utilization. Optimal: below 85%</li>
+            <li>💽 <strong>Disk Usage ({metrics['disk_usage']:.1f}%)</strong> - Storage capacity. Optimal: below 90%</li>
+            <li>🖥️ <strong>Running Processes ({metrics['running_processes']})</strong> - Active system processes. Normal range varies</li>
+        </ul>
+        
+        <p><strong>Network status:</strong></p>
+        <ul>
+            <li>🌐 <strong>Active Connections ({metrics['network_connections']})</strong> - Current network sessions</li>
+            <li>🕒 <strong>System Uptime ({metrics['system_uptime']})</strong> - Time since last reboot</li>
+        </ul>
+        
+        <p><strong>Health assessment:</strong></p>
+        <ul>
+            <li>{"🟢" if metrics['cpu_usage'] < 80 else "🟠" if metrics['cpu_usage'] < 90 else "🔴"} <strong>CPU Status:</strong> {"Optimal" if metrics['cpu_usage'] < 80 else "Moderate" if metrics['cpu_usage'] < 90 else "Critical"}</li>
+            <li>{"🟢" if metrics['memory_usage'] < 85 else "🟠" if metrics['memory_usage'] < 95 else "🔴"} <strong>Memory Status:</strong> {"Optimal" if metrics['memory_usage'] < 85 else "Moderate" if metrics['memory_usage'] < 95 else "Critical"}</li>
+            <li>{"🟢" if metrics['disk_usage'] < 90 else "🟠" if metrics['disk_usage'] < 95 else "🔴"} <strong>Disk Status:</strong> {"Optimal" if metrics['disk_usage'] < 90 else "Moderate" if metrics['disk_usage'] < 95 else "Critical"}</li>
+        </ul>
+        
+        <p><strong>Maintenance recommendations:</strong></p>
+        <ul>
+            <li>{"✅" if metrics['cpu_usage'] < 80 else "⚠️"} <strong>CPU:</strong> {"No action needed" if metrics['cpu_usage'] < 80 else "Consider optimizing applications or upgrading hardware"}</li>
+            <li>{"✅" if metrics['memory_usage'] < 85 else "⚠️"} <strong>Memory:</strong> {"No action needed" if metrics['memory_usage'] < 85 else "Close unnecessary applications or add more RAM"}</li>
+            <li>{"✅" if metrics['disk_usage'] < 90 else "⚠️"} <strong>Disk:</strong> {"No action needed" if metrics['disk_usage'] < 90 else "Clean up temporary files or expand storage"}</li>
+        </ul>
+    </div>
+    """
+    return explanation
+
+def explain_security_events(events):
+    """Explain security events and their implications"""
+    explanation = f"""
+    <div class="explanation-box">
+        <div class="explanation-title">📡 SECURITY EVENTS ANALYSIS</div>
+        
+        <p><strong>Event summary:</strong> We detected <strong>{len(events)} security events</strong> in the monitoring period.</p>
+        
+        <p><strong>Event types explained:</strong></p>
+        <ul>
+            <li>🔥 <strong>Firewall Blocks</strong> - Legitimate security controls stopping malicious traffic</li>
+            <li>🔐 <strong>Failed Logins</strong> - Potential brute force attacks or user errors</li>
+            <li>🦠 <strong>Malware Detection</strong> - Security tools identifying malicious software</li>
+            <li>🔍 <strong>Port Scans</strong> - Reconnaissance activity by potential attackers</li>
+            <li>⚙️ <strong>Suspicious Processes</strong> - Unusual system activity that may indicate compromise</li>
+        </ul>
+        
+        <p><strong>Severity levels:</strong></p>
+        <ul>
+            <li>🔴 <strong>CRITICAL</strong> - Immediate investigation and response required</li>
+            <li>🟠 <strong>HIGH</strong> - Investigate within 1 hour</li>
+            <li>🟡 <strong>MEDIUM</strong> - Investigate within 24 hours</li>
+            <li>🟢 <strong>LOW</strong> - Monitor and log for trends</li>
+        </ul>
+        
+        <p><strong>Response recommendations:</strong></p>
+        <ul>
+            <li>📋 <strong>Document all events</strong> for incident response</li>
+            <li>🔍 <strong>Investigate patterns</strong> across multiple events</li>
+            <li>🛡️ <strong>Update security controls</strong> based on findings</li>
+            <li>👥 <strong>Notify relevant teams</strong> for critical events</li>
+            <li>📊 <strong>Analyze trends</strong> to improve future detection</li>
+        </ul>
+        
+        <p><strong>Note:</strong> Some security events are normal and expected. The key is identifying patterns that indicate actual attacks versus routine network noise.</p>
+    </div>
+    """
+    return explanation
 
 # --- REAL DATA CLASSES ---
 
@@ -483,6 +812,9 @@ def render_real_network_monitor():
                     st.markdown("#### 🗺️ NETWORK TOPOLOGY")
                     network_data = {"Hosts": hosts, "Status": ["Active"] * len(hosts)}
                     st.dataframe(network_data, use_container_width=True)
+                    
+                    # Add explanation
+                    st.markdown(explain_network_scan_results(hosts), unsafe_allow_html=True)
                 else:
                     st.warning("⚠️ No active hosts found or network unreachable")
     
@@ -525,8 +857,12 @@ def render_dark_web_intelligence():
                             <p><strong>Date Found:</strong> {threat['date_found']}</p>
                         </div>
                         """, unsafe_allow_html=True)
+                    
+                    # Add explanation
+                    st.markdown(explain_dark_web_findings(threats), unsafe_allow_html=True)
                 else:
                     st.success("✅ No immediate threats found for your domain")
+                    st.markdown(explain_dark_web_findings(threats), unsafe_allow_html=True)
         
         st.markdown("#### 🛡️ RECOMMENDED ACTIONS")
         st.info("""
@@ -547,6 +883,29 @@ def render_dark_web_intelligence():
                 st.write(f"**Typical Ransom:** {group['ransom_demands']}")
                 st.write(f"**Last Activity:** {group['last_activity']}")
                 st.write(f"**Known Tools:** {', '.join(group['tools'])}")
+        
+        st.markdown("""
+        <div class="explanation-box">
+            <div class="explanation-title">💀 RANSOMWARE THREAT EXPLANATION</div>
+            <p><strong>What ransomware groups do:</strong> These criminal organizations use malicious software to encrypt victims' files and demand payment for decryption.</p>
+            
+            <p><strong>Current threat landscape:</strong></p>
+            <ul>
+                <li>🔴 <strong>LockBit 3.0</strong> - Most active, targets critical infrastructure</li>
+                <li>🟠 <strong>BlackCat/ALPHV</strong> - Uses modern Rust programming language</li>
+                <li>🟡 <strong>Cl0p</strong> - Specializes in zero-day vulnerability exploitation</li>
+            </ul>
+            
+            <p><strong>Protection strategies:</strong></p>
+            <ul>
+                <li>💾 <strong>Regular backups</strong> (3-2-1 rule: 3 copies, 2 media types, 1 offsite)</li>
+                <li>🔄 <strong>Patch management</strong> to fix known vulnerabilities</li>
+                <li>👨‍💻 <strong>Employee training</strong> to recognize phishing attempts</li>
+                <li>🛡️ <strong>Endpoint protection</strong> with ransomware detection</li>
+                <li>🔐 <strong>Application whitelisting</strong> to prevent unauthorized execution</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
     
     with tab3:
         st.markdown("#### 📈 DARK WEB THREAT TRENDS")
@@ -585,6 +944,9 @@ def render_kali_linux_tools():
                 st.markdown("#### 📋 SCAN RESULTS")
                 st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
                 
+                # Add explanation
+                st.markdown(explain_nmap_results(scan_target, result), unsafe_allow_html=True)
+                
         st.markdown("#### ℹ️ ABOUT NMAP")
         st.info("Nmap (Network Mapper) is a free and open-source utility for network discovery and security auditing.")
     
@@ -598,6 +960,9 @@ def render_kali_linux_tools():
                 result = kali.run_vulnerability_scan(vuln_target)
                 st.markdown("#### 📋 VULNERABILITY REPORT")
                 st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
+                
+                # Add explanation
+                st.markdown(explain_vulnerability_scan_results(vuln_target, result), unsafe_allow_html=True)
     
     with tab3:
         st.markdown("#### 📡 WIRELESS NETWORK SECURITY")
@@ -608,6 +973,9 @@ def render_kali_linux_tools():
                 result = kali.run_wireless_scan()
                 st.markdown("#### 📋 WIRELESS NETWORKS")
                 st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
+                
+                # Add explanation
+                st.markdown(explain_wireless_scan_results(result), unsafe_allow_html=True)
         
         st.markdown("#### 🛡️ WIRELESS SECURITY TIPS")
         st.warning("""
@@ -646,6 +1014,9 @@ def render_real_threat_intel():
                     st.error("🚨 IMMEDIATE PATCHING REQUIRED")
                 elif alert['severity'] == 'HIGH':
                     st.warning("⚠️ Patch within 72 hours recommended")
+        
+        # Add explanation
+        st.markdown(explain_cisa_alerts(alerts), unsafe_allow_html=True)
     
     with col2:
         st.markdown("#### 📊 GLOBAL THREAT LANDSCAPE")
@@ -693,6 +1064,9 @@ def render_system_health():
         
         with col4:
             st.metric("🖥️ Running Processes", metrics['running_processes'])
+        
+        # Add explanation
+        st.markdown(explain_system_health(metrics), unsafe_allow_html=True)
         
         # System information
         st.markdown("#### 🖥️ SYSTEM INFORMATION")
@@ -760,6 +1134,9 @@ def render_live_security_events():
             <small>📝 {event['description']}</small>
         </div>
         """, unsafe_allow_html=True)
+    
+    # Add explanation
+    st.markdown(explain_security_events(events), unsafe_allow_html=True)
     
     if st.button("🆕 Generate New Event", key="new_event"):
         st.rerun()
