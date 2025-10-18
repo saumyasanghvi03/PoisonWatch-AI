@@ -32,7 +32,7 @@ except (ImportError, ValueError):
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
-    page_title="NEXUS-7 | Real-Time Cyber Defense",
+    page_title="NEXUS-7 | Advanced Cyber Defense",
     page_icon="🔒",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -205,6 +205,23 @@ st.markdown("""
         font-weight: bold;
         margin-bottom: 0.5rem;
         font-size: 1.1rem;
+    }
+    
+    .warning-box {
+        background: linear-gradient(135deg, #4a1f1f, #2d1a1a);
+        border: 1px solid #ff4444;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+        animation: pulse-red 2s infinite;
+    }
+    
+    .ethical-warning {
+        background: linear-gradient(135deg, #1f4a2e, #1a2d1f);
+        border: 1px solid #00ff00;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -530,6 +547,339 @@ def explain_security_events(events):
     """
     return explanation
 
+# --- NEW DEVICE HACKING AND WIFI TOOLS ---
+
+class DeviceHackingTools:
+    """Mobile and IoT device security testing tools"""
+    
+    def scan_mobile_device(self, ip_address):
+        """Scan mobile device for vulnerabilities"""
+        device_info = {
+            "192.168.1.100": {"device": "iPhone 13", "os": "iOS 16.1", "open_ports": [80, 443, 5223]},
+            "192.168.1.101": {"device": "Samsung Galaxy S22", "os": "Android 13", "open_ports": [80, 443, 8080]},
+            "192.168.1.102": {"device": "Google Pixel 6", "os": "Android 13", "open_ports": [80, 443, 5353]},
+            "default": {"device": "Unknown Mobile Device", "os": "Unknown OS", "open_ports": [80, 443]}
+        }
+        
+        info = device_info.get(ip_address, device_info["default"])
+        
+        scan_result = f"""
+Mobile Device Security Scan Results for {ip_address}
+==================================================
+📱 Device Type: {info['device']}
+⚙️ Operating System: {info['os']}
+🌐 Open Ports: {', '.join(map(str, info['open_ports']))}
+📡 Network Status: Connected
+🔒 Security Level: Medium
+
+VULNERABILITIES DETECTED:
+🔴 Port 80 (HTTP) open - Unencrypted web traffic
+🟠 Port 8080 open - Potential debug interface
+🟡 Outdated OS version detected
+🟢 No critical remote exploits found
+
+SECURITY RECOMMENDATIONS:
+✅ Update to latest OS version
+✅ Disable unnecessary services
+✅ Enable device encryption
+✅ Use VPN for public networks
+"""
+        return scan_result
+    
+    def exploit_mobile_device(self, ip_address, exploit_type):
+        """Simulate mobile device exploitation"""
+        exploits = {
+            "metasploit": f"""
+Metasploit Exploitation Attempt - {ip_address}
+============================================
+[*] Starting Metasploit framework...
+[*] Searching for mobile device exploits...
+[+] Found potential exploit: android_browser_2023
+[*] Attempting exploitation...
+[!] Exploit failed: Target patched
+[*] Trying alternative: ios_safari_rce
+[!] Exploit failed: Security controls active
+[!] Mobile device appears to be well-protected
+""",
+            "social_engineering": f"""
+Social Engineering Attack Simulation - {ip_address}
+=================================================
+[+] Crafting phishing message...
+[+] Sending fake system update notification...
+[!] Target ignored the message
+[+] Attempting malicious link delivery...
+[!] Target security awareness training appears effective
+""",
+            "malicious_app": f"""
+Malicious Application Deployment - {ip_address}
+=============================================
+[+] Creating fake utility app...
+[+] Attempting sideload installation...
+[!] Installation blocked: Unknown sources disabled
+[+] Trying alternative delivery methods...
+[!] Security controls prevented installation
+"""
+        }
+        return exploits.get(exploit_type, "Invalid exploit type selected")
+    
+    def iot_device_scan(self, ip_range):
+        """Scan for IoT devices and vulnerabilities"""
+        iot_devices = [
+            {"ip": "192.168.1.50", "type": "Smart TV", "vendor": "Samsung", "vulnerabilities": ["Default credentials", "Unencrypted firmware"]},
+            {"ip": "192.168.1.51", "type": "IP Camera", "vendor": "Hikvision", "vulnerabilities": ["Backdoor access", "Weak encryption"]},
+            {"ip": "192.168.1.52", "type": "Smart Speaker", "vendor": "Amazon", "vulnerabilities": ["Voice command injection"]},
+            {"ip": "192.168.1.53", "type": "Smart Thermostat", "vendor": "Nest", "vulnerabilities": ["Unauthorized temperature control"]}
+        ]
+        
+        result = f"""
+IoT Device Security Scan - {ip_range}
+====================================
+Found {len(iot_devices)} IoT devices
+
+DETAILED SCAN RESULTS:
+"""
+        for device in iot_devices:
+            result += f"""
+📟 Device: {device['type']} ({device['vendor']})
+📍 IP Address: {device['ip']}
+🚨 Vulnerabilities: {', '.join(device['vulnerabilities'])}
+🔒 Security Status: CRITICAL
+
+"""
+        return result
+
+class AdvancedWiFiTools:
+    """Advanced WiFi hacking and security tools"""
+    
+    def wifi_password_crack(self, ssid, method="wordlist"):
+        """Simulate WiFi password cracking"""
+        methods = {
+            "wordlist": f"""
+WiFi Password Cracking - {ssid}
+==============================
+Method: Wordlist Attack
+Wordlist: rockyou.txt
+Progress: ████████████████████ 100%
+[+] Testing common passwords...
+[!] Password not found in wordlist
+[+] Trying advanced wordlist...
+[!] Still no match - Target uses strong password
+""",
+            "wps": f"""
+WPS PIN Attack - {ssid}
+======================
+Method: WPS PIN Brute-force
+[+] Testing PIN: 12345670 [FAILED]
+[+] Testing PIN: 12345671 [FAILED]
+...
+[+] Testing PIN: 83649217 [FAILED]
+[!] WPS attack failed - Router protection active
+""",
+            "capture_handshake": f"""
+WPA Handshake Capture - {ssid}
+=============================
+[+] Monitoring for handshake...
+[+] Captured WPA handshake!
+[+] Saved to: {ssid}_handshake.cap
+[+] Use aircrack-ng or hashcat to crack
+[+] Estimated cracking time: 2-48 hours
+"""
+        }
+        return methods.get(method, "Invalid method selected")
+    
+    def deauth_attack(self, target_mac, access_point):
+        """Simulate deauthentication attack"""
+        return f"""
+Deauthentication Attack Simulation
+=================================
+Target Device: {target_mac}
+Access Point: {access_point}
+[+] Sending deauth packets...
+[+] 64 deauth packets sent to {target_mac}
+[+] Target device temporarily disconnected
+[!] This is for educational purposes only
+[!] Unauthorized use may be illegal
+"""
+    
+    def rogue_ap_setup(self, ssid):
+        """Simulate rogue access point creation"""
+        return f"""
+Rogue Access Point Setup
+=======================
+Evil Twin Attack: {ssid}
+[+] Creating malicious access point...
+[+] SSID: {ssid}_FREE
+[+] Channel: 6 (same as target)
+[+] Power: High
+[+] Captive portal ready
+[+] DNS spoofing enabled
+[+] Waiting for victims to connect...
+
+SECURITY IMPLICATIONS:
+🔴 Can capture all network traffic
+🔴 Can steal credentials and cookies
+🔴 Can inject malicious content
+🔴 Can perform man-in-the-middle attacks
+"""
+
+class NetworkSpoofingTools:
+    """Network spoofing and MITM tools"""
+    
+    def arp_spoofing(self, target_ip, gateway_ip):
+        """Simulate ARP spoofing attack"""
+        return f"""
+ARP Spoofing Attack Simulation
+==============================
+Target IP: {target_ip}
+Gateway IP: {gateway_ip}
+[+] Starting ARP spoofing...
+[+] Sent ARP reply: {target_ip} is at [ATTACKER_MAC]
+[+] Sent ARP reply: {gateway_ip} is at [ATTACKER_MAC]
+[+] MITM position established
+[+] All traffic between {target_ip} and gateway is now intercepted
+
+PROTECTION MEASURES:
+✅ Use static ARP entries
+✅ Enable DHCP snooping
+✅ Implement port security
+✅ Use network segmentation
+"""
+    
+    def dns_spoofing(self, target_domain, fake_ip):
+        """Simulate DNS spoofing attack"""
+        return f"""
+DNS Spoofing Attack Simulation
+==============================
+Target Domain: {target_domain}
+Fake IP: {fake_ip}
+[+] Poisoning DNS cache...
+[+] Sending spoofed DNS responses...
+[+] All requests to {target_domain} now go to {fake_ip}
+[+] Users redirected to malicious site
+
+DETECTION METHODS:
+🔍 Monitor DNS queries for anomalies
+🔍 Check for unexpected IP changes
+🔍 Use DNSSEC validation
+🔍 Implement DNS filtering
+"""
+    
+    def ssl_stripping(self, target_url):
+        """Simulate SSL stripping attack"""
+        return f"""
+SSL Stripping Attack Simulation
+===============================
+Target: {target_url}
+[+] Intercepting HTTP to HTTPS redirects...
+[+] Replacing HTTPS links with HTTP...
+[+] Capturing plaintext credentials...
+[+] Session cookies captured
+
+PREVENTION:
+✅ Always check for HTTPS in address bar
+✅ Use HTTPS Everywhere extension
+✅ Enable HSTS on websites
+✅ Avoid public WiFi for sensitive activities
+"""
+
+def explain_device_hacking_results(ip, result):
+    """Explain mobile device hacking results"""
+    explanation = f"""
+    <div class="explanation-box">
+        <div class="explanation-title">📱 MOBILE DEVICE SECURITY ASSESSMENT</div>
+        <p><strong>Target Device:</strong> {ip}</p>
+        
+        <p><strong>What this assessment does:</strong> This scan identifies security vulnerabilities in mobile devices connected to your network.</p>
+        
+        <p><strong>Common mobile device vulnerabilities:</strong></p>
+        <ul>
+            <li>🔓 <strong>Open services</strong> - Unnecessary ports exposing device to attacks</li>
+            <li>📱 <strong>Outdated OS</strong> - Unpatched security vulnerabilities</li>
+            <li>🌐 <strong>Unencrypted traffic</strong> - Data transmitted in clear text</li>
+            <li>📲 <strong>Malicious apps</strong> - Untrusted applications with excessive permissions</li>
+        </ul>
+        
+        <p><strong>Mobile security recommendations:</strong></p>
+        <ul>
+            <li>✅ <strong>Keep devices updated</strong> with latest security patches</li>
+            <li>✅ <strong>Use mobile device management (MDM)</strong> for enterprise devices</li>
+            <li>✅ <strong>Enable encryption</strong> and strong authentication</li>
+            <li>✅ <strong>Review app permissions</strong> regularly</li>
+            <li>✅ <strong>Use VPN</strong> on untrusted networks</li>
+        </ul>
+        
+        <div class="ethical-warning">
+            <strong>⚠️ ETHICAL USE WARNING:</strong> These tools are for security testing of your own devices and networks only. Unauthorized access to others' devices is illegal.
+        </div>
+    </div>
+    """
+    return explanation
+
+def explain_wifi_hacking_results(method, result):
+    """Explain WiFi hacking techniques and results"""
+    explanation = f"""
+    <div class="explanation-box">
+        <div class="explanation-title">📡 WIFI SECURITY TESTING</div>
+        <p><strong>Method Used:</strong> {method.upper()}</p>
+        
+        <p><strong>WiFi Security Testing Methods:</strong></p>
+        <ul>
+            <li>📋 <strong>Wordlist Attacks</strong> - Testing common passwords against captured handshakes</li>
+            <li>🔢 <strong>WPS PIN Attacks</strong> - Brute-forcing the WPS PIN number</li>
+            <li>🤝 <strong>Handshake Capture</strong> - Capturing WPA authentication handshakes</li>
+            <li>📶 <strong>Deauthentication</strong> - Forcing devices to reconnect and capture handshakes</li>
+        </ul>
+        
+        <p><strong>Wireless Protection Strategies:</strong></p>
+        <ul>
+            <li>🔐 <strong>Use WPA3</strong> when available (most secure)</li>
+            <li>🚫 <strong>Disable WPS</strong> (vulnerable to PIN attacks)</li>
+            <li>🔑 <strong>Use strong passwords</strong> (15+ characters, mixed characters)</li>
+            <li>👁️ <strong>Monitor for rogue APs</strong> regularly</li>
+            <li>🏢 <strong>Implement enterprise WPA2</strong> for organizations</li>
+        </ul>
+        
+        <div class="warning-box">
+            <strong>🚨 LEGAL WARNING:</strong> Only test networks you own or have explicit permission to test. Unauthorized network access is illegal in most jurisdictions.
+        </div>
+    </div>
+    """
+    return explanation
+
+def explain_network_spoofing_results(technique, result):
+    """Explain network spoofing techniques"""
+    explanation = f"""
+    <div class="explanation-box">
+        <div class="explanation-title">🌐 NETWORK SPOOFING EXPLANATION</div>
+        <p><strong>Technique:</strong> {technique.upper()}</p>
+        
+        <p><strong>How {technique} works:</strong></p>
+        <ul>
+            <li>{"🔍 <strong>ARP Spoofing</strong> - Manipulates ARP tables to redirect traffic" if technique == "arp_spoofing" else ""}</li>
+            <li>{"🌐 <strong>DNS Spoofing</strong> - Provides fake DNS responses to redirect users" if technique == "dns_spoofing" else ""}</li>
+            <li>{"🔓 <strong>SSL Stripping</strong> - Downgrades HTTPS connections to HTTP" if technique == "ssl_stripping" else ""}</li>
+        </ul>
+        
+        <p><strong>Security Implications:</strong></p>
+        <ul>
+            <li>👁️ <strong>Traffic interception</strong> - All network traffic can be monitored</li>
+            <li>🔑 <strong>Credential theft</strong> - Login information can be captured</li>
+            <li>🦠 <strong>Malware injection</strong> - Malicious content can be inserted</li>
+            <li>🎭 <strong>Session hijacking</strong> - Active sessions can be stolen</li>
+        </ul>
+        
+        <p><strong>Protection Measures:</strong></p>
+        <ul>
+            <li>✅ <strong>Use HTTPS everywhere</strong></li>
+            <li>✅ <strong>Enable HSTS</strong> on websites</li>
+            <li>✅ <strong>Use VPN</strong> on untrusted networks</li>
+            <li>✅ <strong>Monitor for ARP anomalies</strong></li>
+            <li>✅ <strong>Implement DNSSEC</strong></li>
+        </ul>
+    </div>
+    """
+    return explanation
+
 # --- REAL DATA CLASSES ---
 
 def get_ist_time():
@@ -783,8 +1133,216 @@ class RealSecurityOperations:
         self.dark_web_monitor = DarkWebMonitor()
         self.kali_integration = KaliLinuxIntegration()
         self.health_monitor = SystemHealthMonitor()
+        self.device_hacking = DeviceHackingTools()
+        self.wifi_tools = AdvancedWiFiTools()
+        self.spoofing_tools = NetworkSpoofingTools()
 
-# --- UI COMPONENTS ---
+# --- NEW UI COMPONENTS FOR HACKING TOOLS ---
+
+def render_device_hacking_tools():
+    """Mobile and IoT device hacking tools"""
+    st.markdown("### 📱 MOBILE & IOT DEVICE SECURITY")
+    
+    device_tools = DeviceHackingTools()
+    
+    tab1, tab2, tab3 = st.tabs(["📱 Mobile Device Scan", "🏠 IoT Device Discovery", "⚡ Exploitation Tools"])
+    
+    with tab1:
+        st.markdown("#### 📱 MOBILE DEVICE VULNERABILITY SCAN")
+        
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            mobile_ip = st.text_input("Enter Mobile Device IP:", "192.168.1.100")
+            
+            if st.button("🔍 Scan Mobile Device", key="mobile_scan"):
+                with st.spinner("Scanning mobile device for vulnerabilities..."):
+                    time.sleep(2)
+                    result = device_tools.scan_mobile_device(mobile_ip)
+                    st.markdown("#### 📋 SCAN RESULTS")
+                    st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
+                    st.markdown(explain_device_hacking_results(mobile_ip, result), unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown("#### 🎯 QUICK SCAN TARGETS")
+            if st.button("iPhone Scan", key="iphone_scan"):
+                st.session_state.mobile_ip = "192.168.1.100"
+                st.rerun()
+            if st.button("Android Scan", key="android_scan"):
+                st.session_state.mobile_ip = "192.168.1.101"
+                st.rerun()
+            if st.button("Google Pixel", key="pixel_scan"):
+                st.session_state.mobile_ip = "192.168.1.102"
+                st.rerun()
+    
+    with tab2:
+        st.markdown("#### 🏠 IOT DEVICE DISCOVERY")
+        
+        iot_range = st.text_input("Enter IP Range for IoT Scan:", "192.168.1.0/24")
+        
+        if st.button("🔍 Discover IoT Devices", key="iot_scan"):
+            with st.spinner("Scanning for IoT devices..."):
+                time.sleep(3)
+                result = device_tools.iot_device_scan(iot_range)
+                st.markdown("#### 📋 IOT DEVICE INVENTORY")
+                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
+                
+                st.markdown("""
+                <div class="explanation-box">
+                    <div class="explanation-title">🏠 IOT SECURITY RISKS</div>
+                    <p><strong>Common IoT Vulnerabilities:</strong></p>
+                    <ul>
+                        <li>🔓 <strong>Default credentials</strong> - Manufacturers' default passwords</li>
+                        <li>🌐 <strong>Unencrypted communication</strong> - Data transmitted in clear text</li>
+                        <li>🕵️ <strong>Backdoor access</strong> - Hidden administrative interfaces</li>
+                        <li>📡 <strong>Weak encryption</strong> - Easily breakable security protocols</li>
+                    </ul>
+                    
+                    <p><strong>IoT Security Best Practices:</strong></p>
+                    <ul>
+                        <li>✅ <strong>Change default passwords</strong> immediately</li>
+                        <li>✅ <strong>Segment IoT networks</strong> from main network</li>
+                        <li>✅ <strong>Regular firmware updates</strong></li>
+                        <li>✅ <strong>Disable unnecessary services</strong></li>
+                        <li>✅ <strong>Monitor network traffic</strong> from IoT devices</li>
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
+    
+    with tab3:
+        st.markdown("#### ⚡ EXPLOITATION TOOLS")
+        
+        exploit_ip = st.text_input("Target IP for Exploitation:", "192.168.1.100")
+        exploit_method = st.selectbox("Select Exploitation Method:", 
+                                    ["metasploit", "social_engineering", "malicious_app"])
+        
+        if st.button("🚀 Launch Exploitation", key="launch_exploit"):
+            with st.spinner(f"Attempting {exploit_method} exploitation..."):
+                time.sleep(3)
+                result = device_tools.exploit_mobile_device(exploit_ip, exploit_method)
+                st.markdown("#### 📋 EXPLOITATION RESULTS")
+                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
+                
+                st.markdown("""
+                <div class="warning-box">
+                    <strong>⚠️ SECURITY NOTICE:</strong> These tools are for educational and authorized penetration testing only. 
+                    Unauthorized access to computer systems is illegal. Always ensure you have explicit permission before testing any system.
+                </div>
+                """, unsafe_allow_html=True)
+
+def render_advanced_wifi_tools():
+    """Advanced WiFi hacking and security tools"""
+    st.markdown("### 📡 ADVANCED WIFI SECURITY TOOLS")
+    
+    wifi_tools = AdvancedWiFiTools()
+    
+    tab1, tab2, tab3 = st.tabs(["🔓 Password Cracking", "📶 Deauth Attacks", "👁️ Rogue AP"])
+    
+    with tab1:
+        st.markdown("#### 🔓 WIFI PASSWORD CRACKING")
+        
+        ssid = st.text_input("Target WiFi SSID:", "HomeNetwork-5G")
+        crack_method = st.selectbox("Cracking Method:", 
+                                  ["wordlist", "wps", "capture_handshake"])
+        
+        if st.button("🔑 Start Password Crack", key="wifi_crack"):
+            with st.spinner(f"Attempting {crack_method} attack..."):
+                time.sleep(3)
+                result = wifi_tools.wifi_password_crack(ssid, crack_method)
+                st.markdown("#### 📋 CRACKING RESULTS")
+                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
+                st.markdown(explain_wifi_hacking_results(crack_method, result), unsafe_allow_html=True)
+    
+    with tab2:
+        st.markdown("#### 📶 DEAUTHENTICATION ATTACKS")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            target_mac = st.text_input("Target Device MAC:", "AA:BB:CC:DD:EE:FF")
+        with col2:
+            ap_mac = st.text_input("Access Point MAC:", "11:22:33:44:55:66")
+        
+        if st.button("📡 Launch Deauth Attack", key="deauth_attack"):
+            with st.spinner("Sending deauthentication packets..."):
+                time.sleep(2)
+                result = wifi_tools.deauth_attack(target_mac, ap_mac)
+                st.markdown("#### 📋 ATTACK RESULTS")
+                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
+    
+    with tab3:
+        st.markdown("#### 👁️ ROGUE ACCESS POINT")
+        
+        rogue_ssid = st.text_input("Rogue AP SSID:", "Free_Public_WiFi")
+        
+        if st.button("🏴‍☠️ Create Rogue AP", key="rogue_ap"):
+            with st.spinner("Setting up rogue access point..."):
+                time.sleep(3)
+                result = wifi_tools.rogue_ap_setup(rogue_ssid)
+                st.markdown("#### 📋 ROGUE AP STATUS")
+                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div class="warning-box">
+            <strong>🚨 LEGAL WARNING:</strong> Creating rogue access points to capture traffic without explicit consent is illegal in most jurisdictions. 
+            Use these tools only on networks you own or have written permission to test.
+        </div>
+        """, unsafe_allow_html=True)
+
+def render_network_spoofing_tools():
+    """Network spoofing and MITM tools"""
+    st.markdown("### 🌐 NETWORK SPOOFING TOOLS")
+    
+    spoofing_tools = NetworkSpoofingTools()
+    
+    tab1, tab2, tab3 = st.tabs(["ARP Spoofing", "DNS Spoofing", "SSL Stripping"])
+    
+    with tab1:
+        st.markdown("#### 🔄 ARP SPOOFING ATTACK")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            target_ip = st.text_input("Target IP:", "192.168.1.100")
+        with col2:
+            gateway_ip = st.text_input("Gateway IP:", "192.168.1.1")
+        
+        if st.button("🎭 Start ARP Spoofing", key="arp_spoof"):
+            with st.spinner("Initiating ARP spoofing attack..."):
+                time.sleep(2)
+                result = spoofing_tools.arp_spoofing(target_ip, gateway_ip)
+                st.markdown("#### 📋 ARP SPOOFING STATUS")
+                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
+                st.markdown(explain_network_spoofing_results("arp_spoofing", result), unsafe_allow_html=True)
+    
+    with tab2:
+        st.markdown("#### 🌐 DNS SPOOFING ATTACK")
+        
+        target_domain = st.text_input("Target Domain:", "example.com")
+        fake_ip = st.text_input("Redirect to IP:", "192.168.1.99")
+        
+        if st.button("🎭 Start DNS Spoofing", key="dns_spoof"):
+            with st.spinner("Initiating DNS spoofing attack..."):
+                time.sleep(2)
+                result = spoofing_tools.dns_spoofing(target_domain, fake_ip)
+                st.markdown("#### 📋 DNS SPOOFING STATUS")
+                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
+                st.markdown(explain_network_spoofing_results("dns_spoofing", result), unsafe_allow_html=True)
+    
+    with tab3:
+        st.markdown("#### 🔓 SSL STRIPPING ATTACK")
+        
+        target_url = st.text_input("Target HTTPS URL:", "https://bank.example.com")
+        
+        if st.button("🔓 Start SSL Stripping", key="ssl_strip"):
+            with st.spinner("Initiating SSL stripping attack..."):
+                time.sleep(2)
+                result = spoofing_tools.ssl_stripping(target_url)
+                st.markdown("#### 📋 SSL STRIPPING STATUS")
+                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
+                st.markdown(explain_network_spoofing_results("ssl_stripping", result), unsafe_allow_html=True)
+
+# --- EXISTING UI COMPONENTS (Updated with new tabs) ---
 
 def render_real_network_monitor():
     """Real network monitoring dashboard"""
@@ -931,7 +1489,7 @@ def render_kali_linux_tools():
     
     kali = KaliLinuxIntegration()
     
-    tab1, tab2, tab3 = st.tabs(["🔍 Network Scanning", "🎯 Vulnerability Assessment", "📡 Wireless Security"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🔍 Network Scanning", "🎯 Vulnerability Assessment", "📡 Wireless Security", "📱 Device Hacking", "🌐 Network Spoofing"])
     
     with tab1:
         st.markdown("#### 🔍 NETWORK SCANNING WITH NMAP")
@@ -965,26 +1523,13 @@ def render_kali_linux_tools():
                 st.markdown(explain_vulnerability_scan_results(vuln_target, result), unsafe_allow_html=True)
     
     with tab3:
-        st.markdown("#### 📡 WIRELESS NETWORK SECURITY")
-        
-        if st.button("📶 Scan Wireless Networks", key="wifi_scan"):
-            with st.spinner("📡 Scanning for wireless networks..."):
-                time.sleep(2)
-                result = kali.run_wireless_scan()
-                st.markdown("#### 📋 WIRELESS NETWORKS")
-                st.markdown(f'<div class="kali-terminal">{result}</div>', unsafe_allow_html=True)
-                
-                # Add explanation
-                st.markdown(explain_wireless_scan_results(result), unsafe_allow_html=True)
-        
-        st.markdown("#### 🛡️ WIRELESS SECURITY TIPS")
-        st.warning("""
-        - Always use WPA2/WPA3 encryption
-        - Change default router credentials
-        - Disable WPS feature
-        - Use strong, unique passwords
-        - Monitor for rogue access points
-        """)
+        render_advanced_wifi_tools()
+    
+    with tab4:
+        render_device_hacking_tools()
+    
+    with tab5:
+        render_network_spoofing_tools()
 
 def render_real_threat_intel():
     """Real threat intelligence dashboard"""
@@ -1147,7 +1692,7 @@ def render_login():
     <div class="neuro-header">
         <h1 class="neuro-text" style="font-size: 4rem; margin: 0;">🔒 NEXUS-7 SECURITY OPS</h1>
         <h3 class="hologram-text" style="font-size: 1.8rem; margin: 1rem 0;">
-            Real-Time Cyber Defense • Dark Web Monitoring • Kali Linux Integration
+            Advanced Cyber Defense • Device Hacking • WiFi Security
         </h3>
     </div>
     """, unsafe_allow_html=True)
@@ -1197,7 +1742,7 @@ def render_login():
         st.markdown("### ℹ️ SYSTEM INFORMATION")
         st.write(f"**Last Updated:** {get_ist_time().strftime('%Y-%m-%d %H:%M:%S')}")
         st.write("**Version:** NEXUS-7 v2.1.4")
-        st.write("**Mode:** Enhanced Security")
+        st.write("**Mode:** Advanced Security")
 
 def render_main_dashboard():
     """Main security operations dashboard"""
@@ -1212,9 +1757,9 @@ def render_main_dashboard():
     
     st.markdown(f"""
     <div class="neuro-header">
-        <h1 class="neuro-text" style="font-size: 4rem; margin: 0;">🔒 NEXUS-7 SECURITY OPS</h1>
+        <h1 class="neuro-text" style="font-size: 4rem; margin: 0;">🔒 NEXUS-7 ADVANCED SECURITY</h1>
         <h3 class="hologram-text" style="font-size: 1.8rem; margin: 1rem 0;">
-            Live Cyber Defense • Real Data • Active Monitoring
+            Cyber Defense • Device Security • Network Testing
         </h3>
         <p style="color: #00ffff; font-family: 'Exo 2'; font-size: 1.2rem;">
             🕒 IST: <strong>{current_ist.strftime("%Y-%m-%d %H:%M:%S")}</strong> | 
@@ -1255,28 +1800,28 @@ def render_main_dashboard():
     
     # Main tabs
     if 'current_tab' not in st.session_state:
-        st.session_state.current_tab = "Threat Intelligence"
+        st.session_state.current_tab = "Kali Linux Tools"  # Default to Kali tools for new features
     
     tabs = st.tabs([
+        "🐉 Kali Linux Tools", 
         "🌐 Threat Intelligence", 
         "🔍 Network Monitor", 
         "🌑 Dark Web Intel",
-        "🐉 Kali Linux Tools", 
         "💻 System Health",
         "📡 Live Events"
     ])
     
     with tabs[0]:
-        render_real_threat_intel()
+        render_kali_linux_tools()
     
     with tabs[1]:
-        render_real_network_monitor()
+        render_real_threat_intel()
     
     with tabs[2]:
-        render_dark_web_intelligence()
+        render_real_network_monitor()
     
     with tabs[3]:
-        render_kali_linux_tools()
+        render_dark_web_intelligence()
     
     with tabs[4]:
         render_system_health()
