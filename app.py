@@ -478,6 +478,7 @@ class AdvancedThreatIntelligence:
     def __init__(self):
         self.mitre_techniques = self.load_mitre_matrix()
         self.threat_actors = self.load_threat_actors()
+        self.live_fetcher = LiveDataFetcher()
         
     def load_mitre_matrix(self):
         """Load MITRE ATT&CK techniques"""
@@ -620,18 +621,6 @@ class QuantumThreatSimulator:
         if intensity > 0.8:
             base_recommendations.append("🚨 ACTIVATE QUANTUM EMERGENCY PROTOCOLS")
         return base_recommendations
-    
-    def get_simulation_analytics(self):
-        if not self.simulation_history:
-            return {'total_simulations': 0, 'average_risk': 0, 'most_common_scenario': 'None', 'quantum_entanglement_avg': 0}
-        
-        scenario_types = [s.get('type', 'unknown') for s in self.simulation_history]
-        return {
-            'total_simulations': len(self.simulation_history),
-            'average_risk': np.mean([s['risk_score'] for s in self.simulation_history]),
-            'most_common_scenario': max(set(scenario_types), key=scenario_types.count) if scenario_types else 'None',
-            'quantum_entanglement_avg': np.mean([s.get('quantum_entanglement', 0) for s in self.simulation_history])
-        }
 
 class QuantumNeuralNetwork:
     """Enhanced neural network"""
@@ -643,7 +632,7 @@ class HolographicThreatIntelligence:
     """Enhanced main application state class"""
     
     def __init__(self):
-        self.live_fetcher = LiveDataFetcher()  # Fixed: Added live_fetcher
+        self.live_fetcher = LiveDataFetcher()
         self.threat_simulator = QuantumThreatSimulator()
         self.quantum_neural_net = QuantumNeuralNetwork()
         self.threat_intel = AdvancedThreatIntelligence()
@@ -1125,28 +1114,6 @@ def render_automated_response():
                 col3.metric("Medium", "28")
                 col4.metric("Low", "45")
 
-# --- AUTO-LOGIN WITH ENTER KEY ---
-
-def check_login():
-    """Check if login should be processed"""
-    if 'login_processed' not in st.session_state:
-        st.session_state.login_processed = False
-    
-    # Check if PIN is entered and Enter was pressed
-    if (st.session_state.get('pin_input') and 
-        len(st.session_state.pin_input) > 0 and
-        not st.session_state.login_processed):
-        
-        # Check if it's the correct PIN
-        if st.session_state.pin_input == "100370":
-            st.session_state.mode = "Admin"
-            st.session_state.login_processed = True
-            st.success("Admin Mode Unlocked!")
-            st.rerun()
-        else:
-            st.error("Incorrect PIN.")
-            st.session_state.login_processed = True
-
 # --- MAIN APPLICATION LOGIC ---
 
 def main():
@@ -1164,10 +1131,8 @@ def main():
             st.session_state.enhanced_log_history = "🚀 Enhanced NEXUS-7 AI Analyst Initialized\n"
         if 'enhanced_analysis_history' not in st.session_state:
             st.session_state.enhanced_analysis_history = "🧠 AI Analyst Online - Enhanced Mode\n"
-        if 'login_processed' not in st.session_state:
-            st.session_state.login_processed = False
 
-        # --- MODE SELECTION (LOGIN) WITH AUTO-LOGIN ---
+        # --- MODE SELECTION (LOGIN) ---
         if 'mode' not in st.session_state:
             st.session_state.mode = "Locked"
 
@@ -1175,41 +1140,28 @@ def main():
             st.markdown("<h1 class='neuro-text'>NEXUS-7</h1>", unsafe_allow_html=True)
             st.markdown("---")
             
-            # Mode selection with auto-login on Enter key
+            # Mode selection
             if st.session_state.mode == "Locked":
                 st.info("Enter PIN to unlock Admin Mode or proceed in Demo Mode.")
-                
-                # Use form for Enter key support
-                with st.form(key='login_form'):
-                    pin = st.text_input("Admin PIN:", type="password", key="pin_input", 
-                                      help="Enter '100370' for Admin access. Press Enter to submit.")
-                    submit_cols = st.columns(2)
-                    with submit_cols[0]:
-                        submit_button = st.form_submit_button("Unlock Admin", use_container_width=True)
-                    with submit_cols[1]:
-                        demo_button = st.form_submit_button("Demo Mode", use_container_width=True, 
-                                                          type="secondary")
-                
-                # Check for form submission
-                if submit_button or (st.session_state.get('pin_input') and len(st.session_state.pin_input) > 0):
-                    if st.session_state.pin_input == "100370":
-                        st.session_state.mode = "Admin"
-                        st.session_state.login_processed = True
-                        st.success("Admin Mode Unlocked!")
+                pin = st.text_input("Admin PIN:", type="password", key="pin_input")
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("Unlock Admin", use_container_width=True):
+                        if pin == "100370":
+                            st.session_state.mode = "Admin"
+                            st.success("Admin Mode Unlocked!")
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            st.error("Incorrect PIN.")
+                with col2:
+                    if st.button("Demo Mode", use_container_width=True):
+                        st.session_state.mode = "Demo"
                         st.rerun()
-                    elif st.session_state.pin_input:
-                        st.error("Incorrect PIN.")
-                
-                if demo_button:
-                    st.session_state.mode = "Demo"
-                    st.rerun()
-                    
             else:
                 st.success(f"Mode: **{st.session_state.mode}**")
                 if st.button("🔒 Lock System", use_container_width=True):
                     st.session_state.mode = "Locked"
-                    st.session_state.login_processed = False
-                    st.session_state.pin_input = ""
                     st.rerun()
             
             st.markdown("---")
