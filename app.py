@@ -20,6 +20,7 @@ import io
 import base64
 from PIL import Image
 import threading
+import networkx as nx
 
 warnings.filterwarnings('ignore')
 
@@ -321,6 +322,38 @@ st.markdown("""
         transform: translateY(-5px);
         box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
     }
+    
+    .sentinel-incident {
+        background: linear-gradient(135deg, #1a1a2e, #2d1a2e);
+        border: 1px solid #0078d4;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-left: 4px solid #0078d4;
+    }
+    
+    .threat-graph-node {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        border: 2px solid #00ffff;
+        border-radius: 50%;
+        padding: 1rem;
+        text-align: center;
+        min-width: 100px;
+    }
+    
+    .data-classification-tag {
+        display: inline-block;
+        padding: 0.2rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin: 0.1rem;
+    }
+    
+    .confidential { background: linear-gradient(45deg, #ff0000, #cc0000); color: white; }
+    .internal { background: linear-gradient(45deg, #ff6b00, #cc5500); color: white; }
+    .restricted { background: linear-gradient(45deg, #ffd000, #ccaa00); color: black; }
+    .public { background: linear-gradient(45deg, #00cc00, #008800); color: white; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -332,7 +365,7 @@ def quantum_resource_manager():
     finally:
         gc.collect()
 
-# --- FIXED BACKEND CLASSES ---
+# --- ENHANCED BACKEND CLASSES ---
 
 class AdvancedThreatIntelligence:
     """Enhanced threat intelligence with MITRE ATT&CK mapping"""
@@ -361,282 +394,708 @@ class AdvancedThreatIntelligence:
     def load_threat_actors(self):
         """Load advanced threat actor profiles"""
         return {
-            'APT29': {'name': 'Cozy Bear', 'origin': 'Russia', 'targets': ['Government', 'Energy', 'Finance']},
-            'APT28': {'name': 'Fancy Bear', 'origin': 'Russia', 'targets': ['Government', 'Military', 'Political']},
-            'Lazarus': {'name': 'Lazarus Group', 'origin': 'North Korea', 'targets': ['Finance', 'Cryptocurrency']},
-            'Equation': {'name': 'Equation Group', 'origin': 'USA', 'targets': ['Telecom', 'Government']}
+            'APT29': {'name': 'Cozy Bear', 'origin': 'Russia', 'targets': ['Government', 'Energy', 'Finance'], 'tools': ['WellMess', 'WellMail']},
+            'APT28': {'name': 'Fancy Bear', 'origin': 'Russia', 'targets': ['Government', 'Military', 'Political'], 'tools': ['X-Agent', 'X-Tunnel']},
+            'Lazarus': {'name': 'Lazarus Group', 'origin': 'North Korea', 'targets': ['Finance', 'Cryptocurrency'], 'tools': ['AppleJeus', 'Brambul']},
+            'Equation': {'name': 'Equation Group', 'origin': 'USA', 'targets': ['Telecom', 'Government'], 'tools': ['DoubleFantasy', 'Fanny']}
         }
 
-class XDRIntegration:
-    """Extended Detection and Response integration"""
+class MicrosoftSentinelIntegration:
+    """Microsoft Sentinel-inspired incident management"""
     
     def __init__(self):
-        self.endpoints = self.generate_endpoints()
-        self.incidents = self.generate_incidents()
+        self.incidents = self.generate_sentinel_incidents()
+        self.analytics_rules = self.generate_analytics_rules()
         
-    def generate_endpoints(self):
-        """Generate simulated endpoint data"""
-        endpoints = []
-        for i in range(50):
-            endpoint = {
-                'id': f"EP-{1000 + i}",
-                'hostname': f"WORKSTATION-{i:03d}",
-                'ip': f"192.168.1.{random.randint(10, 250)}",
-                'os': random.choice(['Windows 11', 'Windows 10', 'Linux', 'macOS']),
-                'status': random.choice(['Healthy', 'At Risk', 'Compromised']),
-                'last_seen': (datetime.now() - timedelta(hours=random.randint(0, 72))).strftime('%Y-%m-%d %H:%M:%S'),
-                'threat_score': random.randint(0, 100)
-            }
-            endpoints.append(endpoint)
-        return endpoints
-    
-    def generate_incidents(self):
-        """Generate simulated security incidents"""
+    def generate_sentinel_incidents(self):
+        """Generate Microsoft Sentinel-style incidents"""
         incidents = []
         severities = ['Low', 'Medium', 'High', 'Critical']
-        for i in range(20):
+        statuses = ['New', 'Active', 'Closed']
+        
+        for i in range(15):
             incident = {
                 'id': f"INC-{5000 + i}",
-                'title': f"Security Incident #{i+1}",
+                'title': f"Suspicious PowerShell Execution - {random.choice(['Mass', 'Obfuscated', 'Encoded'])}",
                 'severity': random.choice(severities),
-                'status': random.choice(['Open', 'In Progress', 'Closed']),
-                'created': (datetime.now() - timedelta(hours=random.randint(1, 168))).strftime('%Y-%m-%d %H:%M:%S'),
-                'assigned_to': random.choice(['SOC Team', 'Tier 2', 'CIRT', 'Unassigned']),
-                'description': f"Detected suspicious activity involving {random.choice(['malware', 'unauthorized access', 'data exfiltration', 'phishing'])}"
+                'status': random.choice(statuses),
+                'created_time': (datetime.now() - timedelta(hours=random.randint(1, 72))).strftime('%Y-%m-%d %H:%M:%S'),
+                'last_modified': (datetime.now() - timedelta(hours=random.randint(0, 24))).strftime('%Y-%m-%d %H:%M:%S'),
+                'assigned_to': random.choice(['SOC Analyst', 'Tier 2', 'CIRT', 'Unassigned']),
+                'description': f"Multiple suspicious PowerShell commands detected from endpoint {random.choice(['WORKSTATION-', 'SERVER-'])}{random.randint(100, 999)}",
+                'tactics': random.sample(['Initial Access', 'Execution', 'Persistence', 'Lateral Movement'], 2),
+                'entities_count': random.randint(2, 8),
+                'alerts_count': random.randint(1, 5)
             }
             incidents.append(incident)
         return incidents
     
-    def get_endpoint_risk_analysis(self):
-        """Analyze endpoint risks"""
-        risk_data = {
-            'total_endpoints': len(self.endpoints),
-            'healthy': len([e for e in self.endpoints if e['status'] == 'Healthy']),
-            'at_risk': len([e for e in self.endpoints if e['status'] == 'At Risk']),
-            'compromised': len([e for e in self.endpoints if e['status'] == 'Compromised']),
-            'avg_threat_score': np.mean([e['threat_score'] for e in self.endpoints])
-        }
-        return risk_data
-
-class CloudSecurityModule:
-    """Cloud security posture management"""
-    
-    def __init__(self):
-        self.cloud_resources = self.generate_cloud_resources()
-        self.security_findings = self.generate_security_findings()
-        
-    def generate_cloud_resources(self):
-        """Generate simulated cloud resources"""
-        resources = []
-        resource_types = ['EC2', 'S3', 'RDS', 'Lambda', 'VPC', 'IAM', 'CloudTrail']
-        
-        for i in range(30):
-            resource = {
-                'id': f"RES-{2000 + i}",
-                'type': random.choice(resource_types),
-                'name': f"{random.choice(['prod', 'dev', 'test'])}-{random.choice(['web', 'db', 'api'])}-{i:03d}",
-                'cloud': random.choice(['AWS', 'Azure', 'GCP']),
-                'region': random.choice(['us-east-1', 'us-west-2', 'eu-west-1', 'ap-southeast-1']),
-                'compliance': random.choice(['Compliant', 'Non-Compliant', 'At Risk']),
-                'last_scan': (datetime.now() - timedelta(hours=random.randint(1, 48))).strftime('%Y-%m-%d %H:%M:%S')
-            }
-            resources.append(resource)
-        return resources
-    
-    def generate_security_findings(self):
-        """Generate cloud security findings"""
-        findings = []
-        severities = ['Low', 'Medium', 'High', 'Critical']
-        
-        for i in range(25):
-            finding = {
-                'id': f"FND-{3000 + i}",
-                'resource_id': random.choice(self.cloud_resources)['id'],
-                'severity': random.choice(severities),
-                'category': random.choice(['Encryption', 'Access Control', 'Network Security', 'Logging']),
-                'description': f"Security finding for {random.choice(['S3 bucket', 'EC2 instance', 'IAM role', 'Security group'])}",
-                'status': random.choice(['Open', 'In Progress', 'Resolved']),
-                'remediation': random.choice(['Enable encryption', 'Restrict permissions', 'Enable logging', 'Update policy'])
-            }
-            findings.append(finding)
-        return findings
-    
-    def get_cloud_posture_score(self):
-        """Calculate cloud security posture score"""
-        total_resources = len(self.cloud_resources)
-        compliant = len([r for r in self.cloud_resources if r['compliance'] == 'Compliant'])
-        return (compliant / total_resources) * 100 if total_resources > 0 else 0
-
-class ComplianceManager:
-    """Compliance and governance management"""
-    
-    def __init__(self):
-        self.frameworks = {
-            'NIST': {'name': 'NIST CSF', 'compliance': 87, 'controls': 108},
-            'ISO27001': {'name': 'ISO 27001', 'compliance': 92, 'controls': 114},
-            'SOC2': {'name': 'SOC 2', 'compliance': 95, 'controls': 64},
-            'GDPR': {'name': 'GDPR', 'compliance': 88, 'controls': 99},
-            'HIPAA': {'name': 'HIPAA', 'compliance': 91, 'controls': 75}
-        }
-        
-    def get_compliance_dashboard(self):
-        """Get compliance dashboard data"""
-        return self.frameworks
-
-class LiveDataIntegration:
-    """Enhanced live data integration"""
-    
-    def __init__(self):
-        self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        })
-    
-    def fetch_cisa_alerts(self):
-        """Fetch live CISA alerts - enhanced"""
-        try:
-            return self._get_simulated_cisa_alerts()
-        except Exception as e:
-            st.error(f"Error fetching CISA data: {str(e)}")
-            return self._get_simulated_cisa_alerts()
-    
-    def _get_simulated_cisa_alerts(self):
+    def generate_analytics_rules(self):
+        """Generate analytics rules"""
         return [
-            {"title": "Critical Vulnerability in Network Infrastructure Devices", "link": "https://www.cisa.gov", "date": "2025-10-17", "severity": "CRITICAL", "source": "CISA", "type": "Advisory"},
-            {"title": "Phishing Campaign Targeting Financial Sector", "link": "https://www.cisa.gov", "date": "2025-10-15", "severity": "HIGH", "source": "CISA", "type": "Alert"},
-            {"title": "Ransomware Attacks on Healthcare Organizations", "link": "https://www.cisa.gov", "date": "2025-10-14", "severity": "HIGH", "source": "CISA", "type": "Alert"}
-        ]
-    
-    def fetch_mitre_techniques(self):
-        """Fetch MITRE ATT&CK techniques - enhanced"""
-        try:
-            mitre_data = AdvancedThreatIntelligence()
-            techniques = []
-            for tactic_id, tactic_info in mitre_data.mitre_techniques.items():
-                for technique in tactic_info['techniques'][:2]:  # Limit to 2 techniques per tactic
-                    techniques.append({
-                        "id": technique,
-                        "name": f"MITRE Technique {technique}",
-                        "description": f"Description of MITRE ATT&CK technique {technique}",
-                        "tactic": tactic_info['name'],
-                        "platforms": ["Windows", "Linux", "macOS"],
-                        "data_sources": ["Process Monitoring", "Network Traffic", "File Monitoring"]
-                    })
-            return techniques[:15]  # Return first 15 techniques
-        except Exception as e:
-            st.error(f"Error fetching MITRE data: {str(e)}")
-            return self._get_simulated_mitre_techniques()
-    
-    def _get_simulated_mitre_techniques(self):
-        return [
-            {"id": "T1566.001", "name": "Phishing: Spearphishing Attachment", "description": "...", "tactic": "Initial Access", "platforms": ["Windows", "Linux"], "data_sources": ["Email Gateway"]},
-            {"id": "T1059.003", "name": "Command and Scripting Interpreter: Windows Command Shell", "description": "...", "tactic": "Execution", "platforms": ["Windows"], "data_sources": ["Process Monitoring"]}
-        ]
-    
-    def fetch_vulnerability_data(self):
-        """Fetch recent vulnerability data - enhanced"""
-        try:
-            return self._get_simulated_vulnerabilities()
-        except Exception as e:
-            st.error(f"Error fetching vulnerability data: {str(e)}")
-            return self._get_simulated_vulnerabilities()
-
-    def _get_simulated_vulnerabilities(self):
-        return [
-            {"cve_id": "CVE-2025-12345", "description": "Remote code execution vulnerability in web server", "cvss_score": 9.8, "published_date": "2025-10-15", "severity": "CRITICAL"},
-            {"cve_id": "CVE-2025-12346", "description": "Privilege escalation in OS kernel", "cvss_score": 7.8, "published_date": "2025-10-14", "severity": "HIGH"},
-            {"cve_id": "CVE-2025-12347", "description": "Information disclosure in database system", "cvss_score": 6.5, "published_date": "2025-10-13", "severity": "MEDIUM"}
+            {'name': 'Multiple Failed Logons', 'status': 'Enabled', 'alerts': random.randint(50, 200)},
+            {'name': 'Suspicious Process Creation', 'status': 'Enabled', 'alerts': random.randint(30, 150)},
+            {'name': 'Impossible Travel', 'status': 'Enabled', 'alerts': random.randint(10, 80)},
+            {'name': 'Data Exfiltration Pattern', 'status': 'Enabled', 'alerts': random.randint(5, 40)},
+            {'name': 'Ransomware Behavior', 'status': 'Enabled', 'alerts': random.randint(2, 25)}
         ]
 
-class QuantumThreatSimulator:
-    """Enhanced threat simulator"""
+class CrowdStrikeThreatGraph:
+    """CrowdStrike-inspired threat graph visualization"""
     
     def __init__(self):
-        self.simulation_history = []
-        self.active_scenarios = []
-    
-    def create_threat_scenario(self, scenario_type, intensity, target_sector, duration):
-        scenario_id = f"SIM-{random.randint(10000, 99999)}"
-        scenario_templates = {
-            'ransomware': {
-                'name': 'Quantum Ransomware Attack', 
-                'description': 'Advanced ransomware using quantum encryption', 
-                'indicators': ['File encryption patterns', 'Unusual network traffic', 'Ransom notes'], 
-                'mitre_techniques': ['T1486', 'T1566.001', 'T1059.003']
-            },
-            'supply_chain': {
-                'name': 'Supply Chain Compromise', 
-                'description': 'Attack through third-party software dependencies', 
-                'indicators': ['Modified DLLs', 'Unverified signatures', 'Suspicious network calls'], 
-                'mitre_techniques': ['T1195.002', 'T1554', 'T1071']
-            },
-            'ai_poisoning': {
-                'name': 'AI Model Poisoning', 
-                'description': 'Adversarial attacks on machine learning models', 
-                'indicators': ['Model drift', 'Anomalous predictions', 'Training data tampering'], 
-                'mitre_techniques': ['T1565.001', 'T1591', 'T1588']
-            },
-            'zero_day': {
-                'name': 'Zero-Day Exploitation', 
-                'description': 'Exploitation of unknown vulnerabilities', 
-                'indicators': ['Memory corruption', 'Shellcode execution', 'Privilege escalation'], 
-                'mitre_techniques': ['T1190', 'T1068', 'T1210']
-            }
-        }
-        template = scenario_templates.get(scenario_type, scenario_templates['ransomware'])
-        scenario = {
-            'id': scenario_id, 'type': scenario_type, 'name': template['name'],
-            'description': template['description'], 'intensity': intensity,
-            'target_sector': target_sector, 'duration': duration, 'start_time': datetime.now(),
-            'status': 'ACTIVE', 'risk_score': self.calculate_risk_score(intensity, duration),
-            'indicators': template['indicators'], 'mitre_techniques': template['mitre_techniques'],
-            'quantum_entanglement': random.uniform(0.6, 0.95),
-            'defense_recommendations': self.generate_defense_recommendations(scenario_type, intensity)
-        }
-        self.active_scenarios.append(scenario)
-        self.simulation_history.append(scenario)
-        return scenario
-    
-    def calculate_risk_score(self, intensity, duration):
-        base_risk = intensity * 0.7 + (duration / 60) * 0.3
-        return max(0.1, min(0.99, base_risk + random.uniform(-0.1, 0.1)))
-    
-    def generate_defense_recommendations(self, scenario_type, intensity):
-        recommendations = {
-            'ransomware': ["Deploy quantum-resistant backups", "Implement behavioral analysis", "Activate temporal rollback"],
-            'supply_chain': ["Enable quantum code signing", "Implement SBOM", "Deploy runtime application self-protection"],
-            'ai_poisoning': ["Activate adversarial training", "Implement model integrity monitoring", "Deploy quantum-resistant validation"],
-            'zero_day': ["Enable quantum memory protection", "Implement zero-trust microsegmentation", "Deploy behavioral anomaly detection"]
-        }
-        base_recommendations = recommendations.get(scenario_type, [])
-        if intensity > 0.8:
-            base_recommendations.append("🚨 ACTIVATE QUANTUM EMERGENCY PROTOCOLS")
-        return base_recommendations
-    
-    def run_simulation(self, scenario_id):
-        # Simulation logic remains the same
-        return True
-
-    def get_simulation_analytics(self):
-        if not self.simulation_history:
-            return {'total_simulations': 0, 'average_risk': 0, 'most_common_scenario': 'None', 'quantum_entanglement_avg': 0}
+        self.graph_data = self.generate_threat_graph()
         
-        scenario_types = [s.get('type', 'unknown') for s in self.simulation_history]
-        return {
-            'total_simulations': len(self.simulation_history),
-            'average_risk': np.mean([s['risk_score'] for s in self.simulation_history]),
-            'most_common_scenario': max(set(scenario_types), key=scenario_types.count) if scenario_types else 'None',
-            'quantum_entanglement_avg': np.mean([s.get('quantum_entanglement', 0) for s in self.simulation_history])
-        }
+    def generate_threat_graph(self):
+        """Generate threat relationship graph"""
+        G = nx.DiGraph()
+        
+        # Add nodes
+        entities = [
+            ('user1', 'User', 'compromised'),
+            ('workstation1', 'Endpoint', 'suspicious'),
+            ('server1', 'Server', 'normal'),
+            ('attacker_ip', 'IP', 'malicious'),
+            ('c2_domain', 'Domain', 'malicious'),
+            ('malware_hash', 'File', 'malicious')
+        ]
+        
+        for entity_id, entity_type, status in entities:
+            G.add_node(entity_id, type=entity_type, status=status)
+        
+        # Add edges
+        relationships = [
+            ('attacker_ip', 'workstation1', 'communicated_with'),
+            ('workstation1', 'server1', 'accessed'),
+            ('user1', 'workstation1', 'logged_into'),
+            ('c2_domain', 'workstation1', 'connected_to'),
+            ('malware_hash', 'workstation1', 'executed_on')
+        ]
+        
+        for source, target, relationship in relationships:
+            G.add_edge(source, target, relationship=relationship)
+            
+        return G
 
-class QuantumNeuralNetwork:
-    """Enhanced neural network"""
+class MicrosoftEntraIntegration:
+    """Microsoft Entra-inspired identity security"""
     
-    def predict_quantum_threat(self, input_data):
-        return max(0.1, min(0.99, random.uniform(0.4, 0.9)))
+    def __init__(self):
+        self.identity_risks = self.generate_identity_risks()
+        self.conditional_access = self.generate_conditional_access()
+        
+    def generate_identity_risks(self):
+        """Generate identity risk events"""
+        risks = []
+        risk_levels = ['low', 'medium', 'high']
+        
+        for i in range(10):
+            risk = {
+                'user': f"user{i}@company.com",
+                'risk_level': random.choice(risk_levels),
+                'risk_type': random.choice(['Impossible Travel', 'Unfamiliar Location', 'Malware Linked', 'Suspicious Inbox Rules']),
+                'detected_time': (datetime.now() - timedelta(hours=random.randint(1, 48))).strftime('%Y-%m-%d %H:%M:%S'),
+                'status': random.choice(['Active', 'Dismissed', 'Remediated']),
+                'signin_location': random.choice(['New York, US', 'London, UK', 'Tokyo, JP', 'Unknown']),
+                'device': random.choice(['Windows Device', 'iPhone', 'Android', 'Unknown'])
+            }
+            risks.append(risk)
+        return risks
 
+class MicrosoftPurviewIntegration:
+    """Microsoft Purview-inspired data governance"""
+    
+    def __init__(self):
+        self.data_classification = self.generate_data_classification()
+        self.sensitivity_labels = self.generate_sensitivity_labels()
+        
+    def generate_data_classification(self):
+        """Generate data classification results"""
+        classifications = []
+        sensitivity_levels = ['Public', 'General', 'Confidential', 'Highly Confidential']
+        
+        for i in range(8):
+            classification = {
+                'file_path': f"/shared_drive/{random.choice(['Finance', 'HR', 'R&D'])}/document_{i}.pdf",
+                'sensitivity': random.choice(sensitivity_levels),
+                'file_type': random.choice(['PDF', 'DOCX', 'XLSX', 'PPTX']),
+                'size_mb': random.randint(1, 50),
+                'last_modified': (datetime.now() - timedelta(days=random.randint(1, 30))).strftime('%Y-%m-%d'),
+                'owner': f"user{random.randint(1, 20)}@company.com"
+            }
+            classifications.append(classification)
+        return classifications
+
+class PaloAltoIntegration:
+    """Palo Alto Networks-inspired network security"""
+    
+    def __init__(self):
+        self.firewall_logs = self.generate_firewall_logs()
+        self.threat_prevention = self.generate_threat_prevention()
+        
+    def generate_firewall_logs(self):
+        """Generate firewall traffic logs"""
+        logs = []
+        actions = ['Allow', 'Deny', 'Drop']
+        
+        for i in range(12):
+            log = {
+                'timestamp': (datetime.now() - timedelta(minutes=random.randint(1, 120))).strftime('%H:%M:%S'),
+                'source_ip': f"192.168.1.{random.randint(10, 250)}",
+                'dest_ip': f"{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}",
+                'dest_port': random.choice([80, 443, 22, 3389, 53]),
+                'action': random.choice(actions),
+                'application': random.choice(['HTTP', 'HTTPS', 'SSH', 'DNS', 'RDP']),
+                'threat_name': random.choice(['', '', '', 'Malware', 'C&C Communication'])
+            }
+            logs.append(log)
+        return logs
+
+# --- ENHANCED FRONTEND COMPONENTS ---
+
+def render_sentinel_incidents():
+    """Microsoft Sentinel-inspired incident management"""
+    st.markdown("### 🔍 MICROSOFT SENTINEL INCIDENT QUEUE")
+    
+    sentinel = MicrosoftSentinelIntegration()
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        st.markdown("#### 📋 ACTIVE INCIDENTS")
+        for incident in sentinel.incidents[:5]:
+            severity_color = {
+                'Critical': '🔴',
+                'High': '🟠', 
+                'Medium': '🟡',
+                'Low': '🟢'
+            }
+            
+            with st.container():
+                st.markdown(f"""
+                <div class="sentinel-incident">
+                    <div style="display: flex; justify-content: between; align-items: center;">
+                        <h4>{severity_color[incident['severity']]} {incident['title']}</h4>
+                        <span class="threat-indicator {incident['severity'].lower()}">{incident['severity']}</span>
+                    </div>
+                    <p><strong>ID:</strong> {incident['id']} | <strong>Status:</strong> {incident['status']}</p>
+                    <p><strong>Tactics:</strong> {', '.join(incident['tactics'])}</p>
+                    <p><strong>Assigned to:</strong> {incident['assigned_to']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("#### 📊 INCIDENT ANALYTICS")
+        st.metric("Total Incidents", len(sentinel.incidents))
+        st.metric("Critical Incidents", len([i for i in sentinel.incidents if i['severity'] == 'Critical']))
+        st.metric("Active Cases", len([i for i in sentinel.incidents if i['status'] in ['New', 'Active']]))
+        
+        st.markdown("#### ⚡ ANALYTICS RULES")
+        for rule in sentinel.analytics_rules:
+            st.write(f"**{rule['name']}**")
+            st.progress(rule['alerts'] / 200)
+            st.caption(f"Alerts: {rule['alerts']}")
+
+def render_crowdstrike_threat_graph():
+    """CrowdStrike-inspired threat graph visualization"""
+    st.markdown("### 🕸️ CROWDSTRIKE THREAT GRAPH")
+    
+    threat_graph = CrowdStrikeThreatGraph()
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("#### 🔗 THREAT RELATIONSHIP MAP")
+        
+        # Create a simple network visualization using plotly
+        G = threat_graph.graph_data
+        pos = nx.spring_layout(G)
+        
+        edge_x = []
+        edge_y = []
+        for edge in G.edges():
+            x0, y0 = pos[edge[0]]
+            x1, y1 = pos[edge[1]]
+            edge_x.extend([x0, x1, None])
+            edge_y.extend([y0, y1, None])
+            
+        edge_trace = go.Scatter(
+            x=edge_x, y=edge_y,
+            line=dict(width=2, color='#00ffff'),
+            hoverinfo='none',
+            mode='lines')
+            
+        node_x = []
+        node_y = []
+        node_text = []
+        node_color = []
+        for node in G.nodes():
+            x, y = pos[node]
+            node_x.append(x)
+            node_y.append(y)
+            node_text.append(node)
+            # Color nodes based on status
+            status = G.nodes[node]['status']
+            if status == 'malicious':
+                node_color.append('#ff0000')
+            elif status == 'suspicious':
+                node_color.append('#ff6b00')
+            else:
+                node_color.append('#00ff00')
+                
+        node_trace = go.Scatter(
+            x=node_x, y=node_y,
+            mode='markers+text',
+            hoverinfo='text',
+            text=node_text,
+            textposition="middle center",
+            marker=dict(
+                color=node_color,
+                size=40,
+                line=dict(width=2, color='white')
+            )
+        )
+        
+        fig = go.Figure(data=[edge_trace, node_trace],
+                       layout=go.Layout(
+                           showlegend=False,
+                           hovermode='closest',
+                           margin=dict(b=0,l=0,r=0,t=0),
+                           paper_bgcolor='rgba(0,0,0,0)',
+                           plot_bgcolor='rgba(0,0,0,0)',
+                           xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                           yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                           height=400
+                       ))
+        
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        st.markdown("#### 🎯 THREAT INTELLIGENCE")
+        st.markdown("**Detected Attack Chain:**")
+        st.write("1. Initial Compromise (C2 Communication)")
+        st.write("2. Lateral Movement")
+        st.write("3. Data Collection")
+        st.write("4. Exfiltration Attempt")
+        
+        st.markdown("**Recommended Actions:**")
+        st.write("✅ Isolate compromised endpoints")
+        st.write("✅ Block malicious IPs/Domains")
+        st.write("✅ Reset compromised credentials")
+        st.write("✅ Investigate lateral movement")
+
+def render_mandiant_intelligence():
+    """Mandiant-style threat intelligence"""
+    st.markdown("### 🔥 MANDIANT THREAT INTELLIGENCE")
+    
+    threat_intel = AdvancedThreatIntelligence()
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("#### 🎭 ADVERSARY PROFILES")
+        
+        for actor_id, actor in threat_intel.threat_actors.items():
+            with st.expander(f"🔴 {actor['name']} ({actor_id})"):
+                st.write(f"**Origin:** {actor['origin']}")
+                st.write(f"**Primary Targets:** {', '.join(actor['targets'])}")
+                st.write(f"**Known Tools:** {', '.join(actor['tools'])}")
+                
+                # Recent activity
+                st.write("**Recent Campaigns:**")
+                campaigns = [
+                    f"Operation {random.choice(['Ghost', 'Shadow', 'Phantom'])}",
+                    f"{random.choice(['Spear', 'Whale', 'Business'])} Phishing Campaign",
+                    f"Supply Chain Compromise - {random.choice(['Software', 'Hardware', 'Firmware'])}"
+                ]
+                for campaign in random.sample(campaigns, 2):
+                    st.write(f"- {campaign}")
+    
+    with col2:
+        st.markdown("#### 📈 THREAT INDICATORS")
+        
+        indicators = [
+            {'type': 'IP', 'value': '185.220.101.35', 'confidence': 'High'},
+            {'type': 'Domain', 'value': 'malicious-c2.com', 'confidence': 'High'},
+            {'type': 'Hash', 'value': 'a1b2c3d4...', 'confidence': 'Medium'},
+            {'type': 'URL', 'value': 'http://evil.com/payload', 'confidence': 'High'}
+        ]
+        
+        for indicator in indicators:
+            st.markdown(f"""
+            <div style="background: rgba(255,0,0,0.1); padding: 0.5rem; border-radius: 5px; margin: 0.2rem 0;">
+                <strong>{indicator['type']}:</strong> {indicator['value']}<br>
+                <small>Confidence: {indicator['confidence']}</small>
+            </div>
+            """, unsafe_allow_html=True)
+
+def render_palo_alto_network():
+    """Palo Alto Networks-style network security"""
+    st.markdown("### 🌐 PALO ALTO NETWORK SECURITY")
+    
+    palo_alto = PaloAltoIntegration()
+    
+    tab1, tab2 = st.tabs(["🛡️ Firewall Logs", "📊 Threat Prevention"])
+    
+    with tab1:
+        st.markdown("#### 🔥 REAL-TIME FIREWALL TRAFFIC")
+        
+        # Display firewall logs
+        for log in palo_alto.firewall_logs[:8]:
+            action_color = {
+                'Allow': '#00ff00',
+                'Deny': '#ffff00', 
+                'Drop': '#ff0000'
+            }
+            
+            st.markdown(f"""
+            <div style="background: rgba(0,255,255,0.05); padding: 0.5rem; border-radius: 5px; margin: 0.2rem 0; border-left: 3px solid {action_color[log['action']]}">
+                <strong>{log['timestamp']}</strong> | {log['source_ip']} → {log['dest_ip']}:{log['dest_port']}<br>
+                <small>Action: <span style="color: {action_color[log['action']]}">{log['action']}</span> | App: {log['application']}</small>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with tab2:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### 🚨 THREAT PREVENTION")
+            threats_blocked = random.randint(500, 2000)
+            st.metric("Threats Blocked (24h)", threats_blocked)
+            st.metric("WildFire Submissions", random.randint(50, 200))
+            st.metric("DNS Security Blocks", random.randint(100, 500))
+        
+        with col2:
+            st.markdown("#### 📈 SECURITY EFFECTIVENESS")
+            st.write("**Threat Prevention Score:** 98.7%")
+            st.progress(0.987)
+            st.write("**WildFire Detection Rate:** 99.2%")
+            st.progress(0.992)
+
+def render_entra_identity():
+    """Microsoft Entra identity security"""
+    st.markdown("### 👤 MICROSOFT ENTRA IDENTITY PROTECTION")
+    
+    entra = MicrosoftEntraIntegration()
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("#### 🚨 IDENTITY RISK EVENTS")
+        
+        for risk in entra.identity_risks[:5]:
+            risk_color = {
+                'high': '🔴',
+                'medium': '🟠',
+                'low': '🟡'
+            }
+            
+            st.markdown(f"""
+            <div style="background: rgba(255,100,100,0.1); padding: 1rem; border-radius: 8px; margin: 0.5rem 0;">
+                <div style="display: flex; justify-content: between; align-items: center;">
+                    <h4>{risk_color[risk['risk_level']]} {risk['user']}</h4>
+                    <span class="threat-indicator {risk['risk_level']}">{risk['risk_level'].upper()}</span>
+                </div>
+                <p><strong>Risk Type:</strong> {risk['risk_type']}</p>
+                <p><strong>Location:</strong> {risk['signin_location']} | <strong>Device:</strong> {risk['device']}</p>
+                <p><strong>Detected:</strong> {risk['detected_time']}</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("#### 📊 IDENTITY SECURITY POSTURE")
+        st.metric("Risky Users", len(entra.identity_risks))
+        st.metric("MFA Adoption", "94%")
+        st.metric("Privileged Accounts", "284")
+        
+        st.markdown("#### ⚙️ CONDITIONAL ACCESS")
+        st.write("✅ MFA required for admins")
+        st.write("✅ Block legacy authentication")
+        st.write("✅ Require compliant devices")
+        st.write("✅ Risk-based policies enabled")
+
+def render_purview_governance():
+    """Microsoft Purview data governance"""
+    st.markdown("### 📊 MICROSOFT PURVIEW DATA GOVERNANCE")
+    
+    purview = MicrosoftPurviewIntegration()
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("#### 📁 DATA CLASSIFICATION")
+        
+        for item in purview.data_classification:
+            sensitivity_class = item['sensitivity'].lower().replace(' ', '_')
+            st.markdown(f"""
+            <div style="background: rgba(0,255,255,0.05); padding: 1rem; border-radius: 8px; margin: 0.5rem 0;">
+                <div style="display: flex; justify-content: between; align-items: center;">
+                    <h4>{item['file_path']}</h4>
+                    <span class="data-classification-tag {sensitivity_class}">{item['sensitivity']}</span>
+                </div>
+                <p><strong>Type:</strong> {item['file_type']} | <strong>Size:</strong> {item['size_mb']} MB</p>
+                <p><strong>Owner:</strong> {item['owner']} | <strong>Modified:</strong> {item['last_modified']}</p>
+            </div>
+            """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("#### 📈 DATA INSIGHTS")
+        
+        # Data distribution pie chart
+        labels = ['Public', 'General', 'Confidential', 'Highly Confidential']
+        sizes = [15, 45, 30, 10]
+        
+        fig = px.pie(values=sizes, names=labels, title="Data Sensitivity Distribution")
+        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
+        st.plotly_chart(fig, use_container_width=True)
+        
+        st.metric("Total Classified Files", "1.2M")
+        st.metric("Sensitive Data Found", "245K")
+        st.metric("Policy Violations", "47")
+
+def render_enhanced_live_nexus():
+    """Enhanced live data feed and AI analysis bot tab."""
+    st.markdown("### 🧬 ENHANCED LIVE DATA NEXUS & AI ANALYST")
+    st.markdown("Real-time event streams with advanced AI correlation and threat detection.")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("#### 📡 ENHANCED LIVE DATA STREAM")
+        st.markdown('<span class="live-data-badge">LIVE</span>', unsafe_allow_html=True)
+        
+        # Real-time metrics
+        metric_cols = st.columns(4)
+        metric_cols[0].metric("Events/sec", f"{random.randint(100, 500)}")
+        metric_cols[1].metric("Alerts", f"{random.randint(5, 20)}")
+        metric_cols[2].metric("Threats", f"{random.randint(1, 8)}")
+        metric_cols[3].metric("Response Time", f"{random.randint(50, 200)}ms")
+        
+        log_placeholder = st.empty()
+        
+    with col2:
+        st.markdown("#### 🤖 ADVANCED AI ANALYST")
+        st.markdown('<span class="live-data-badge">CORRELATING</span>', unsafe_allow_html=True)
+        
+        # AI Analysis metrics
+        ai_cols = st.columns(3)
+        ai_cols[0].metric("Confidence", f"{random.randint(85, 98)}%")
+        ai_cols[1].metric("Patterns", f"{random.randint(50, 200)}")
+        ai_cols[2].metric("Correlations", f"{random.randint(10, 50)}")
+        
+        analysis_placeholder = st.empty()
+
+    # Initialize session state for enhanced logs
+    if 'enhanced_log_history' not in st.session_state:
+        st.session_state.enhanced_log_history = "🚀 Enhanced NEXUS-7 AI Analyst Initialized\n"
+        st.session_state.enhanced_log_history += "🔧 Loading advanced correlation engines...\n"
+        st.session_state.enhanced_log_history += "✅ Behavioral analysis module active\n"
+        st.session_state.enhanced_log_history += "✅ Threat intelligence feeds connected\n\n"
+    
+    if 'enhanced_analysis_history' not in st.session_state:
+        st.session_state.enhanced_analysis_history = "🧠 AI Analyst Online - Enhanced Mode\n"
+        st.session_state.enhanced_analysis_history += "🔍 Monitoring multi-source data streams\n"
+        st.session_state.enhanced_analysis_history += "🎯 Advanced pattern recognition active\n\n"
+
+    # Display current state
+    log_placeholder.markdown(f'<div class="log-container">{st.session_state.enhanced_log_history}</div>', unsafe_allow_html=True)
+    analysis_placeholder.markdown(f'<div class="log-container" style="border-color: #00ffff;">{st.session_state.enhanced_analysis_history}</div>', unsafe_allow_html=True)
+    
+    # Enhanced control panel
+    st.markdown("#### 🎛️ ENHANCED CONTROL PANEL")
+    control_cols = st.columns(4)
+    
+    with control_cols[0]:
+        if st.button("➕ Add Multi-Source Event", key="enhanced_event"):
+            new_log = get_enhanced_simulated_log()
+            st.session_state.enhanced_log_history += f"{new_log}\n"
+            
+            new_analysis = enhanced_ai_analysis(new_log)
+            st.session_state.enhanced_analysis_history += f"[{datetime.now().strftime('%H:%M:%S')}] {new_analysis}\n"
+            
+            # Auto-scroll with enhanced display
+            log_display = "<br>".join(st.session_state.enhanced_log_history.split("\n")[-25:])
+            analysis_display = "<br>".join(st.session_state.enhanced_analysis_history.split("\n")[-25:])
+            
+            log_placeholder.markdown(f'<div class="log-container">{log_display}</div>', unsafe_allow_html=True)
+            analysis_placeholder.markdown(f'<div class="log-container" style="border-color: #00ffff;">{analysis_display}</div>', unsafe_allow_html=True)
+            
+    with control_cols[1]:
+        if st.button("🎯 Run Correlation Analysis", key="correlation"):
+            correlation_result = run_correlation_analysis()
+            st.session_state.enhanced_analysis_history += f"🔗 CORRELATION RESULT: {correlation_result}\n"
+            analysis_placeholder.markdown(f'<div class="log-container" style="border-color: #00ffff;">{st.session_state.enhanced_analysis_history}</div>', unsafe_allow_html=True)
+            
+    with control_cols[2]:
+        if st.button("📊 Generate Threat Report", key="threat_report"):
+            threat_report = generate_threat_report()
+            st.session_state.enhanced_analysis_history += f"📋 THREAT REPORT: {threat_report}\n"
+            analysis_placeholder.markdown(f'<div class="log-container" style="border-color: #00ffff;">{st.session_state.enhanced_analysis_history}</div>', unsafe_allow_html=True)
+    
+    with control_cols[3]:
+        if st.button("🗑️ Clear All Logs", key="clear_enhanced"):
+            st.session_state.enhanced_log_history = "Logs cleared. Enhanced monitoring active.\n"
+            st.session_state.enhanced_analysis_history = "AI Analyst ready for enhanced analysis.\n"
+            st.rerun()
+
+def get_enhanced_simulated_log():
+    """Generate enhanced simulated log entries with more context"""
+    log_templates = [
+        ("SECURITY", "Advanced threat detected: {threat_type} from IP {ip} targeting {asset}"),
+        ("NETWORK", "Unusual traffic pattern: {protocol} from {src_ip} to {dst_ip} volume {volume}MB"),
+        ("ENDPOINT", "Suspicious process {process} spawned by {user} with commandline {cmd}"),
+        ("IDENTITY", "Risky sign-in: {user} from {location} on device {device} with risk score {risk_score}"),
+        ("CLOUD", "Security group modification: {resource} in {region} by {identity}"),
+        ("APPLICATION", "Potential SQL injection attempt detected in {app} from {ip}"),
+        ("COMPLIANCE", "Data policy violation: {user} accessed {sensitive_data} from {location}"),
+    ]
+    
+    threats = ["credential harvesting", "lateral movement", "data exfiltration", "C2 communication", "ransomware activity"]
+    protocols = ["HTTP", "HTTPS", "SSH", "RDP", "DNS", "SMB"]
+    processes = ["powershell.exe", "cmd.exe", "mimikatz.exe", "nc.exe", "wmic.exe"]
+    users = ["admin", "svc_backup", "john.doe", "sarah.connor"]
+    locations = ["New York, US", "London, UK", "Tokyo, JP", "Unknown/Proxy"]
+    assets = ["Domain Controller", "File Server", "Database Server", "Web Application"]
+    
+    level, template = random.choice(log_templates)
+    
+    log = template.format(
+        threat_type=random.choice(threats),
+        ip=f"{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}",
+        src_ip=f"192.168.1.{random.randint(10, 250)}",
+        dst_ip=f"10.0.{random.randint(1, 255)}.{random.randint(1, 255)}",
+        asset=random.choice(assets),
+        protocol=random.choice(protocols),
+        volume=random.randint(10, 500),
+        process=random.choice(processes),
+        user=random.choice(users),
+        cmd=random.choice(["Get-Process", "net user", "reg query", "whoami"]),
+        location=random.choice(locations),
+        device=random.choice(["Windows Device", "iPhone", "Android", "Unknown"]),
+        risk_score=random.randint(30, 95),
+        resource=random.choice(["EC2-SecurityGroup", "NSG-Production", "Firewall-Rule"]),
+        region=random.choice(["us-east-1", "eu-west-1", "ap-southeast-1"]),
+        identity=random.choice(users),
+        app=random.choice(["Customer Portal", "HR System", "Financial App"]),
+        sensitive_data=random.choice(["PII Records", "Financial Data", "Source Code"])
+    )
+    
+    return f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} [{level}] {log}"
+
+def enhanced_ai_analysis(log):
+    """Enhanced AI analysis with correlation and recommendations"""
+    log_lower = log.lower()
+    
+    analysis_templates = {
+        "credential harvesting": "🚨 CRITICAL: Credential harvesting detected. Correlated with 3 similar events. Recommending immediate credential rotation and MFA enforcement.",
+        "lateral movement": "🔥 HIGH: Lateral movement attempt. Multiple endpoint correlations found. Isolate affected systems and review network segmentation.",
+        "data exfiltration": "💀 CRITICAL: Potential data exfiltration. Large outbound transfer detected. Block destination IPs and initiate incident response.",
+        "c2 communication": "🔴 HIGH: Command and control communication. Correlated with known malicious IPs. Isolate endpoint and begin forensic analysis.",
+        "ransomware activity": "💀 CRITICAL: Ransomware behavior patterns. File encryption signatures detected. Activate emergency response protocol.",
+        "sql injection": "🟠 MEDIUM: SQL injection attempt. Web application firewall triggered. Review application logs and block source IP.",
+        "unusual traffic": "🟡 LOW: Unusual network patterns. Monitoring for further anomalies. No immediate action required.",
+    }
+    
+    for pattern, response in analysis_templates.items():
+        if pattern in log_lower:
+            return response
+    
+    # Default analysis for unknown patterns
+    return "🔍 ANALYZING: New pattern detected. Adding to machine learning model. Monitoring for similar events across environment."
+
+def run_correlation_analysis():
+    """Run advanced correlation analysis"""
+    correlations = [
+        "Multiple failed logins correlated with suspicious process execution",
+        "Network scan followed by exploitation attempts",
+        "Data access patterns matching exfiltration behavior",
+        "Timeline analysis reveals coordinated attack campaign",
+        "User behavior anomalies correlated with threat intelligence"
+    ]
+    return random.choice(correlations)
+
+def generate_threat_report():
+    """Generate threat intelligence report"""
+    reports = [
+        "Emerging ransomware campaign targeting financial sector",
+        "New APT group tactics observed in wild",
+        "Supply chain compromise indicators detected",
+        "Zero-day vulnerability exploitation patterns identified"
+    ]
+    return random.choice(reports)
+
+# --- INTEGRATE NEW FEATURES INTO MAIN APPLICATION ---
+
+def render_enhanced_threat_intelligence():
+    """Enhanced threat intelligence dashboard combining all sources"""
+    st.markdown("### 🌐 ENHANCED THREAT INTELLIGENCE")
+    
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "🕵️ Mandiant Intel", 
+        "🔍 Sentinel Incidents", 
+        "🕸️ CrowdStrike Graph",
+        "🌐 Palo Alto Network", 
+        "👤 Entra Identity"
+    ])
+    
+    with tab1:
+        render_mandiant_intelligence()
+    with tab2:
+        render_sentinel_incidents()
+    with tab3:
+        render_crowdstrike_threat_graph()
+    with tab4:
+        render_palo_alto_network()
+    with tab5:
+        render_entra_identity()
+
+def render_enhanced_data_governance():
+    """Enhanced data governance and compliance"""
+    st.markdown("### 📊 ENHANCED DATA GOVERNANCE & COMPLIANCE")
+    
+    tab1, tab2, tab3 = st.tabs(["📁 Purview Governance", "📜 Compliance", "🛡️ Security Controls"])
+    
+    with tab1:
+        render_purview_governance()
+    with tab2:
+        # Enhanced compliance dashboard
+        st.markdown("#### 📜 COMPLIANCE DASHBOARD")
+        frameworks = {
+            'NIST': {'name': 'NIST CSF', 'compliance': 92, 'controls': 108},
+            'ISO27001': {'name': 'ISO 27001', 'compliance': 95, 'controls': 114},
+            'SOC2': {'name': 'SOC 2', 'compliance': 98, 'controls': 64},
+            'GDPR': {'name': 'GDPR', 'compliance': 91, 'controls': 99},
+            'HIPAA': {'name': 'HIPAA', 'compliance': 94, 'controls': 75},
+            'PCI-DSS': {'name': 'PCI DSS', 'compliance': 96, 'controls': 300}
+        }
+        
+        cols = st.columns(len(frameworks))
+        for i, (framework_id, framework) in enumerate(frameworks.items()):
+            with cols[i]:
+                st.metric(framework['name'], f"{framework['compliance']}%")
+                st.caption(f"{framework['controls']} controls")
+    with tab3:
+        st.markdown("#### 🛡️ SECURITY CONTROLS STATUS")
+        controls = [
+            {"name": "Endpoint Protection", "status": "Enabled", "health": "Healthy"},
+            {"name": "Network Segmentation", "status": "Enabled", "health": "Healthy"},
+            {"name": "Data Loss Prevention", "status": "Enabled", "health": "Warning"},
+            {"name": "Identity Protection", "status": "Enabled", "health": "Healthy"},
+            {"name": "Cloud Security", "status": "Enabled", "health": "Healthy"},
+            {"name": "Email Security", "status": "Enabled", "health": "Critical"}
+        ]
+        
+        for control in controls:
+            status_color = {
+                "Healthy": "🟢",
+                "Warning": "🟡", 
+                "Critical": "🔴"
+            }
+            st.write(f"{status_color[control['health']]} **{control['name']}** - {control['status']}")
+
+# Update the main application class to include new integrations
 class HolographicThreatIntelligence:
-    """Enhanced main application state class"""
+    """Enhanced main application state class with all integrations"""
     
     def __init__(self):
         self.live_data = LiveDataIntegration()
@@ -644,576 +1103,24 @@ class HolographicThreatIntelligence:
         self.quantum_neural_net = QuantumNeuralNetwork()
         self.cisa_integration = self.live_data
         self.mitre_integration = self.live_data
-        # Initialize the missing components
+        
+        # Initialize the enhanced components
         self.threat_intel = AdvancedThreatIntelligence()
         self.xdr = XDRIntegration()
         self.cloud_security = CloudSecurityModule()
         self.compliance = ComplianceManager()
+        
+        # New enhanced integrations
+        self.sentinel = MicrosoftSentinelIntegration()
+        self.crowdstrike = CrowdStrikeThreatGraph()
+        self.entra = MicrosoftEntraIntegration()
+        self.purview = MicrosoftPurviewIntegration()
+        self.palo_alto = PaloAltoIntegration()
 
-# --- NEW FEATURE HELPER FUNCTIONS ---
-
-def get_simulated_log():
-    """Generates a single simulated log entry."""
-    log_templates = [
-        ("INFO", "Successful login for user '{user}' from IP {ip}"),
-        ("INFO", "File '{file}' accessed by user '{user}'"),
-        ("WARN", "Failed login attempt for user '{user}' from IP {ip}"),
-        ("ERROR", "Access denied for user '{user}' on resource '{resource}'"),
-        ("CRITICAL", "Multiple failed login attempts for user '{user}' from IP {ip} - Potential Brute-force"),
-        ("INFO", "System health check PASSED on server '{server}'"),
-        ("WARN", "High CPU usage detected on server '{server}'"),
-        ("CRITICAL", "Unusual outbound traffic detected from {ip} to {malicious_ip}"),
-        ("ALERT", "Suspicious process '{process}' spawned by user '{user}'"),
-        ("INFO", "Database backup completed successfully"),
-        ("WARN", "Unusual network scan detected from IP {ip}"),
-        ("CRITICAL", "Potential data exfiltration attempt detected from {ip}"),
-    ]
-    users = ["admin", "j.doe", "s.smith", "guest", "root", "system"]
-    ips = [f"192.168.1.{random.randint(10, 200)}", "10.0.0.5", "203.0.113.88", "172.16.0.12"]
-    files = ["/etc/passwd", "/var/www/config.php", "C:\\Users\\s.smith\\Documents\\project_alpha.docx", "/app/secrets.env"]
-    resources = ["/api/v1/admin", "/db/customer_records", "/financial/reports"]
-    servers = ["WEB_PROD_01", "DB_MASTER_A", "AUTH_SRV_3", "FILE_SRV_2"]
-    processes = ["powershell.exe", "cmd.exe", "bash", "mimikatz.exe", "netcat"]
-    
-    level, template = random.choice(log_templates)
-    log = template.format(
-        user=random.choice(users), 
-        ip=random.choice(ips),
-        file=random.choice(files),
-        resource=random.choice(resources),
-        server=random.choice(servers),
-        malicious_ip=f"123.45.67.{random.randint(1,254)}",
-        process=random.choice(processes)
-    )
-    return f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} [{level}]: {log}"
-
-def analyze_log(log):
-    """Generates an AI analysis for a given log entry."""
-    log_lower = log.lower()
-    if "critical" in log_lower or "brute-force" in log_lower:
-        return "🚨 CRITICAL THREAT: Brute-force attack detected. Recommending immediate IP block and user account lockdown. Escalating to Tier 2 SOC."
-    if "failed login" in log_lower:
-        return "⚠️ WARNING: Failed authentication. Correlating with other attempts from this IP. Monitoring for suspicious patterns."
-    if "unusual outbound traffic" in log_lower or "exfiltration" in log_lower:
-        return "🔥 HIGH SEVERITY: Potential C2 communication or data exfiltration. Initiating automated network isolation playbook for the source IP."
-    if "access denied" in log_lower:
-        return "🧐 ANOMALY: Unauthorized access attempt. Checking user's typical behavior and permissions. Flagged for review."
-    if "suspicious process" in log_lower:
-        return "🔍 SUSPICIOUS ACTIVITY: Unusual process execution detected. Analyzing process tree and network connections."
-    if "network scan" in log_lower:
-        return "🛡️ RECONNAISSANCE: Network scanning activity detected. Blocking source IP and monitoring for follow-up attacks."
-    if "successful login" in log_lower:
-        if "admin" in log_lower or "root" in log_lower:
-            return "ℹ️ INFO: Privileged account login detected. Verifying against location and time heuristics. No anomalies found."
-        return "ℹ️ INFO: Standard user login. Activity appears normal."
-    return "✅ INFO: Routine system event. No action required."
-
-def generate_attack_path():
-    """Generate a simulated attack path"""
-    techniques = ['T1566.001', 'T1059.003', 'T1068', 'T1027', 'T1110', 'T1003', 'T1082', 'T1018']
-    return {
-        'start_point': f"192.168.1.{random.randint(10, 50)}",
-        'target': f"SRV-{random.randint(100, 999)}",
-        'techniques': random.sample(techniques, random.randint(3, 6)),
-        'confidence': random.uniform(0.7, 0.95),
-        'timeline': f"{random.randint(1, 24)} hours",
-        'risk_level': random.choice(['High', 'Critical'])
-    }
-
-# --- MERGED AND ENHANCED UI RENDERING FUNCTIONS ---
-
-def render_neural_matrix():
-    st.markdown("### 🧠 QUANTUM NEURAL THREAT MATRIX")
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.markdown("#### 🚨 REAL-TIME THREAT MATRIX")
-        threats_data = []
-        for i in range(8):
-            threat = {
-                'ID': f"QT-{random.randint(10000, 99999)}",
-                'Type': random.choice(['AI Model Poisoning', 'Supply Chain', 'Zero-Day', 'Ransomware', 'Insider Threat']),
-                'Quantum Risk': f"{st.session_state.holographic_intel.quantum_neural_net.predict_quantum_threat([]):.1%}",
-                'Impact': random.choice(['🔴 CRITICAL', '🟠 HIGH', '🟡 MEDIUM']),
-                'Status': random.choice(['🔄 Active', '📈 Growing', '📉 Declining']),
-            }
-            threats_data.append(threat)
-        st.dataframe(pd.DataFrame(threats_data), use_container_width=True, height=300)
-
-    with col2:
-        st.markdown("#### 🌊 NEURAL ACTIVITY MONITOR")
-        activities = [('Quantum Processing', 0.95), ('Neural Inference', 0.98), ('Pattern Recognition', 0.90)]
-        for activity, level in activities:
-            st.markdown(f'<div class="neural-activity">', unsafe_allow_html=True)
-            st.write(f"**{activity}**")
-            st.progress(random.uniform(level-0.1, level))
-            st.markdown('</div>', unsafe_allow_html=True)
-
-def render_live_nexus():
-    """Renders the live data feed and AI analysis bot tab."""
-    st.markdown("### 🧬 LIVE DATA NEXUS & AI ANALYST")
-    st.markdown("Simulating real-time event streams from across the infrastructure. The **NEXUS-7 AI Analyst** interprets data to identify threats.")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.markdown("#### 📡 LIVE DATA INPUT STREAM")
-        st.markdown('<span class="live-data-badge">LIVE</span>', unsafe_allow_html=True)
-        log_placeholder = st.empty()
-        
-    with col2:
-        st.markdown("#### 🤖 NEXUS-7 AI ANALYST")
-        st.markdown('<span class="live-data-badge">ANALYZING</span>', unsafe_allow_html=True)
-        analysis_placeholder = st.empty()
-
-    # Initialize session state for logs if not exists
-    if 'log_history' not in st.session_state:
-        st.session_state.log_history = "Initializing log stream...\n"
-    if 'analysis_history' not in st.session_state:
-        st.session_state.analysis_history = "AI Analyst is online. Awaiting data...\n"
-    
-    # Display current state
-    log_placeholder.markdown(f'<div class="log-container">{st.session_state.log_history}</div>', unsafe_allow_html=True)
-    analysis_placeholder.markdown(f'<div class="log-container" style="border-color: #00ffff;">{st.session_state.analysis_history}</div>', unsafe_allow_html=True)
-    
-    # Add new log entry
-    if st.button("➕ Add New Event", key="add_event"):
-        new_log = get_simulated_log()
-        st.session_state.log_history += f"{new_log}\n"
-        
-        new_analysis = analyze_log(new_log)
-        st.session_state.analysis_history += f"[{datetime.now().strftime('%H:%M:%S')}] {new_analysis}\n"
-        
-        # Auto-scroll effect by slicing the history
-        log_display = "<br>".join(st.session_state.log_history.split("\n")[-20:])
-        analysis_display = "<br>".join(st.session_state.analysis_history.split("\n")[-20:])
-        
-        log_placeholder.markdown(f'<div class="log-container">{log_display}</div>', unsafe_allow_html=True)
-        analysis_placeholder.markdown(f'<div class="log-container" style="border-color: #00ffff;">{analysis_display}</div>', unsafe_allow_html=True)
-        
-    # Clear logs button
-    if st.button("🗑️ Clear Logs", key="clear_logs"):
-        st.session_state.log_history = "Logs cleared.\n"
-        st.session_state.analysis_history = "AI Analyst ready.\n"
-        st.rerun()
-
-def render_quantum_simulator():
-    st.markdown("### 🎮 QUANTUM THREAT SIMULATOR")
-    simulator = st.session_state.holographic_intel.threat_simulator
-    
-    col1, col2 = st.columns([1, 1])
-    
-    with col1:
-        st.markdown("#### ⚙️ SIMULATION CONTROLS")
-        scenario_type = st.selectbox("Threat Scenario Type:", ["ransomware", "supply_chain", "ai_poisoning", "zero_day"], format_func=lambda x: x.replace("_", " ").title())
-        intensity = st.slider("Attack Intensity", 0.1, 1.0, 0.7, 0.1)
-        target_sector = st.selectbox("Target Sector:", ["Financial", "Healthcare", "Government", "Energy", "Technology"])
-        
-        if st.button("🚀 LAUNCH SIMULATION", use_container_width=True, disabled=(st.session_state.get('mode') != 'Admin')):
-            scenario = simulator.create_threat_scenario(scenario_type, intensity, target_sector, 30)
-            st.session_state.active_simulations.append(scenario)
-            st.success(f"🎯 Simulation {scenario['id']} Launched!")
-    
-    with col2:
-        st.markdown("#### 📊 SIMULATION ANALYTICS")
-        analytics = simulator.get_simulation_analytics()
-        st.metric("Total Simulations", analytics['total_simulations'])
-        st.metric("Average Risk Score", f"{analytics['average_risk']:.1%}")
-        st.metric("Most Common Scenario", analytics['most_common_scenario'].replace("_", " ").title())
-        
-        if st.session_state.active_simulations:
-            st.markdown("#### 🔥 ACTIVE SIMULATIONS")
-            for sim in st.session_state.active_simulations[-3:]:  # Show last 3
-                with st.expander(f"{sim['name']} - Risk: {sim['risk_score']:.1%}"):
-                    st.write(f"**Description:** {sim['description']}")
-                    st.write(f"**Target:** {sim['target_sector']}")
-                    st.write(f"**Indicators:** {', '.join(sim['indicators'])}")
-
-def render_mitre_navigator():
-    """Renders MITRE ATT&CK Navigator"""
-    st.markdown("### 🎯 MITRE ATT&CK NAVIGATOR")
-    st.caption("Interactive MITRE ATT&CK framework visualization")
-    
-    # MITRE ATT&CK Matrix
-    mitre_data = AdvancedThreatIntelligence()
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.markdown("#### 🧩 MITRE ATT&CK MATRIX")
-        
-        # Create a grid of tactics
-        tactics = list(mitre_data.mitre_techniques.keys())
-        
-        for tactic_id in tactics:
-            tactic = mitre_data.mitre_techniques[tactic_id]
-            with st.expander(f"🧩 {tactic['name']} ({tactic_id})"):
-                cols = st.columns(3)
-                for i, technique in enumerate(tactic['techniques']):
-                    with cols[i % 3]:
-                        st.markdown(f'<div class="mitre-technique">{technique}</div>', unsafe_allow_html=True)
-                        st.caption(f"Technique {technique}")
-    
-    with col2:
-        st.markdown("#### 🔍 TECHNIQUE SEARCH")
-        search_term = st.text_input("Search techniques...")
-        
-        st.markdown("#### 📊 COVERAGE ANALYSIS")
-        coverage_data = {
-            'Tactic': [mitre_data.mitre_techniques[t]['name'] for t in tactics],
-            'Coverage %': [random.randint(60, 95) for _ in tactics],
-            'Techniques': [len(mitre_data.mitre_techniques[t]['techniques']) for t in tactics]
-        }
-        
-        df = pd.DataFrame(coverage_data)
-        fig = px.bar(df, x='Tactic', y='Coverage %', title="Defense Coverage by Tactic",
-                    color='Coverage %', color_continuous_scale='viridis')
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
-        st.plotly_chart(fig, use_container_width=True)
-
-def render_security_tests():
-    """Renders security testing page"""
-    st.markdown("### 🧪 SECURITY TESTING SUITE")
-    st.caption("Perform security assessments and penetration tests")
-    
-    tab1, tab2, tab3, tab4 = st.tabs(["📧 Phishing Test", "🔍 Vulnerability Scan", "🔐 Password Audit", "🌐 Network Test"])
-    
-    with tab1:
-        st.markdown("#### 📧 Phishing Simulation Test")
-        st.markdown('<div class="test-card">', unsafe_allow_html=True)
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.subheader("Phishing Campaign Setup")
-            test_type = st.selectbox("Test Type", ["Spear Phishing", "Mass Phishing", "CEO Fraud"])
-            target_group = st.multiselect("Target Groups", ["Employees", "IT Staff", "Executives", "Finance Team"])
-            template = st.selectbox("Email Template", ["Urgent Action Required", "Password Reset", "Invoice Payment", "Security Alert"])
-            
-            if st.button("🚀 Launch Phishing Test", disabled=(st.session_state.get('mode') != 'Admin')):
-                st.success(f"Phishing test launched! Targeting {len(target_group)} groups with {template} template")
-                
-        with col2:
-            st.subheader("Test Results")
-            st.metric("Emails Sent", "1,250")
-            st.metric("Clicks", "47", delta="3.8%")
-            st.metric("Credentials Submitted", "12", delta="0.96%")
-            st.metric("Reported as Phishing", "8", delta="0.64%")
-            
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with tab2:
-        st.markdown("#### 🔍 Vulnerability Assessment")
-        st.markdown('<div class="test-card">', unsafe_allow_html=True)
-        
-        if st.button("Run Vulnerability Scan", disabled=(st.session_state.get('mode') != 'Admin')):
-            with st.spinner("Scanning for vulnerabilities..."):
-                time.sleep(3)
-                st.success("Scan completed!")
-                
-                col1, col2, col3, col4 = st.columns(4)
-                col1.metric("Critical", "3")
-                col2.metric("High", "12")
-                col3.metric("Medium", "28")
-                col4.metric("Low", "45")
-                
-                # Show sample vulnerabilities
-                st.subheader("Top Critical Vulnerabilities")
-                vulns = [
-                    {"CVE": "CVE-2025-12345", "Severity": "Critical", "Description": "RCE in Web Server", "Patch": "Available"},
-                    {"CVE": "CVE-2025-12346", "Severity": "Critical", "Description": "Privilege Escalation", "Patch": "Available"},
-                    {"CVE": "CVE-2025-12347", "Severity": "High", "Description": "SQL Injection", "Patch": "Available"},
-                ]
-                st.dataframe(pd.DataFrame(vulns))
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with tab3:
-        st.markdown("#### 🔐 Password Strength Audit")
-        st.markdown('<div class="test-card">', unsafe_allow_html=True)
-        
-        password = st.text_input("Test Password Strength", type="password")
-        if password:
-            strength = len(password) * 10
-            if len(password) < 8:
-                st.error("❌ Weak Password")
-            elif len(password) < 12:
-                st.warning("⚠️ Moderate Password")
-            else:
-                st.success("✅ Strong Password")
-                
-            st.metric("Password Strength", f"{min(strength, 100)}%")
-            
-        if st.button("Audit Domain Passwords", disabled=(st.session_state.get('mode') != 'Admin')):
-            st.info("Password audit would check for: weak passwords, password reuse, expired passwords")
-            # Simulated results
-            st.metric("Weak Passwords", "142")
-            st.metric("Password Reuse", "89")
-            st.metric("Expired Passwords", "23")
-            
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with tab4:
-        st.markdown("#### 🌐 Network Security Test")
-        st.markdown('<div class="test-card">', unsafe_allow_html=True)
-        
-        target_ip = st.text_input("Target IP/Network", "192.168.1.0/24")
-        scan_type = st.selectbox("Scan Type", ["Port Scan", "Vulnerability Scan", "Service Detection"])
-        
-        if st.button("Run Network Test", disabled=(st.session_state.get('mode') != 'Admin')):
-            with st.spinner(f"Running {scan_type} on {target_ip}..."):
-                time.sleep(2)
-                st.success("Network test completed!")
-                
-                # Simulated results
-                st.subheader("Scan Results")
-                results = [
-                    {"Port": "22", "Service": "SSH", "Status": "Open", "Risk": "Medium"},
-                    {"Port": "80", "Service": "HTTP", "Status": "Open", "Risk": "Low"},
-                    {"Port": "443", "Service": "HTTPS", "Status": "Open", "Risk": "Low"},
-                    {"Port": "3389", "Service": "RDP", "Status": "Open", "Risk": "High"},
-                ]
-                st.dataframe(pd.DataFrame(results))
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-
-def render_unified_intelligence():
-    """Renders unified threat intelligence dashboard"""
-    st.markdown("### 🌐 UNIFIED THREAT INTELLIGENCE")
-    
-    tab1, tab2, tab3 = st.tabs(["🕵️ Threat Intel", "🎯 Attack Analysis", "🔗 External Feeds"])
-    
-    with tab1:
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            st.markdown("#### 🌍 GLOBAL THREAT MAP")
-            countries = [
-                {'country': 'United States', 'lat': 38.9, 'lon': -77.0, 'threat': 0.95, 'type': 'Cyber Espionage'},
-                {'country': 'China', 'lat': 39.9, 'lon': 116.4, 'threat': 0.9, 'type': 'State-Sponsored'},
-                {'country': 'Russia', 'lat': 55.7, 'lon': 37.6, 'threat': 0.85, 'type': 'Ransomware'},
-            ]
-            
-            m = folium.Map(location=[20, 0], zoom_start=2, tiles='CartoDB dark_matter')
-            for c in countries:
-                color = 'red' if c['threat'] > 0.8 else 'orange' if c['threat'] > 0.6 else 'yellow'
-                folium.Marker(
-                    [c['lat'], c['lon']], 
-                    tooltip=f"{c['country']} - Threat: {c['threat']:.1%} - {c['type']}",
-                    icon=folium.Icon(color=color, icon='warning-sign')
-                ).add_to(m)
-            folium_static(m, width=700, height=400)
-        
-        with col2:
-            st.markdown("#### 🎯 ACTIVE THREAT ACTORS")
-            # FIXED: Check if threat_intel exists and has threat_actors
-            if hasattr(st.session_state.holographic_intel, 'threat_intel') and hasattr(st.session_state.holographic_intel.threat_intel, 'threat_actors'):
-                threat_actors = st.session_state.holographic_intel.threat_intel.threat_actors
-                
-                for actor_id, actor in threat_actors.items():
-                    with st.expander(f"🔴 {actor['name']}"):
-                        st.write(f"**Origin:** {actor['origin']}")
-                        st.write(f"**Targets:** {', '.join(actor['targets'])}")
-                        st.write(f"**Activity:** {random.choice(['High', 'Medium', 'Low'])}")
-            else:
-                st.warning("Threat intelligence data not available")
-    
-    with tab2:
-        render_mitre_navigator()
-        
-    with tab3:
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("#### 🔗 CISA ALERTS")
-            cisa_alerts = st.session_state.holographic_intel.cisa_integration.fetch_cisa_alerts()
-            for alert in cisa_alerts:
-                with st.expander(f"{alert['severity']} - {alert['title']}"):
-                    st.write(f"**Date:** {alert['date']}")
-                    st.markdown(f"[View Alert]({alert['link']})")
-        
-        with col2:
-            st.markdown("#### 📊 VULNERABILITY INTELLIGENCE")
-            vulnerabilities = st.session_state.holographic_intel.live_data.fetch_vulnerability_data()
-            for vuln in vulnerabilities:
-                with st.expander(f"{vuln['cve_id']} - {vuln['severity']}"):
-                    st.write(f"**CVSS:** {vuln['cvss_score']}")
-                    st.write(f"**Description:** {vuln['description']}")
-
-def render_unified_defense():
-    """Renders unified defense operations"""
-    st.markdown("### 🛡️ UNIFIED DEFENSE OPERATIONS")
-    
-    tab1, tab2, tab3 = st.tabs(["🖥️ XDR Dashboard", "☁️ Cloud Security", "📜 Compliance"])
-    
-    with tab1:
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            st.markdown("#### 📊 ENDPOINT RISK ANALYSIS")
-            # FIXED: Check if xdr exists
-            if hasattr(st.session_state.holographic_intel, 'xdr'):
-                risk_data = st.session_state.holographic_intel.xdr.get_endpoint_risk_analysis()
-                
-                metrics_cols = st.columns(4)
-                metrics_cols[0].metric("Total Endpoints", risk_data['total_endpoints'])
-                metrics_cols[1].metric("Healthy", risk_data['healthy'])
-                metrics_cols[2].metric("At Risk", risk_data['at_risk'])
-                metrics_cols[3].metric("Compromised", risk_data['compromised'])
-                
-                # Endpoint health chart
-                labels = ['Healthy', 'At Risk', 'Compromised']
-                values = [risk_data['healthy'], risk_data['at_risk'], risk_data['compromised']]
-                fig = px.pie(values=values, names=labels, title="Endpoint Health Distribution")
-                fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.warning("XDR data not available")
-        
-        with col2:
-            st.markdown("#### 🚨 RECENT INCIDENTS")
-            if hasattr(st.session_state.holographic_intel, 'xdr'):
-                incidents = st.session_state.holographic_intel.xdr.incidents[:5]
-                for incident in incidents:
-                    st.markdown(f"""
-                    **{incident['title']}**
-                    - Severity: {incident['severity']}
-                    - Status: {incident['status']}
-                    - Created: {incident['created']}
-                    """)
-            else:
-                st.warning("Incident data not available")
-    
-    with tab2:
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("#### ☁️ CLOUD SECURITY POSTURE")
-            if hasattr(st.session_state.holographic_intel, 'cloud_security'):
-                posture_score = st.session_state.holographic_intel.cloud_security.get_cloud_posture_score()
-                st.metric("Cloud Security Score", f"{posture_score:.1f}%")
-                
-                # Resource compliance
-                resources = st.session_state.holographic_intel.cloud_security.cloud_resources
-                compliant = len([r for r in resources if r['compliance'] == 'Compliant'])
-                st.metric("Compliant Resources", f"{compliant}/{len(resources)}")
-            else:
-                st.warning("Cloud security data not available")
-        
-        with col2:
-            st.markdown("#### ⚠️ SECURITY FINDINGS")
-            if hasattr(st.session_state.holographic_intel, 'cloud_security'):
-                findings = st.session_state.holographic_intel.cloud_security.security_findings
-                severity_counts = {}
-                for finding in findings:
-                    severity = finding['severity']
-                    severity_counts[severity] = severity_counts.get(severity, 0) + 1
-                
-                for severity, count in severity_counts.items():
-                    st.metric(f"{severity} Findings", count)
-            else:
-                st.warning("Security findings not available")
-    
-    with tab3:
-        st.markdown("#### 📜 COMPLIANCE DASHBOARD")
-        if hasattr(st.session_state.holographic_intel, 'compliance'):
-            frameworks = st.session_state.holographic_intel.compliance.get_compliance_dashboard()
-            
-            cols = st.columns(len(frameworks))
-            for i, (framework_id, framework) in enumerate(frameworks.items()):
-                with cols[i]:
-                    st.metric(framework['name'], f"{framework['compliance']}%")
-            
-            st.markdown("#### 🛡️ SECURITY CONTROLS")
-            controls = [
-                "🔐 Encryption at Rest - **Enabled**",
-                "🔑 Multi-Factor Authentication - **Enabled**",
-                "📝 Audit Logging - **Enabled**",
-                "🛡️ Network Segmentation - **Enabled**",
-            ]
-            for control in controls:
-                st.markdown(f"- {control}")
-        else:
-            st.warning("Compliance data not available")
-
-def render_identity_governance():
-    """Renders identity and data governance"""
-    st.markdown("### 👤 IDENTITY & DATA GOVERNANCE")
-    
-    tab1, tab2 = st.tabs(["👤 Identity Management", "📂 Data Governance"])
-    
-    with tab1:
-        col1, col2, col3 = st.columns(3)
-        col1.metric("👥 Privileged Accounts", "1,284")
-        col2.metric("🚨 Risky Sign-ins (24h)", "47", delta="5")
-        col3.metric("⏳ Stale Credentials", "312")
-        
-        st.markdown("#### RECENT HIGH-RISK SIGN-INS")
-        sign_in_data = [
-            {'User': 'a.jones', 'IP': '185.220.101.35', 'Location': 'Russia', 'Risk': '🔴 High', 'Action': 'Block'},
-            {'User': 'c.miller', 'IP': '103.76.12.102', 'Location': 'Vietnam', 'Risk': '🔴 High', 'Action': 'Block'},
-            {'User': 'guest', 'IP': '203.0.113.88', 'Location': 'Unknown', 'Risk': '🟠 Medium', 'Action': 'Force MFA'},
-        ]
-        st.dataframe(pd.DataFrame(sign_in_data))
-    
-    with tab2:
-        col1, col2, col3 = st.columns(3)
-        col1.metric("📑 Classified Documents", "1.2M")
-        col2.metric("📤 DLP Alerts (7d)", "14", delta="-2")
-        col3.metric("📜 Policy Violations", "89")
-        
-        st.markdown("#### DATA SENSITIVITY DISTRIBUTION")
-        labels = ['Confidential', 'Internal', 'Restricted', 'Public']
-        sizes = [45, 30, 15, 10]
-        fig = px.pie(values=sizes, names=labels, title="Data Classification")
-        fig.update_layout(paper_bgcolor='rgba(0,0,0,0)', font=dict(color='white'))
-        st.plotly_chart(fig, use_container_width=True)
-
-def render_automated_response():
-    """Renders automated response and testing"""
-    st.markdown("### ⚙️ AUTOMATED RESPONSE & TESTING")
-    
-    tab1, tab2 = st.tabs(["⚡ SOAR Playbooks", "🧪 Security Tests"])
-    
-    with tab1:
-        col1, col2 = st.columns([1, 2])
-        
-        with col1:
-            st.markdown("#### PLAYBOOK CATALOG")
-            playbook = st.selectbox("Select Playbook:", 
-                                    ("Ransomware Containment", "Phishing Response", "Insider Threat Investigation"))
-            
-            st.markdown("##### Playbook Steps:")
-            steps = {
-                "Ransomware Containment": ["1. Isolate Host Network", "2. Snapshot Memory/Disk", "3. Block C2 IP", "4. Revoke Credentials"],
-                "Phishing Response": ["1. Analyze Email Headers", "2. Detonate URL", "3. Search & Purge Emails", "4. Block Sender"],
-                "Insider Threat Investigation": ["1. Enable Logging", "2. Capture Traffic", "3. Analyze Patterns", "4. Alert HR"]
-            }
-            for step in steps.get(playbook, []):
-                st.info(step)
-        
-        with col2:
-            st.markdown("#### PLAYBOOK EXECUTION")
-            if st.button(f"🚀 Trigger '{playbook}' Playbook", disabled=(st.session_state.get('mode') != 'Admin')):
-                log_placeholder = st.empty()
-                log_text = ""
-                for i, step in enumerate(steps.get(playbook, [])):
-                    log_text += f"[{datetime.now().strftime('%H:%M:%S')}] EXECUTING: {step}...\n"
-                    log_placeholder.markdown(f'<div class="log-container">{log_text}</div>', unsafe_allow_html=True)
-                    time.sleep(1)
-                    log_text += f"[{datetime.now().strftime('%H:%M:%S')}] COMPLETED: Step {i+1}\n"
-                    log_placeholder.markdown(f'<div class="log-container">{log_text}</div>', unsafe_allow_html=True)
-                log_text += f"[{datetime.now().strftime('%H:%M:%S')}] ✅ PLAYBOOK COMPLETED.\n"
-                log_placeholder.markdown(f'<div class="log-container">{log_text}</div>', unsafe_allow_html=True)
-    
-    with tab2:
-        render_security_tests()
-
-# --- MAIN APPLICATION LOGIC ---
-
+# Update the main tabs to include enhanced features
 def main():
     with quantum_resource_manager():
-        # Initialize session state
+        # Initialize session state with enhanced features
         if 'holographic_intel' not in st.session_state:
             st.session_state.holographic_intel = HolographicThreatIntelligence()
         if 'cisa_connected' not in st.session_state:
@@ -1222,10 +1129,10 @@ def main():
             st.session_state.mitre_connected = False
         if 'active_simulations' not in st.session_state:
             st.session_state.active_simulations = []
-        if 'log_history' not in st.session_state:
-            st.session_state.log_history = "Initializing log stream...\n"
-        if 'analysis_history' not in st.session_state:
-            st.session_state.analysis_history = "AI Analyst is online. Awaiting data...\n"
+        if 'enhanced_log_history' not in st.session_state:
+            st.session_state.enhanced_log_history = "🚀 Enhanced NEXUS-7 AI Analyst Initialized\n"
+        if 'enhanced_analysis_history' not in st.session_state:
+            st.session_state.enhanced_analysis_history = "🧠 AI Analyst Online - Enhanced Mode\n"
 
         # --- MODE SELECTION (LOGIN) ---
         if 'mode' not in st.session_state:
@@ -1261,84 +1168,94 @@ def main():
             
             st.markdown("---")
             
-            # Quick stats in sidebar
-            st.markdown("### 📊 Quick Stats")
-            st.metric("Active Threats", f"{random.randint(5, 25)}")
-            st.metric("Systems Monitored", f"{random.randint(500, 2000)}")
-            st.metric("Incidents Today", f"{random.randint(0, 15)}")
+            # Enhanced quick stats in sidebar
+            st.markdown("### 📊 Enhanced Stats")
+            st.metric("Active Threats", f"{random.randint(8, 32)}")
+            st.metric("Systems Monitored", f"{random.randint(1000, 5000)}")
+            st.metric("Incidents Today", f"{random.randint(5, 25)}")
+            st.metric("AI Confidence", f"{random.randint(92, 99)}%")
 
         if st.session_state.mode == "Locked":
-            st.title("Welcome to the NEXUS-7 Quantum Neural Defense Matrix")
+            st.title("Welcome to the Enhanced NEXUS-7 Quantum Neural Defense Matrix")
             st.warning("Please select a mode from the sidebar to continue.")
             st.stop()
             
-        # --- HEADER ---
+        # --- ENHANCED HEADER ---
         st.markdown("""
         <div class="neuro-header">
             <h1 class="neuro-text" style="font-size: 4rem; margin: 0;">🧠 NEXUS-7 QUANTUM NEURAL MATRIX</h1>
             <h3 class="hologram-text" style="font-size: 1.8rem; margin: 1rem 0;">
-                Live Threat Intelligence • Quantum Simulation • Global Defense
+                Enhanced Threat Intelligence • Multi-Source Correlation • Advanced AI Defense
             </h3>
             <p style="color: #00ffff; font-family: 'Exo 2'; font-size: 1.2rem;">
-                Mode: <strong>{}</strong> | Last Updated: {}
+                Mode: <strong>{}</strong> | AI Confidence: {}% | Last Updated: {}
             </p>
         </div>
-        """.format(st.session_state.mode, datetime.now().strftime("%Y-%m-%d %H:%M:%S")), unsafe_allow_html=True)
+        """.format(st.session_state.mode, random.randint(92, 99), datetime.now().strftime("%Y-%m-%d %H:%M:%S")), unsafe_allow_html=True)
         
-        # --- QUICK ACTIONS ---
-        st.markdown("### 🚀 QUICK ACTIONS")
+        # --- ENHANCED QUICK ACTIONS ---
+        st.markdown("### 🚀 ENHANCED QUICK ACTIONS")
         cols = st.columns(6)
         with cols[0]:
-            if st.button("🔗 Connect CISA", use_container_width=True):
+            if st.button("🔗 Connect All Feeds", use_container_width=True):
                 st.session_state.cisa_connected = True
-                st.success("CISA System Connected!")
-        with cols[1]:
-            if st.button("🎯 Connect MITRE", use_container_width=True):
                 st.session_state.mitre_connected = True
-                st.success("MITRE Framework Loaded!")
-        with cols[2]:
-            if st.button("🧠 Run Analysis", use_container_width=True):
-                with st.spinner("🌀 Running quantum neural analysis..."):
+                st.success("All Intelligence Feeds Connected!")
+        with cols[1]:
+            if st.button("🎯 Run Correlation", use_container_width=True):
+                with st.spinner("🌀 Running advanced correlation analysis..."):
                     time.sleep(2)
-                    st.success("Analysis Complete!")
+                    st.success("Correlation Complete!")
+        with cols[2]:
+            if st.button("🧠 AI Deep Analysis", use_container_width=True):
+                with st.spinner("🧠 Executing neural threat analysis..."):
+                    time.sleep(3)
+                    st.success("Deep Analysis Complete!")
         with cols[3]:
-            if st.button("📊 Generate Report", use_container_width=True, disabled=(st.session_state.get('mode') != 'Admin')):
-                st.info("Report generation initiated.")
+            if st.button("📊 Enhanced Report", use_container_width=True, disabled=(st.session_state.get('mode') != 'Admin')):
+                st.info("Enhanced report generation initiated.")
         with cols[4]:
-            if st.button("🔄 Refresh Data", use_container_width=True):
+            if st.button("🔄 Refresh All", use_container_width=True):
                 st.rerun()
         with cols[5]:
-            if st.button("🚨 Emergency Protocol", use_container_width=True, disabled=(st.session_state.get('mode') != 'Admin')):
+            if st.button("🚨 Quantum Protocol", use_container_width=True, disabled=(st.session_state.get('mode') != 'Admin')):
                 st.error("🚨 QUANTUM EMERGENCY PROTOCOL ACTIVATED!")
 
-        # --- QUANTUM METRICS ---
-        st.markdown("### 📊 REAL-TIME QUANTUM METRICS")
-        m_cols = st.columns(6)
-        metrics = ["🌌 Quantum Coherence", "🧠 Neural Activity", "⚡ Threat Velocity", "🔗 Entanglement", "🌊 Temporal Stability", "🛡️ Holographic Shield"]
+        # --- ENHANCED QUANTUM METRICS ---
+        st.markdown("### 📊 ENHANCED REAL-TIME METRICS")
+        m_cols = st.columns(8)
+        metrics = ["🌌 Quantum Coherence", "🧠 Neural Activity", "⚡ Threat Velocity", "🔗 Entanglement", "🌊 Temporal Stability", "🛡️ Holographic Shield", "🔍 AI Accuracy", "🎯 Correlation Power"]
         for i, col in enumerate(m_cols):
             with col:
                 st.markdown('<div class="quantum-metric">', unsafe_allow_html=True)
-                st.metric(metrics[i], f"{random.uniform(0.75, 0.99):.1%}", f"{random.uniform(1, 5):+.1f}%")
+                st.metric(metrics[i], f"{random.uniform(0.85, 0.99):.1%}", f"{random.uniform(1, 5):+.1f}%")
                 st.markdown('</div>', unsafe_allow_html=True)
         
-        # --- MERGED MAIN TABS ---
+        # --- ENHANCED MAIN TABS ---
         tabs = st.tabs([
             "🧠 NEURAL MATRIX",
-            "🧬 LIVE NEXUS & AI", 
+            "🧬 ENHANCED LIVE NEXUS", 
             "🎮 QUANTUM SIMULATOR",
-            "🌐 THREAT INTELLIGENCE",  # Merged: Threat Intel, Attack Analysis, External Feeds
-            "🛡️ DEFENSE OPERATIONS",  # Merged: XDR, Cloud Security, Compliance  
-            "👤 IDENTITY & GOVERNANCE", # Merged: Identity, Data Governance
-            "⚡ RESPONSE & TESTING"    # Merged: SOAR, Security Tests
+            "🌐 ENHANCED THREAT INTEL",  # Combined: Mandiant, Sentinel, CrowdStrike, Palo Alto, Entra
+            "🛡️ DEFENSE OPERATIONS",  
+            "📊 ENHANCED GOVERNANCE",   # Combined: Purview, Compliance, Controls
+            "⚡ RESPONSE & TESTING"
         ])
         
-        with tabs[0]: render_neural_matrix()
-        with tabs[1]: render_live_nexus()
-        with tabs[2]: render_quantum_simulator()
-        with tabs[3]: render_unified_intelligence()
-        with tabs[4]: render_unified_defense()
-        with tabs[5]: render_identity_governance()
-        with tabs[6]: render_automated_response()
+        with tabs[0]: 
+            render_neural_matrix()
+        with tabs[1]: 
+            render_enhanced_live_nexus()  # Enhanced version
+        with tabs[2]: 
+            render_quantum_simulator()
+        with tabs[3]: 
+            render_enhanced_threat_intelligence()  # Combined threat intel
+        with tabs[4]: 
+            render_unified_defense()
+        with tabs[5]: 
+            render_enhanced_data_governance()  # Enhanced governance
+        with tabs[6]: 
+            render_automated_response()
 
 if __name__ == "__main__":
     main()
